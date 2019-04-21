@@ -1,0 +1,47 @@
+﻿<Window x:Class="wfPlayer.wfPlayerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:wfPlayer"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Loaded="OnLoaded"
+      Title="wfPlayerPage">
+
+    <StackPanel Background="Black">
+
+        <!-- To interactively stop, pause, and play the media, the LoadedBehavior 
+           property of the MediaElement must be set to "Manual". -->
+        <MediaElement Name="myMediaElement" 
+     Width="450" Height="250" LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Fill" 
+     MediaOpened="Element_MediaOpened" MediaEnded="Element_MediaEnded"/>
+
+        <StackPanel HorizontalAlignment="Center" Width="450" Orientation="Horizontal">
+
+            <!-- Play button. -->
+            <Image Source="Resources/play.png" MouseDown="OnMouseDownPlayMedia" Margin="5" />
+
+            <!-- Pause button. -->
+            <Image Source="Resouces/pause.png" MouseDown="OnMouseDownPauseMedia" Margin="5" />
+
+            <!-- Stop button. -->
+            <Image Source="Resources/stop.png" MouseDown="OnMouseDownStopMedia" Margin="5" />
+
+            <!-- Volume slider. This slider allows a Volume range between 0 and 1. -->
+            <TextBlock Foreground="White" VerticalAlignment="Center" Margin="5"  >Volume</TextBlock>
+            <Slider Name="volumeSlider" VerticalAlignment="Center" ValueChanged="ChangeMediaVolume" 
+       Minimum="0" Maximum="1" Value="0.5" Width="70"/>
+
+            <!-- Volume slider. This slider allows you to change the speed of the media playback. -->
+            <TextBlock Foreground="White" Margin="5"  VerticalAlignment="Center">Speed</TextBlock>
+            <Slider Name="speedRatioSlider" VerticalAlignment="Center" ValueChanged="ChangeMediaSpeedRatio" 
+       Value="1" Width="70" />
+
+            <!-- Seek to slider. Ths slider allows you to jump to different parts of the media playback. -->
+            <TextBlock Foreground="White" Margin="5"  VerticalAlignment="Center">Seek To</TextBlock>
+            <Slider Name="timelineSlider" Margin="5" ValueChanged="SeekToMediaPosition" Width="70"/>
+
+        </StackPanel>
+    </StackPanel>
+</Window>
