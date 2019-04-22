@@ -19,11 +19,12 @@
             <MediaElement LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="UniformToFill"
                           Name="mMediaElement" MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed"
                           Source="{Binding VideoSource}"
-                          Volume="{Binding Volume, Mode=OneWay}" />
+                          Volume="{Binding Volume, Mode=OneWay}" Margin="0,1,0,-1"
+                          />
         </Grid>
         <Grid Grid.Column="1" Grid.Row="1"  Background="#50000000">
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
-                <Slider Minimum="0" Maximum="{Binding Duration}" Value="{Binding Position, Mode=TwoWay}"/>
+                <Slider Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}" ValueChanged="OnPositionChanged" LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}"/>
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                     <Button Click="OnPlay" Width="36" Height="36">
                         <Viewbox>
@@ -81,8 +82,8 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Grid.Row="0" Text="Volume" Foreground="White" Margin="0,0,8,0"/>
                     <TextBlock Grid.Column="0" Grid.Row="1" Text="Speed" Foreground="White" Margin="0,0,8,0"/>
-                    <Slider Grid.Column="1" Grid.Row="0" Minimum="0" Maximum="1" Value="{Binding Volume, Mode=TwoWay}"/>
-                    <Slider Grid.Column="1" Grid.Row="1" Minimum="0.2" Maximum="3" Value="{Binding Speed, Mode=TwoWay}"/>
+                    <Slider Grid.Column="1" Grid.Row="0" Minimum="0" Maximum="1" Value="{Binding Volume, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1"/>
+                    <Slider Grid.Column="1" Grid.Row="1" Minimum="0" Maximum="1" Value="{Binding Speed, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1"/>
                 </Grid>
             </StackPanel>
         </Grid>

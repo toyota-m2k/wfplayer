@@ -12,6 +12,7 @@ namespace wfPlayer
         void NotifyPropertyChanged(string propName);
     }
 
+    public delegate void ValueChangedProc<T>(T newValue);
     public class UtObservableProperty<T> where T: IComparable<T>
     {
         private WeakReference<IUtPropertyChangedNotifier> mNotifier;
@@ -46,6 +47,8 @@ namespace wfPlayer
             mNotifier = new WeakReference<IUtPropertyChangedNotifier>(notifier);
         }
 
+        public event ValueChangedProc<T> ValueChanged;
+
         public T Value
         {
             get => mValue;
@@ -55,6 +58,7 @@ namespace wfPlayer
                 {
                     mValue = value;
                     Notify();
+                    ValueChanged?.Invoke(value);
                 }
             }
         }

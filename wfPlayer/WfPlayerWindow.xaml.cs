@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace wfPlayer
 {
@@ -69,57 +60,128 @@ namespace wfPlayer
             set => SetValue(VideoSourceProperty, value);
         }
 
-
-        private UtObservableProperty<double> mDuration;
+        public static readonly DependencyProperty DurationProperty = DependencyProperty.Register("Duration", typeof(double), typeof(WfPlayerWindow));
         public double Duration
         {
-            get => mDuration.Value;
-            set => mDuration.Value = value;
+            get => (double)GetValue(DurationProperty);
+            set
+            {
+                SetValue(DurationProperty, value);
+                notify("LargePositionChange");
+                notify("SmallPositionChange");
+            }
         }
 
-        private UtObservableProperty<double> mPosition;
-        public double Position
-        {
-            get => mPosition.Value;
-            set => mPosition.Value = value;
-        }
+        public double LargePositionChange => Duration / 10;
+        public double SmallPositionChange => 1000;
 
-        private UtObservableProperty<double> mVolume;
+
+        public static readonly DependencyProperty VolumeProperty = DependencyProperty.Register("Volume", typeof(double), typeof(WfPlayerWindow), new PropertyMetadata(0.5));
         public double Volume
         {
-            get => mVolume.Value;
-            set => mVolume.Value = value;
+            get => (double)GetValue(VolumeProperty);
+            set => SetValue(VolumeProperty, value);
         }
 
-        private UtObservableProperty<double> mSpeed;
+        public static readonly DependencyProperty SpeedProperty = DependencyProperty.Register("Speed", typeof(double), typeof(WfPlayerWindow), new PropertyMetadata((double)0.5, SpeedPropertyChangedCallback));
         public double Speed
         {
-            get => mSpeed.Value;
-            set => mSpeed.Value = value;
+            get => (double)GetValue(SpeedProperty);
+            set => SetValue(SpeedProperty, value);
+        }
+        private static void SpeedPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as WfPlayerWindow)?.OnSpeedChanged((double)e.NewValue);
+        }
+        private double speedRatio(double speed)
+        {
+            if (speed >= 0.5)
+            {
+                return 1 + (speed - 0.5) * 8;
+            }
+            else
+            {
+                return 0.2 + 0.8 * (speed * 2);
+            }
+        }
+        private void OnSpeedChanged(double newValue)
+        {
+            // 0.125 --> 0.25
+            // 0.25 --> 0.5
+            // 0.5 --> 1
+            // 0.75 --> 2
+            // 0.875 --> 3
+            if (mMediaElement != null)
+            {
+                mMediaElement.SpeedRatio = speedRatio(newValue);
+            }
+        }
+
+
+        private UtObservableProperty<bool> mPlaying;
+        public bool Playing
+        {
+            get => mPlaying.Value;
+            set => mPlaying.Value = value;
+        }
+        private UtObservableProperty<bool> mPausing;
+        public bool Pausing
+        {
+            get => mPausing.Value;
+            set => mPausing.Value = value;
         }
 
         #endregion
 
         public WfPlayerWindow(string path)
         {
-            mDuration = new UtObservableProperty<double>("Duration", 1.0, this);
-            mPosition = new UtObservableProperty<double>("Position", 0.0, this);
-            mSpeed= new UtObservableProperty<double>("Speed", 1.0, this);
-            mVolume = new UtObservableProperty<double>("Volume", 1.0, this);
+            Duration = 1.0;
             VideoSource = new Uri(path);
+
+            mPlaying = new UtObservableProperty<bool>("Playing", false, this);
+            mPlaying.ValueChanged += OnPlayingStateChanged;
+            mPausing = new UtObservableProperty<bool>("Pausing", false, this);
 
             this.DataContext = this;
             InitializeComponent();
         }
 
+        private DispatcherTimer _positionTimer = null;
+        private void OnPlayingStateChanged(bool newValue)
+        {
+            if(newValue)
+            {
+                if(null==_positionTimer)
+                {
+                    _positionTimer = new DispatcherTimer();
+                    _positionTimer.Tick += (s, e) =>
+                    {
+                        mPositionSlider.Value = mMediaElement.Position.TotalMilliseconds;
+                    };
+                    _positionTimer.Interval = TimeSpan.FromMilliseconds(50);
+                    _positionTimer.Start();
+                }
+            }
+            else
+            {
+                if(null!=_positionTimer)
+                {
+                    _positionTimer.Stop();
+                    _positionTimer = null;
+                }
+            }
+        }
+
         private void OnMediaOpened(object sender, RoutedEventArgs e)
         {
             Duration = mMediaElement.NaturalDuration.TimeSpan.TotalMilliseconds;
+            mMediaElement.Position = TimeSpan.FromMilliseconds(mPosition);
+            mMediaElement.SpeedRatio = speedRatio(Speed);
         }
 
         private void OnMediaEnded(object sender, RoutedEventArgs e)
         {
-            mMediaElement.Stop();
+            OnStop(sender, null);
         }
 
         private void OnMediaFailed(object sender, ExceptionRoutedEventArgs e)
@@ -129,21 +191,45 @@ namespace wfPlayer
 
         private void OnPlay(object sender, RoutedEventArgs e)
         {
-            mMediaElement.Play();
+            if(Pausing)
+            {
+                OnPause(sender, e);
+            }
+            else
+            {
+                mMediaElement.Play();
+                Playing = true;
+            }
         }
 
         private void OnPlayFast(object sender, RoutedEventArgs e)
         {
-            Speed = 2;
-            mMediaElement.Play();
+            Speed = 0.6;
+            OnPlay(sender, e);
         }
+
         private void OnPause(object sender, RoutedEventArgs e)
         {
-            mMediaElement.Pause();
+            if (!Pausing)
+            {
+                mMediaElement.Pause();
+                Playing = false;
+                Pausing = true;
+            }
+            else
+            {
+                mMediaElement.Play();
+                Playing = true;
+                Pausing = false;
+            }
         }
         private void OnStop(object sender, RoutedEventArgs e)
         {
             mMediaElement.Stop();
+            Playing = false;
+            Pausing = false;
+            mPosition = 0;
+            mPositionSlider.Value = 0;
         }
 
         private void OnPrev(object sender, RoutedEventArgs e)
@@ -154,6 +240,24 @@ namespace wfPlayer
         {
 
         }
+
+        private double mPosition = 0;
+        private async void OnPositionChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            var v = e.NewValue;
+            if(v!=mPosition)
+            {
+                mMediaElement.Position = TimeSpan.FromMilliseconds(v);
+                if(!Playing)
+                {
+                    mMediaElement.Play();
+                    await Task.Delay(10);
+                    mMediaElement.Stop();
+                }
+            }
+        }
+
+
 
         //void InitializePropertyValues()
         //{
