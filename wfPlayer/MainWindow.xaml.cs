@@ -32,7 +32,7 @@ namespace wfPlayer
             dlg.Filter= "全てのファイル(*.*)|*.*";
             if (dlg.ShowDialog() == true)
             {
-                var page = new wfPlayerPage(dlg.FileName);
+                var page = new WfPlayerWindow(dlg.FileName);
                 page.Show();
             }
         }
