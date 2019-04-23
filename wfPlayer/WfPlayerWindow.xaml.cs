@@ -53,6 +53,9 @@ namespace wfPlayer
 
         #region Binding Properties
 
+        /**
+         * VideoSource --> MediaElement.Source
+         */
         public static readonly DependencyProperty VideoSourceProperty = DependencyProperty.Register("VideoSource", typeof(Uri), typeof(WfPlayerWindow));
         public Uri VideoSource
         {
@@ -60,6 +63,9 @@ namespace wfPlayer
             set => SetValue(VideoSourceProperty, value);
         }
 
+        /**
+         * Duration --> mPositionSlider.Value
+         */
         public static readonly DependencyProperty DurationProperty = DependencyProperty.Register("Duration", typeof(double), typeof(WfPlayerWindow));
         public double Duration
         {
@@ -71,11 +77,15 @@ namespace wfPlayer
                 notify("SmallPositionChange");
             }
         }
-
+        /**
+         * mPositionSlider.LargeChange/SmallChange
+         */
         public double LargePositionChange => Duration / 10;
         public double SmallPositionChange => 1000;
 
-
+        /**
+         * Volume <--> Volume Slider.Value / MediaElement.Volume
+         */
         public static readonly DependencyProperty VolumeProperty = DependencyProperty.Register("Volume", typeof(double), typeof(WfPlayerWindow), new PropertyMetadata(0.5));
         public double Volume
         {
@@ -83,52 +93,126 @@ namespace wfPlayer
             set => SetValue(VolumeProperty, value);
         }
 
+        /**
+         * Speed <--> Speed Slider.Value
+         *        --> SpeedPropertyChangedCallback --> MediaElement.SpeedRatio (このプロパティはDepandencyPropertyではないのでバインドできない）
+         */
         public static readonly DependencyProperty SpeedProperty = DependencyProperty.Register("Speed", typeof(double), typeof(WfPlayerWindow), new PropertyMetadata((double)0.5, SpeedPropertyChangedCallback));
         public double Speed
         {
             get => (double)GetValue(SpeedProperty);
             set => SetValue(SpeedProperty, value);
         }
+        /**
+         * DependencyPropertyではないMediaElement.SpeedRatioに、スライダーから変更された値をセットするための仕掛け
+         */
         private static void SpeedPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             (d as WfPlayerWindow)?.OnSpeedChanged((double)e.NewValue);
         }
-        private double speedRatio(double speed)
+        private double calcSpeedRatio(double speed)
         {
             if (speed >= 0.5)
             {
-                return 1 + (speed - 0.5) * 8;
+                return 1 + (speed - 0.5) * 2;       // 1 ～ 2
             }
             else
             {
-                return 0.2 + 0.8 * (speed * 2);
+                return 0.2 + 0.8 * (speed * 2);     // 0.2 ～ 1
             }
         }
         private void OnSpeedChanged(double newValue)
         {
-            // 0.125 --> 0.25
-            // 0.25 --> 0.5
-            // 0.5 --> 1
-            // 0.75 --> 2
-            // 0.875 --> 3
             if (mMediaElement != null)
             {
-                mMediaElement.SpeedRatio = speedRatio(newValue);
+                mMediaElement.SpeedRatio = calcSpeedRatio(newValue);
             }
         }
 
-
+        /**
+         * 再生中 or not
+         */
         private UtObservableProperty<bool> mPlaying;
         public bool Playing
         {
             get => mPlaying.Value;
             set => mPlaying.Value = value;
         }
+        /**
+         * 一時停止中 or not
+         */
         private UtObservableProperty<bool> mPausing;
         public bool Pausing
         {
             get => mPausing.Value;
             set => mPausing.Value = value;
+        }
+
+        #endregion
+
+        #region 再生操作
+
+        void Play()
+        {
+            if (Pausing)
+            {
+                Pause();
+            }
+            else
+            {
+                mMediaElement.Play();
+                Playing = true;
+            }
+        }
+
+        void Pause()
+        {
+            if (!Pausing)
+            {
+                mMediaElement.Pause();
+                Playing = false;
+                Pausing = true;
+            }
+            else
+            {
+                mMediaElement.Play();
+                Playing = true;
+                Pausing = false;
+            }
+        }
+
+        void Stop()
+        {
+            mMediaElement.Stop();
+            Playing = false;
+            Pausing = false;
+            mPositionSlider.Value = 0;
+        }
+
+        private DispatcherTimer _positionTimer = null;
+        private void OnPlayingStateChanged(bool newValue)
+        {
+            if (newValue)
+            {
+                if (null == _positionTimer)
+                {
+                    _positionTimer = new DispatcherTimer();
+                    _positionTimer.Tick += (s, e) =>
+                    {
+                        mPositionSlider.Value = mMediaElement.Position.TotalMilliseconds;
+                    };
+                    _positionTimer.Interval = TimeSpan.FromMilliseconds(50);
+                    _positionTimer.Start();
+                }
+            }
+            else
+            {
+                if (null != _positionTimer)
+                {
+                    _positionTimer.Stop();
+                    _positionTimer = null;
+                }
+            }
         }
 
         #endregion
@@ -146,42 +230,18 @@ namespace wfPlayer
             InitializeComponent();
         }
 
-        private DispatcherTimer _positionTimer = null;
-        private void OnPlayingStateChanged(bool newValue)
-        {
-            if(newValue)
-            {
-                if(null==_positionTimer)
-                {
-                    _positionTimer = new DispatcherTimer();
-                    _positionTimer.Tick += (s, e) =>
-                    {
-                        mPositionSlider.Value = mMediaElement.Position.TotalMilliseconds;
-                    };
-                    _positionTimer.Interval = TimeSpan.FromMilliseconds(50);
-                    _positionTimer.Start();
-                }
-            }
-            else
-            {
-                if(null!=_positionTimer)
-                {
-                    _positionTimer.Stop();
-                    _positionTimer = null;
-                }
-            }
-        }
+        #region Event Handlers
 
         private void OnMediaOpened(object sender, RoutedEventArgs e)
         {
             Duration = mMediaElement.NaturalDuration.TimeSpan.TotalMilliseconds;
             mMediaElement.Position = TimeSpan.FromMilliseconds(mPosition);
-            mMediaElement.SpeedRatio = speedRatio(Speed);
+            mMediaElement.SpeedRatio = calcSpeedRatio(Speed);
         }
 
         private void OnMediaEnded(object sender, RoutedEventArgs e)
         {
-            OnStop(sender, null);
+            Stop();
         }
 
         private void OnMediaFailed(object sender, ExceptionRoutedEventArgs e)
@@ -191,45 +251,22 @@ namespace wfPlayer
 
         private void OnPlay(object sender, RoutedEventArgs e)
         {
-            if(Pausing)
-            {
-                OnPause(sender, e);
-            }
-            else
-            {
-                mMediaElement.Play();
-                Playing = true;
-            }
+            Play();
         }
 
         private void OnPlayFast(object sender, RoutedEventArgs e)
         {
-            Speed = 0.6;
-            OnPlay(sender, e);
+            Speed = 1;
+            Play();
         }
 
         private void OnPause(object sender, RoutedEventArgs e)
         {
-            if (!Pausing)
-            {
-                mMediaElement.Pause();
-                Playing = false;
-                Pausing = true;
-            }
-            else
-            {
-                mMediaElement.Play();
-                Playing = true;
-                Pausing = false;
-            }
+            Pause();
         }
         private void OnStop(object sender, RoutedEventArgs e)
         {
-            mMediaElement.Stop();
-            Playing = false;
-            Pausing = false;
-            mPosition = 0;
-            mPositionSlider.Value = 0;
+            Stop();
         }
 
         private void OnPrev(object sender, RoutedEventArgs e)
@@ -256,15 +293,16 @@ namespace wfPlayer
                 }
             }
         }
+        #endregion
 
+        private void OnResetSpeed(object sender, RoutedEventArgs e)
+        {
 
+        }
 
-        //void InitializePropertyValues()
-        //{
-        //    // Set the media's starting Volume and SpeedRatio to the current value of the
-        //    // their respective slider controls.
-        //    mMediaElement.Volume = (double)volumeSlider.Value;
-        //    myMediaElement.SpeedRatio = (double)speedRatioSlider.Value;
-        //}
+        private void OnMute(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
