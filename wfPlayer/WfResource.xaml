@@ -1,8 +1,127 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:wfPlayer">
-    <Style TargetType="Button" x:Key="IconButton">
-        
+
+    <Path x:Key="PathPlay" Data="M8,5.14V19.14L19,12.14L8,5.14Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+    <Path x:Key="PathPlayFast" Data="M13,6V18L21.5,12M4,18L12.5,12L4,6V18Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+    <Path x:Key="PathPause" Data="M14,19H18V5H14M6,19H10V5H6V19Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+    <Path x:Key="PathStop" Data="M18,18H6V6H18V18Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+    <Path x:Key="PathPrev" Data="M6,18V6H8V18H6M9.5,12L18,6V18L9.5,12Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+    <Path x:Key="PathNext" Data="M16,18H18V6H16M6,18L14.5,12L6,6V18Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+    <Path x:Key="PathResetSpeed" Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+    <Path x:Key="PathMute" Data="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.5,12.43 16.5,12.21 16.5,12Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+
+
+    <ControlTemplate x:Key="IconButtonTemplate"  TargetType="Button">
+        <Border 
+            x:Name="border"
+            Background="{TemplateBinding Background}"
+            Padding="{TemplateBinding Padding}"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            >
+
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal"/>
+                    <VisualState x:Name="MouseOver"/>
+                    <VisualState x:Name="Pressed"/>
+                    <VisualState x:Name="Disabled">
+                        <Storyboard>
+                            <ColorAnimation Storyboard.TargetName="border"
+                                  Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                  To="#30FFFFFF" Duration="0:0:0.2"/>
+                        </Storyboard>
+                    </VisualState>
+
+
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <ContentPresenter 
+                VerticalAlignment="Center" 
+                HorizontalAlignment="Center"/>
+        </Border>
+    </ControlTemplate>
+
+
+    <Style x:Key="IconButton" TargetType="Button">
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Template" Value="{StaticResource IconButtonTemplate}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#80888888" />
+                <Setter Property="Foreground" Value="#40a0ff" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#80888888" />
+                <Setter Property="Foreground" Value="#40FFa0" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="#30FFFFFF" />
+                <Setter Property="Foreground" Value="#30000000" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
-    
+
+    <Style x:Key="PushButtonStyle" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="Width" Value="30"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Background" Value="#30FFFFFF"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="Padding" Value="8"/>
+    </Style>
+
+    <ControlTemplate x:Key="IconToggleButtonTemplate"  TargetType="ToggleButton">
+        <Border 
+            x:Name="border"
+            Background="{TemplateBinding Background}"
+            Padding="{TemplateBinding Padding}"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            >
+
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal"/>
+                    <VisualState x:Name="MouseOver"/>
+                    <VisualState x:Name="Pressed"/>
+                    <VisualState x:Name="Disabled">
+                        <Storyboard>
+                            <ColorAnimation Storyboard.TargetName="border"
+                                  Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                  To="#30FFFFFF" Duration="0:0:0.2"/>
+                        </Storyboard>
+                    </VisualState>
+
+
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <ContentPresenter 
+                VerticalAlignment="Center" 
+                HorizontalAlignment="Center"/>
+        </Border>
+    </ControlTemplate>
+
+    <Style x:Key="IconToggleButton" TargetType="ToggleButton">
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Template" Value="{StaticResource IconToggleButtonTemplate}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#80888888" />
+                <Setter Property="Foreground" Value="#40a0ff" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#80888888" />
+                <Setter Property="Foreground" Value="#40FFa0" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="#30FFFFFF" />
+                <Setter Property="Foreground" Value="#30000000" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="true">
+                <Setter Property="Background" Value="#30000000"/>
+                <Setter Property="Foreground" Value="#FFFF00"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
 </ResourceDictionary>

@@ -6,6 +6,9 @@
         xmlns:local="clr-namespace:wfPlayer"
         mc:Ignorable="d"
         Title="WfPlayerWindow" Height="450" Width="800">
+    <Window.Resources>
+        <ResourceDictionary Source="WfResource.xaml"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -22,56 +25,18 @@
                           Volume="{Binding Volume, Mode=OneWay}" Margin="0,1,0,-1"
                           />
         </Grid>
-        <Grid Grid.Column="1" Grid.Row="1"  Background="#50000000">
+        <Grid Grid.Column="1" Grid.Row="1"  Background="#90000000">
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
                 <Slider Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}" ValueChanged="OnPositionChanged" LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}"/>
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <Button Click="OnPlay" Width="36" Height="36">
-                        <Viewbox>
-                            <Canvas Width="24" Height="24">
-                                <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z" Fill="Black" />
-                            </Canvas>
-                        </Viewbox>
-                    </Button>
-                    <Button Click="OnPlayFast" Width="36" Height="36">
-                        <Viewbox>
-                            <Canvas Width="24" Height="24">
-                                <Path Data="M13,6V18L21.5,12M4,18L12.5,12L4,6V18Z" Fill="Black" />
-                            </Canvas>
-                        </Viewbox>
-                    </Button>
-                    <Button Click="OnPause" Width="36" Height="36">
-                        <Viewbox>
-                            <Canvas Width="24" Height="24">
-                                <Path Data="M14,19H18V5H14M6,19H10V5H6V19Z" Fill="Black" />
-                            </Canvas>
-                        </Viewbox>
-                    </Button>
-                    <Button Click="OnStop" Width="36" Height="36">
-                        <Viewbox>
-                            <Canvas Width="24" Height="24">
-                                <Path Data="M18,18H6V6H18V18Z" Fill="Black" />
-                            </Canvas>
-                        </Viewbox>
-                    </Button>
-
-                    <Button Click="OnPrev" Width="36" Height="36" Margin="4,0,0,0">
-                        <Viewbox>
-                            <Canvas Width="24" Height="24">
-                                <Path Data="M6,18V6H8V18H6M9.5,12L18,6V18L9.5,12Z" Fill="Green" />
-                            </Canvas>
-                        </Viewbox>
-                    </Button>
-
-                    <Button Click="OnNext" Width="36" Height="36">
-                        <Viewbox>
-                            <Canvas Width="24" Height="24">
-                                <Path Data="M16,18H18V6H16M6,18L14.5,12L6,6V18Z" Fill="Green" />
-                            </Canvas>
-                        </Viewbox>
-                    </Button>
+                    <Button Click="OnPlay" Content="{StaticResource PathPlay}" Style="{StaticResource PushButtonStyle}"/>
+                    <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" Style="{StaticResource PushButtonStyle}"/>
+                    <Button Click="OnPause"  Content="{StaticResource PathPause}" Style="{StaticResource PushButtonStyle}"/>
+                    <Button Click="OnStop"  Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
+                    <Button IsEnabled="False" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
+                    <Button IsEnabled="False" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
                 </StackPanel>
-                <Grid Margin="0,8,0,0">
+                <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -81,24 +46,12 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Volume" Foreground="White" Margin="0,0,8,0"/>
-                    <TextBlock Grid.Column="0" Grid.Row="1" Text="Speed" Foreground="White" Margin="0,0,8,0"/>
-                    <Slider Grid.Column="1" Grid.Row="0" Minimum="0" Maximum="1" Value="{Binding Volume, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1"/>
-                    <Slider Grid.Column="1" Grid.Row="1" Minimum="0" Maximum="1" Value="{Binding Speed, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1"/>
-                    <Button Grid.Column="2" Grid.Row="0" Click="OnMute" Width="24" Height="24">
-                        <Viewbox>
-                            <Canvas Width="24" Height="24">
-                                <Path Data="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.5,12.43 16.5,12.21 16.5,12Z" Fill="Blue" />
-                            </Canvas>
-                        </Viewbox>
-                    </Button>
-                    <Button Grid.Column="2" Grid.Row="1" Click="OnResetSpeed" Width="24" Height="24">
-                        <Viewbox>
-                            <Canvas Width="24" Height="24">
-                                <Path Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12Z" Fill="Blue" />
-                            </Canvas>
-                        </Viewbox>
-                    </Button>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Volume" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="Speed" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <Slider Grid.Column="1" Grid.Row="0" Minimum="0" Maximum="1" Value="{Binding Volume, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1" VerticalAlignment="Center"/>
+                    <Slider Grid.Column="1" Grid.Row="1" Minimum="0" Maximum="1" Value="{Binding Speed, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1" VerticalAlignment="Center"/>
+                    <Button Grid.Column="2" Grid.Row="0" Click="OnMute" Content="{StaticResource PathMute}" Style="{StaticResource PushButtonStyle}"/>
+                    <Button Grid.Column="2" Grid.Row="1" Click="OnResetSpeed" Content="{StaticResource PathResetSpeed}" Style="{StaticResource PushButtonStyle}"/>
                 </Grid>
             </StackPanel>
         </Grid>

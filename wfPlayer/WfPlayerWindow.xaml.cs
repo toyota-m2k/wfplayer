@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace wfPlayer
@@ -297,7 +299,7 @@ namespace wfPlayer
 
         private void OnResetSpeed(object sender, RoutedEventArgs e)
         {
-
+            var btn = sender as Path;
         }
 
         private void OnMute(object sender, RoutedEventArgs e)
