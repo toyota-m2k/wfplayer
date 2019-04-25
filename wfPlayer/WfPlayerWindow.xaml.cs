@@ -329,6 +329,7 @@ namespace wfPlayer
 
         private void OnResetSpeed(object sender, RoutedEventArgs e)
         {
+            Speed = 0.5;
         }
 
     }
