@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
@@ -96,6 +97,16 @@ namespace wfPlayer
         }
 
         /**
+         * Mute <--> Mute Button --> MediaElement.Volume
+         */
+        public static readonly DependencyProperty MuteProperty = DependencyProperty.Register("Mute", typeof(bool), typeof(WfPlayerWindow), new PropertyMetadata(false));
+        public bool Mute
+        {
+            get => (bool)GetValue(MuteProperty);
+            set => SetValue(MuteProperty, value);
+        }
+
+        /**
          * Speed <--> Speed Slider.Value
          *        --> SpeedPropertyChangedCallback --> MediaElement.SpeedRatio (このプロパティはDepandencyPropertyではないのでバインドできない）
          */
@@ -105,6 +116,7 @@ namespace wfPlayer
             get => (double)GetValue(SpeedProperty);
             set => SetValue(SpeedProperty, value);
         }
+
         /**
          * DependencyPropertyではないMediaElement.SpeedRatioに、スライダーから変更された値をセットするための仕掛け
          */
@@ -134,11 +146,11 @@ namespace wfPlayer
         /**
          * 再生中 or not
          */
-        private UtObservableProperty<bool> mPlaying;
-        public bool Playing
+        private UtObservableProperty<bool> mStarted;
+        public bool Started
         {
-            get => mPlaying.Value;
-            set => mPlaying.Value = value;
+            get => mStarted.Value;
+            set => mStarted.Value = value;
         }
         /**
          * 一時停止中 or not
@@ -150,12 +162,22 @@ namespace wfPlayer
             set => mPausing.Value = value;
         }
 
+        /**
+         * 再生中 && 一時停止していないか
+         */
+        public bool Playing => Started && !Pausing;
+
         #endregion
 
         #region 再生操作
 
         void Play()
         {
+            if(Started)
+            {
+                return;
+            }
+
             if (Pausing)
             {
                 Pause();
@@ -163,30 +185,37 @@ namespace wfPlayer
             else
             {
                 mMediaElement.Play();
-                Playing = true;
+                Started = true;
             }
         }
 
         void Pause()
         {
+            if(!Started)
+            {
+                return;
+            }
+
             if (!Pausing)
             {
                 mMediaElement.Pause();
-                Playing = false;
                 Pausing = true;
             }
             else
             {
                 mMediaElement.Play();
-                Playing = true;
                 Pausing = false;
             }
         }
 
         void Stop()
         {
+            if(!Started)
+            {
+                return;
+            }
             mMediaElement.Stop();
-            Playing = false;
+            Started = false;
             Pausing = false;
             mPositionSlider.Value = 0;
         }
@@ -224,9 +253,10 @@ namespace wfPlayer
             Duration = 1.0;
             VideoSource = new Uri(path);
 
-            mPlaying = new UtObservableProperty<bool>("Playing", false, this);
-            mPlaying.ValueChanged += OnPlayingStateChanged;
-            mPausing = new UtObservableProperty<bool>("Pausing", false, this);
+            mStarted = new UtObservableProperty<bool>("Playing", false, this, "Playing");
+            mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing");
+
+            
 
             this.DataContext = this;
             InitializeComponent();
@@ -287,7 +317,7 @@ namespace wfPlayer
             if(v!=mPosition)
             {
                 mMediaElement.Position = TimeSpan.FromMilliseconds(v);
-                if(!Playing)
+                if(!Started)
                 {
                     mMediaElement.Play();
                     await Task.Delay(10);
@@ -299,12 +329,7 @@ namespace wfPlayer
 
         private void OnResetSpeed(object sender, RoutedEventArgs e)
         {
-            var btn = sender as Path;
         }
 
-        private void OnMute(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }

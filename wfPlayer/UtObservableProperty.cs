@@ -34,17 +34,26 @@ namespace wfPlayer
 
         private T mValue;
         private string mPropName;
+        private string[] mFamilyPromNames;
 
         private void Notify()
         {
-            Notifier?.NotifyPropertyChanged(mPropName);
+            if (null != Notifier)
+            {
+                Notifier.NotifyPropertyChanged(mPropName);
+                foreach(var p in mFamilyPromNames)
+                {
+                    Notifier.NotifyPropertyChanged(p);
+                }
+            }
         }
 
-        public UtObservableProperty(string name, T initialValue, IUtPropertyChangedNotifier notifier)
+        public UtObservableProperty(string name, T initialValue, IUtPropertyChangedNotifier notifier, params string[] familyProperties)
         {
             mPropName = name;
             mValue = initialValue;
             mNotifier = new WeakReference<IUtPropertyChangedNotifier>(notifier);
+            mFamilyPromNames = familyProperties;
         }
 
         public event ValueChangedProc<T> ValueChanged;

@@ -22,16 +22,16 @@
             <MediaElement LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="UniformToFill"
                           Name="mMediaElement" MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed"
                           Source="{Binding VideoSource}"
-                          Volume="{Binding Volume, Mode=OneWay}" Margin="0,1,0,-1"
+                          Volume="{Binding Volume, Mode=OneWay}"
                           />
         </Grid>
         <Grid Grid.Column="1" Grid.Row="1"  Background="#90000000">
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
                 <Slider Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}" ValueChanged="OnPositionChanged" LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}"/>
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <Button Click="OnPlay" Content="{StaticResource PathPlay}" Style="{StaticResource PushButtonStyle}"/>
+                    <ToggleButton Click="OnPlay" IsChecked="{Binding Playing, Mode=OneWay}" Content="{StaticResource PathPlay}" Style="{StaticResource ToggleButtonStyle}"/>
                     <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" Style="{StaticResource PushButtonStyle}"/>
-                    <Button Click="OnPause"  Content="{StaticResource PathPause}" Style="{StaticResource PushButtonStyle}"/>
+                    <ToggleButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" Content="{StaticResource PathPause}" Style="{StaticResource ToggleButtonStyle}"/>
                     <Button Click="OnStop"  Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
                     <Button IsEnabled="False" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
                     <Button IsEnabled="False" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
@@ -50,7 +50,7 @@
                     <TextBlock Grid.Column="0" Grid.Row="1" Text="Speed" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <Slider Grid.Column="1" Grid.Row="0" Minimum="0" Maximum="1" Value="{Binding Volume, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1" VerticalAlignment="Center"/>
                     <Slider Grid.Column="1" Grid.Row="1" Minimum="0" Maximum="1" Value="{Binding Speed, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1" VerticalAlignment="Center"/>
-                    <Button Grid.Column="2" Grid.Row="0" Click="OnMute" Content="{StaticResource PathMute}" Style="{StaticResource PushButtonStyle}"/>
+                    <ToggleButton Grid.Column="2" Grid.Row="0" IsChecked="{Binding Mute}" Content="{StaticResource PathMute}" Style="{StaticResource ToggleButtonStyle}"/>
                     <Button Grid.Column="2" Grid.Row="1" Click="OnResetSpeed" Content="{StaticResource PathResetSpeed}" Style="{StaticResource PushButtonStyle}"/>
                 </Grid>
             </StackPanel>
