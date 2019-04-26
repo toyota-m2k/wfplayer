@@ -56,6 +56,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CheckButton.cs" />
     <Compile Include="UtObservableProperty.cs" />
     <Compile Include="WfpConverter.cs" />
     <Compile Include="wfPlayerPage.xaml.cs">

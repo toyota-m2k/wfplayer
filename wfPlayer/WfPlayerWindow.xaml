@@ -29,9 +29,9 @@
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
                 <Slider Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}" ValueChanged="OnPositionChanged" LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}"/>
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <ToggleButton Click="OnPlay" IsChecked="{Binding Playing, Mode=OneWay}" Content="{StaticResource PathPlay}" Style="{StaticResource ToggleButtonStyle}"/>
+                    <ToggleButton Click="OnPlay" IsChecked="{Binding Started, Mode=TwoWay}" Content="{StaticResource PathPlay}" Style="{StaticResource ToggleButtonStyle}"/>
                     <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" Style="{StaticResource PushButtonStyle}"/>
-                    <ToggleButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" Content="{StaticResource PathPause}" Style="{StaticResource ToggleButtonStyle}"/>
+                    <ToggleButton Click="OnPause" IsChecked="{Binding Pausing, Mode=TwoWay}" Content="{StaticResource PathPause}" Style="{StaticResource ToggleButtonStyle}"/>
                     <Button Click="OnStop"  Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
                     <Button IsEnabled="False" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
                     <Button IsEnabled="False" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>

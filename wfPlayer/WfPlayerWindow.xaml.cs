@@ -253,7 +253,7 @@ namespace wfPlayer
             Duration = 1.0;
             VideoSource = new Uri(path);
 
-            mStarted = new UtObservableProperty<bool>("Playing", false, this, "Playing");
+            mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing");
             mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing");
 
             
