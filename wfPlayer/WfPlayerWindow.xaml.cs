@@ -167,22 +167,28 @@ namespace wfPlayer
          */
         public bool Playing => Started && !Pausing;
 
+        private UtObservableProperty<bool> mMouseInPanel;
+        public bool MouseInPanel
+        {
+            get => mMouseInPanel.Value;
+            set => mMouseInPanel.Value = value;
+        }
+
+        public bool ShowPanel => MouseInPanel || !Playing;
+
+
+
         #endregion
 
         #region 再生操作
 
         void Play()
         {
-            if(Started)
-            {
-                return;
-            }
-
             if (Pausing)
             {
                 Pause();
             }
-            else
+            else if(!Started)
             {
                 mMediaElement.Play();
                 Started = true;
@@ -220,47 +226,33 @@ namespace wfPlayer
             mPositionSlider.Value = 0;
         }
 
-        private DispatcherTimer _positionTimer = null;
-        private void OnPlayingStateChanged(bool newValue)
-        {
-            if (newValue)
-            {
-                if (null == _positionTimer)
-                {
-                    _positionTimer = new DispatcherTimer();
-                    _positionTimer.Tick += (s, e) =>
-                    {
-                        mPositionSlider.Value = mMediaElement.Position.TotalMilliseconds;
-                    };
-                    _positionTimer.Interval = TimeSpan.FromMilliseconds(50);
-                    _positionTimer.Start();
-                }
-            }
-            else
-            {
-                if (null != _positionTimer)
-                {
-                    _positionTimer.Stop();
-                    _positionTimer = null;
-                }
-            }
-        }
-
         #endregion
+
+        #region 初期化/解放
 
         public WfPlayerWindow(string path)
         {
             Duration = 1.0;
             VideoSource = new Uri(path);
 
-            mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing");
-            mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing");
-
-            
+            mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel");
+            mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel");
+            mMouseInPanel = new UtObservableProperty<bool>("MouseInPanel", false, this, "ShowPanel");
 
             this.DataContext = this;
             InitializeComponent();
         }
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            PropertyChanged += OnBindingPropertyChanged;
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            PropertyChanged -= OnBindingPropertyChanged;
+        }
+        #endregion
 
         #region Event Handlers
 
@@ -308,29 +300,123 @@ namespace wfPlayer
         private void OnNext(object sender, RoutedEventArgs e)
         {
 
-        }
 
-        private double mPosition = 0;
-        private async void OnPositionChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            var v = e.NewValue;
-            if(v!=mPosition)
-            {
-                mMediaElement.Position = TimeSpan.FromMilliseconds(v);
-                if(!Started)
-                {
-                    mMediaElement.Play();
-                    await Task.Delay(10);
-                    mMediaElement.Stop();
-                }
-            }
         }
-        #endregion
 
         private void OnResetSpeed(object sender, RoutedEventArgs e)
         {
             Speed = 0.5;
         }
 
+        #endregion
+
+        #region タイムラインスライダー操作
+
+        private double mPosition = 0;
+        private bool mDragging = false;
+        private DispatcherTimer mPositionTimer = null;
+        private bool mUpdatingPositionFromTimer = false;
+
+        /**
+         * スライダーの値が変化したときのイベントハンドラ
+         * ２つのケースがあり得る。
+         * - スライダーが操作された
+         *   --> MediaElementをシークする (1)
+         * - 動画再生によりシーク位置が変化した（OnPlayingStateChanged内のタイマーから呼ばれる）
+         *   --> スライダーの位置を更新する (2)
+         *  問題は、(2)の処理中に(1)が呼び出されてしまうこと。
+         *  この問題は、mUpdatingPositionFromTimer で回避する
+         *  
+         *  もう一つの問題は、再生中以外は、mMediaElement.Position を変更しても、画面表示が更新されないこと。
+         *  こちらは、Play/Delay/Stop を呼び出すことで回避。
+         */
+        private async void OnPositionChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            await updateTimelinePosition(e.NewValue);
+        }
+
+        private async Task updateTimelinePosition(double position)
+        {
+            if(position != mPosition)
+            {
+                if (!mUpdatingPositionFromTimer)
+                {
+                    mMediaElement.Position = TimeSpan.FromMilliseconds(position);
+                }
+                if (!Started || mDragging)
+                {
+                    mMediaElement.Play();
+                    await Task.Delay(10);
+                    mMediaElement.Pause();
+                }
+            }
+        }
+
+        private async void OnSliderDragStateChanged(TimelineSlider.DragState state)
+        {
+            switch(state)
+            {
+                case TimelineSlider.DragState.START:
+                    mDragging = true;
+                    mMediaElement.Pause();
+                    break;
+                case TimelineSlider.DragState.DRAGGING:
+                    await updateTimelinePosition(mPositionSlider.Value);
+                    break;
+                case TimelineSlider.DragState.END:
+                    mDragging = false;
+                    if (Playing)
+                    {
+                        mMediaElement.Play();
+                    }
+                    break;
+            }
+        }
+
+        private void OnBindingPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Playing")
+            {
+                OnPlayingStateChanged(Playing);
+            }
+        }
+
+        private void OnPlayingStateChanged(bool newValue)
+        {
+            if (newValue)
+            {
+                if (null == mPositionTimer)
+                {
+                    mPositionTimer = new DispatcherTimer();
+                    mPositionTimer.Tick += (s, e) =>
+                    {
+                        if (!mDragging)
+                        {
+                            mUpdatingPositionFromTimer = true;
+                            mPositionSlider.Value = mMediaElement.Position.TotalMilliseconds;
+                            mUpdatingPositionFromTimer = false;
+                        }
+                    };
+                    mPositionTimer.Interval = TimeSpan.FromMilliseconds(50);
+                    mPositionTimer.Start();
+                }
+            }
+            else
+            {
+                if (null != mPositionTimer)
+                {
+                    mPositionTimer.Stop();
+                    mPositionTimer = null;
+                }
+            }
+        }
+
+        #endregion
+
+        private void OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            var p = e.GetPosition(mControlPanel);
+            mMouseInPanel.Value = (0 <= p.X && 0 <= p.Y && p.X < mControlPanel.ActualWidth && p.Y <= ActualHeight);
+        }
     }
 }

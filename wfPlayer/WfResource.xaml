@@ -141,4 +141,68 @@
         <Setter Property="Padding" Value="8"/>
     </Style>
 
+    
+    
+    <ControlTemplate x:Key="IconCheckButtonTemplate"  TargetType="local:CheckButton">
+        <Border 
+            x:Name="border"
+            Background="{TemplateBinding Background}"
+            Padding="{TemplateBinding Padding}"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            >
+
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal"/>
+                    <VisualState x:Name="MouseOver"/>
+                    <VisualState x:Name="Pressed"/>
+                    <VisualState x:Name="Disabled">
+                        <Storyboard>
+                            <ColorAnimation Storyboard.TargetName="border"
+                                  Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                  To="#30FFFFFF" Duration="0:0:0.2"/>
+                        </Storyboard>
+                    </VisualState>
+
+
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <ContentPresenter 
+                VerticalAlignment="Center" 
+                HorizontalAlignment="Center"/>
+        </Border>
+    </ControlTemplate>
+
+    <Style x:Key="IconCheckButton" TargetType="local:CheckButton">
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Template" Value="{StaticResource IconCheckButtonTemplate}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#80888888" />
+                <Setter Property="Foreground" Value="#40a0ff" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#80888888" />
+                <Setter Property="Foreground" Value="#40FFa0" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="#30FFFFFF" />
+                <Setter Property="Foreground" Value="#30000000" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="true">
+                <Setter Property="Background" Value="#80000000"/>
+                <Setter Property="Foreground" Value="#00FFFF"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="CheckButtonStyle" TargetType="local:CheckButton" BasedOn="{StaticResource IconCheckButton}">
+        <Setter Property="Width" Value="30"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Background" Value="#30FFFFFF"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="Padding" Value="8"/>
+    </Style>
+
 </ResourceDictionary>

@@ -36,7 +36,7 @@ namespace wfPlayer
         private string mPropName;
         private string[] mFamilyPromNames;
 
-        private void Notify()
+        public void Notify()
         {
             if (null != Notifier)
             {

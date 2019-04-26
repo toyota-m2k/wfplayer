@@ -4,6 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:wfPlayer"
+        Loaded="OnLoaded"
+        Unloaded="OnUnloaded"
+        PreviewMouseMove="OnMouseMove"
         mc:Ignorable="d"
         Title="WfPlayerWindow" Height="450" Width="800">
     <Window.Resources>
@@ -25,13 +28,13 @@
                           Volume="{Binding Volume, Mode=OneWay}"
                           />
         </Grid>
-        <Grid Grid.Column="1" Grid.Row="1"  Background="#90000000">
+        <Grid Grid.Column="1" Grid.Row="1"  Background="#90000000" Visibility="{Binding ShowPanel, Converter={StaticResource BoolVisibilityConverter}}">
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
-                <Slider Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}" ValueChanged="OnPositionChanged" LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}"/>
+                <local:TimelineSlider x:Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}" ValueChanged="OnPositionChanged" LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}" DragStateChanged="OnSliderDragStateChanged"/>
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <ToggleButton Click="OnPlay" IsChecked="{Binding Started, Mode=TwoWay}" Content="{StaticResource PathPlay}" Style="{StaticResource ToggleButtonStyle}"/>
+                    <local:CheckButton Click="OnPlay" IsChecked="{Binding Started, Mode=OneWay}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
                     <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" Style="{StaticResource PushButtonStyle}"/>
-                    <ToggleButton Click="OnPause" IsChecked="{Binding Pausing, Mode=TwoWay}" Content="{StaticResource PathPause}" Style="{StaticResource ToggleButtonStyle}"/>
+                    <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
                     <Button Click="OnStop"  Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
                     <Button IsEnabled="False" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
                     <Button IsEnabled="False" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>

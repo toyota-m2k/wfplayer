@@ -57,6 +57,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="CheckButton.cs" />
+    <Compile Include="TimelineSlider.cs" />
     <Compile Include="UtObservableProperty.cs" />
     <Compile Include="WfpConverter.cs" />
     <Compile Include="wfPlayerPage.xaml.cs">
