@@ -4,10 +4,39 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:wfPlayer"
+        Loaded="OnLoaded"
+        Unloaded="OnUnloaded"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Button Content="Open file..." Click="OnOpenFile"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <Button Content="Select Folder..." Click="OnRegisterFolder"/>
+            <Button Content="Play" Click="OnPlayAll"/>
+        </StackPanel>
+
+        
+        <ListView Grid.Row="1" Grid.Column="1" x:Name="mFileListView" ItemsSource="{Binding}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Name" Width="150" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Header="Type" Width="50" DisplayMemberBinding="{Binding Type}"/>
+                    <GridViewColumn Header="Size" Width="100" DisplayMemberBinding="{Binding Size}"/>
+                    <GridViewColumn Header="Date" Width="100" DisplayMemberBinding="{Binding Date}"/>
+                    <GridViewColumn Header="Mark" Width="50" DisplayMemberBinding="{Binding Mark}"/>
+                    <GridViewColumn Header="Path" Width="250" DisplayMemberBinding="{Binding FullPath}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
 
     </Grid>
 </Window>

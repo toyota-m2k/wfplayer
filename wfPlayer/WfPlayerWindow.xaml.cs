@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -56,15 +58,15 @@ namespace wfPlayer
 
         #region Binding Properties
 
-        /**
-         * VideoSource --> MediaElement.Source
-         */
-        public static readonly DependencyProperty VideoSourceProperty = DependencyProperty.Register("VideoSource", typeof(Uri), typeof(WfPlayerWindow));
-        public Uri VideoSource
-        {
-            get => GetValue(VideoSourceProperty) as Uri;
-            set => SetValue(VideoSourceProperty, value);
-        }
+        ///**
+        // * VideoSource --> MediaElement.Source
+        // */
+        //public static readonly DependencyProperty VideoSourceProperty = DependencyProperty.Register("VideoSource", typeof(Uri), typeof(WfPlayerWindow));
+        //public Uri VideoSource
+        //{
+        //    get => GetValue(VideoSourceProperty) as Uri;
+        //    set =>SetValue(VideoSourceProperty, value);
+        //}
 
         /**
          * Duration --> mPositionSlider.Value
@@ -143,6 +145,12 @@ namespace wfPlayer
             }
         }
 
+        public bool Ready
+        {
+            get => mVideoLoadingTaskSource == null;
+        }
+
+
         /**
          * 再生中 or not
          */
@@ -177,6 +185,87 @@ namespace wfPlayer
         public bool ShowPanel => MouseInPanel || !Playing;
 
 
+        public bool HasNext => mSources?.HasNext ?? false;
+        public bool HasPrev => mSources?.HasPrev ?? false;
+
+        #endregion
+
+        #region ビデオソース
+        private TaskCompletionSource<bool> mVideoLoadingTaskSource = null;
+        private async Task<bool> SetVideoSource(Uri uri)
+        {
+            if(null!=mVideoLoadingTaskSource)
+            {
+                await mVideoLoadingTaskSource.Task;
+            }
+            notify("Ready");
+            mVideoLoadingTaskSource = new TaskCompletionSource<bool>();
+            mMediaElement.Source = uri;
+            mMediaElement.Position = TimeSpan.FromMilliseconds(0);
+            mMediaElement.Play();
+            var r = await mVideoLoadingTaskSource.Task;
+            mMediaElement.Stop();
+            mVideoLoadingTaskSource = null;
+            notify("Ready");
+            return r;
+        }
+
+        //private List<string> mSources;
+        private IWfSourceList mSources;
+
+        private void VideoSourcesChanged()
+        {
+            notify("HasNext");
+            notify("HasPrev");
+        }
+
+        public async void SetSources(IWfSourceList sources)
+        {
+            Stop();
+            mSources = sources;
+            if (mLoaded)
+            {
+                await InitSource();
+            }
+        }
+
+        private async Task InitSource()
+        {
+            var uri = mSources?.Head?.Uri;
+            if(null!=uri)
+            {
+                await SetVideoSource(uri);
+                VideoSourcesChanged();
+            }
+        }
+
+        private async Task<bool> Next()
+        {
+            var uri = mSources?.Next?.Uri;
+            if(null!=uri)
+            {
+                Stop();
+                await SetVideoSource(uri);
+                Play();
+                VideoSourcesChanged();
+                return true;
+            }
+            return false;
+        }
+
+        private async Task<bool> Prev()
+        {
+            var uri = mSources?.Prev?.Uri;
+            if (null!=uri)
+            {
+                Stop();
+                await SetVideoSource(uri);
+                Play();
+                VideoSourcesChanged();
+                return true;
+            }
+            return false;
+        }
 
         #endregion
 
@@ -229,12 +318,12 @@ namespace wfPlayer
         #endregion
 
         #region 初期化/解放
+        private bool mLoaded = false;
 
-        public WfPlayerWindow(string path)
+        public WfPlayerWindow()
         {
             Duration = 1.0;
-            VideoSource = new Uri(path);
-
+            mSources = null;
             mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel");
             mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel");
             mMouseInPanel = new UtObservableProperty<bool>("MouseInPanel", false, this, "ShowPanel");
@@ -243,9 +332,24 @@ namespace wfPlayer
             InitializeComponent();
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private async Task EnsureVideoFrame()
         {
+            if (!Playing)
+            {
+                mMediaElement.Play();
+                await Task.Delay(50);
+                mMediaElement.Pause();
+            }
+        }
+
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            mLoaded = true;
             PropertyChanged += OnBindingPropertyChanged;
+            if(mSources!=null)
+            {
+                await InitSource();
+            }
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -256,21 +360,30 @@ namespace wfPlayer
 
         #region Event Handlers
 
-        private void OnMediaOpened(object sender, RoutedEventArgs e)
+        private async void OnMediaOpened(object sender, RoutedEventArgs e)
         {
             Duration = mMediaElement.NaturalDuration.TimeSpan.TotalMilliseconds;
-            mMediaElement.Position = TimeSpan.FromMilliseconds(mPosition);
             mMediaElement.SpeedRatio = calcSpeedRatio(Speed);
+            await updateTimelinePosition(0, true, true);
+            mVideoLoadingTaskSource.TrySetResult(true);
         }
 
-        private void OnMediaEnded(object sender, RoutedEventArgs e)
+        private async void OnMediaEnded(object sender, RoutedEventArgs e)
         {
             Stop();
+            if(!await Next())
+            {
+                Close();
+            }
         }
 
-        private void OnMediaFailed(object sender, ExceptionRoutedEventArgs e)
+        private async void OnMediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
-
+            mVideoLoadingTaskSource.TrySetResult(false);
+            if (!await Next())
+            {
+                Close();
+            }
         }
 
         private void OnPlay(object sender, RoutedEventArgs e)
@@ -293,14 +406,16 @@ namespace wfPlayer
             Stop();
         }
 
-        private void OnPrev(object sender, RoutedEventArgs e)
+        private async void OnPrev(object sender, RoutedEventArgs e)
         {
+            if (!Ready) return;
+            await Prev();
         }
 
-        private void OnNext(object sender, RoutedEventArgs e)
+        private async void OnNext(object sender, RoutedEventArgs e)
         {
-
-
+            if (!Ready) return;
+            await Next();
         }
 
         private void OnResetSpeed(object sender, RoutedEventArgs e)
@@ -312,7 +427,6 @@ namespace wfPlayer
 
         #region タイムラインスライダー操作
 
-        private double mPosition = 0;
         private bool mDragging = false;
         private DispatcherTimer mPositionTimer = null;
         private bool mUpdatingPositionFromTimer = false;
@@ -332,23 +446,22 @@ namespace wfPlayer
          */
         private async void OnPositionChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            await updateTimelinePosition(e.NewValue);
+            await updateTimelinePosition(e.NewValue, slider:false, player:!mUpdatingPositionFromTimer);
         }
 
-        private async Task updateTimelinePosition(double position)
+        private async Task updateTimelinePosition(double position, bool slider, bool player)
         {
-            if(position != mPosition)
+            if (player)
             {
-                if (!mUpdatingPositionFromTimer)
-                {
-                    mMediaElement.Position = TimeSpan.FromMilliseconds(position);
-                }
+                mMediaElement.Position = TimeSpan.FromMilliseconds(position);
                 if (!Started || mDragging)
                 {
-                    mMediaElement.Play();
-                    await Task.Delay(10);
-                    mMediaElement.Pause();
+                    await EnsureVideoFrame();
                 }
+            }
+            if (slider)
+            {
+                mPositionSlider.Value = position;
             }
         }
 
@@ -361,7 +474,7 @@ namespace wfPlayer
                     mMediaElement.Pause();
                     break;
                 case TimelineSlider.DragState.DRAGGING:
-                    await updateTimelinePosition(mPositionSlider.Value);
+                    await updateTimelinePosition(mPositionSlider.Value, slider:false, player:true);
                     break;
                 case TimelineSlider.DragState.END:
                     mDragging = false;
@@ -413,10 +526,33 @@ namespace wfPlayer
 
         #endregion
 
-        private void OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        private void OnMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            var p = e.GetPosition(mControlPanel);
-            mMouseInPanel.Value = (0 <= p.X && 0 <= p.Y && p.X < mControlPanel.ActualWidth && p.Y <= ActualHeight);
+            mMouseInPanel.Value = true;
+        }
+
+        private void OnMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            mMouseInPanel.Value = false;
+        }
+
+        private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            Debug.WriteLine($"KEY:{e.Key} - {e.SystemKey} - {e.KeyStates} - Rep={e.IsRepeat} - D/U/T={e.IsDown}/{e.IsUp}/{e.IsToggled}");
+            switch (e.Key)
+            {
+                case System.Windows.Input.Key.Escape:
+                    Close();
+                    break;
+                case System.Windows.Input.Key.NumPad2:
+                    Next();
+                    break;
+                case System.Windows.Input.Key.NumPad8:
+                    Prev();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

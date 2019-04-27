@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:wfPlayer"
         Loaded="OnLoaded"
         Unloaded="OnUnloaded"
-        PreviewMouseMove="OnMouseMove"
+        PreviewKeyDown="OnKeyDown"
         mc:Ignorable="d"
         Title="WfPlayerWindow" Height="450" Width="800">
     <Window.Resources>
@@ -26,18 +26,49 @@
                           Name="mMediaElement" MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed"
                           Source="{Binding VideoSource}"
                           Volume="{Binding Volume, Mode=OneWay}"
+                          IsMuted="{Binding Mute, Mode=OneWay}"
                           />
         </Grid>
-        <Grid Grid.Column="1" Grid.Row="1"  Background="#90000000" Visibility="{Binding ShowPanel, Converter={StaticResource BoolVisibilityConverter}}">
+        <Grid Grid.Column="1" Grid.Row="1" Name="mPanelBase" Background="{StaticResource ControlPanelBG}" Opacity="0" MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave">
+            <Grid.Resources>
+                <ResourceDictionary>
+                    <!-- Fade in/out effect -->
+                    <Storyboard x:Key="MouseOverStoryboard" Duration="00:00:00.3">
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="00:00:00.3" />
+                    </Storyboard>
+
+                    <Storyboard x:Key="MouseLeaveStoryboard" Duration="00:00:00.5">
+                        <DoubleAnimation 
+                             Storyboard.TargetProperty="Opacity" To="0" Duration="00:00:00.3" />
+                    </Storyboard>
+                </ResourceDictionary>
+            </Grid.Resources>
+            <Grid.Style>
+                <!-- Fade in/out effect -->
+                <Style TargetType="Grid">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShowPanel}" Value="True">
+                            <DataTrigger.EnterActions>
+                                <StopStoryboard BeginStoryboardName="MouseLeaveStoryboard" />
+                                <BeginStoryboard Name="MouseOverStoryboard" Storyboard="{StaticResource MouseOverStoryboard}" />
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="MouseOverStoryboard" />
+                                <BeginStoryboard Name="MouseLeaveStoryboard" Storyboard="{StaticResource MouseLeaveStoryboard}" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
                 <local:TimelineSlider x:Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}" ValueChanged="OnPositionChanged" LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}" DragStateChanged="OnSliderDragStateChanged"/>
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <local:CheckButton Click="OnPlay" IsChecked="{Binding Started, Mode=OneWay}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
-                    <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" Style="{StaticResource PushButtonStyle}"/>
-                    <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
-                    <Button Click="OnStop"  Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
-                    <Button IsEnabled="False" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
-                    <Button IsEnabled="False" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
+                    <local:CheckButton Click="OnPlay" IsChecked="{Binding Started, Mode=OneWay}" IsEnabled="{Binding Ready}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
+                    <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" IsEnabled="{Binding Ready}" Style="{StaticResource PushButtonStyle}"/>
+                    <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" IsEnabled="{Binding Started}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
+                    <Button Click="OnStop"  IsEnabled="{Binding Started}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
+                    <Button IsEnabled="{Binding HasPrev}" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
+                    <Button IsEnabled="{Binding HasNext}" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
                 </StackPanel>
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
