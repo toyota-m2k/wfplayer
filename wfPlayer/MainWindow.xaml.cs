@@ -25,6 +25,7 @@ namespace wfPlayer
     public partial class MainWindow : Window
     {
         private WfFileItemList mFileList;
+        private WfPlayListDB mPlayListDB;
 
         public MainWindow()
         {
@@ -34,9 +35,13 @@ namespace wfPlayer
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            mPlayListDB = new WfPlayListDB(null);
             mFileList = new WfFileItemList();
+            LoadListFromDB();
+            var path = mPlayListDB.GetValueAt("LastItem");
+
             mFileListView.DataContext = mFileList;
-            ListVideosInFolder(@"F:\mitsuki\private\movie\selected-25\www.moviejap.com");
+            //ListVideosInFolder(@"F:\mitsuki\private\movie\selected-25\www.moviejap.com");
         }
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
@@ -65,25 +70,43 @@ namespace wfPlayer
                 DialogResult result = fbd.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
-                    ListVideosInFolder(fbd.SelectedPath);
+                    RegisterFilesInPath(fbd.SelectedPath);
                 }
             }
         }
 
-        private void ListVideosInFolder(string folderPath)
+        private void LoadListFromDB()
+        {
+            mFileList.Clear();
+            using (var retriever = mPlayListDB.QueryAll(false))
+            {
+                foreach (var item in retriever)
+                {
+                    mFileList.Add(item);
+                }
+            }
+        }
+
+
+        private void RegisterFilesInPath(string folderPath)
         {
             var videoExt = new[] { "mp4", "wmv", "avi", "mov", "avi", "mpg", "mpeg", "mpe", "ram", "rm" };
 
-            mFileList.Clear();
             var files = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.AllDirectories)
                            .Where(file => videoExt.Any(x => file.EndsWith(x, StringComparison.OrdinalIgnoreCase)));
 
-            foreach (var file in files)
+            using (var appender = mPlayListDB.BeginRegister(folderPath))
             {
-                var f = new WfFileItem(file);
-                if (f.Exists)
+                foreach (var file in files)
                 {
-                    mFileList.Add(f);
+                    var f = new WfFileItem(file);
+                    if (f.Exists)
+                    {
+                        if(appender.Add(f))
+                        {
+                            mFileList.Add(f);
+                        }
+                    }
                 }
             }
         }
@@ -95,6 +118,14 @@ namespace wfPlayer
                 var page = new WfPlayerWindow();
                 page.SetSources(mFileList);
                 page.Show();
+                page.Closed += (s, x) =>
+                {
+                    var c = mFileList.Current;
+                    if(null!=c)
+                    {
+                        mPlayListDB.SetValueAt("LastItem", ((WfFileItem)c).FullPath);
+                    }
+                };
             }
         }
     }

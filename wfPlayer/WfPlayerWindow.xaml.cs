@@ -231,7 +231,12 @@ namespace wfPlayer
 
         private async Task InitSource()
         {
-            var uri = mSources?.Head?.Uri;
+            if(null==mSources)
+            {
+                return;
+            }
+            var rec = mSources.Current ?? mSources.Head;
+            var uri = rec?.Uri;
             if(null!=uri)
             {
                 await SetVideoSource(uri);

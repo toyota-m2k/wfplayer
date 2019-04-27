@@ -86,6 +86,7 @@
     <Compile Include="WfPlayerWindow.xaml.cs">
       <DependentUpon>WfPlayerWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WfPlayListDB.cs" />
     <Compile Include="WfSourceList.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

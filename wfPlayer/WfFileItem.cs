@@ -66,8 +66,18 @@ namespace wfPlayer
             Size = info.Length;
             Date = info.CreationTimeUtc;
             mMark = new UtObservableProperty<string>("Mark", "", this);
+            mRating = Ratings.NORMAL;
         }
+        public WfFileItem(string path, long size, DateTime date, string mark, Ratings rating, bool exists)
+        {
+            FullPath = path;
+            Size = size;
+            Date = date;
+            mMark = new UtObservableProperty<string>("Mark", mark??"", this);
+            mRating = rating;
+            Exists = exists;
 
+        }
         public bool Exists { get; }
 
         public string Name => Path.GetFileNameWithoutExtension(FullPath);
@@ -81,6 +91,20 @@ namespace wfPlayer
         public DateTime Date { get; }
 
         public Uri Uri => new Uri(FullPath);
+
+        public enum Ratings
+        {
+            GOOD = 0,       // 優良
+            NORMAL,         // ふつう
+            SKIP,           // 一覧に表示しても再生はしない
+            DELETING,       // 削除予定
+        }
+        private Ratings mRating = Ratings.NORMAL;
+        public Ratings Rating
+        {
+            get => mRating;
+            set => setProp("Rating", ref mRating, value);
+        }
     }
 
     public class WfFileItemList : ObservableCollection<WfFileItem>, IWfSourceList
@@ -103,6 +127,17 @@ namespace wfPlayer
             {
                 CurrentIndex = 0;
                 return Current;
+            }
+        }
+
+        public void SetCurrentByPath(string path)
+        {
+            for(int i=0; i<Count; i++)
+            {
+                if(this[i].FullPath == path)
+                {
+                    CurrentIndex = i;
+                }
             }
         }
 
