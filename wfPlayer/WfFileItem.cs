@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 
 namespace wfPlayer
 {
@@ -112,13 +113,6 @@ namespace wfPlayer
             set { if (setProp("PlayCount", ref mPlayCount, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.PLAY_COUNT; } }
         }
 
-        public enum Ratings
-        {
-            GOOD = 0,       // 優良
-            NORMAL,         // ふつう
-            SKIP,           // 一覧に表示しても再生はしない
-            DELETING,       // 削除予定
-        }
         private Ratings mRating = Ratings.NORMAL;
         public Ratings Rating
         {
@@ -126,7 +120,7 @@ namespace wfPlayer
             set { if (setProp("Rating", ref mRating, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.RATING; } }
         }
 
-        public class Trim
+        public class Trim : ITrim
         {
             public long Id { get; }
             public string Name { get; }
@@ -158,7 +152,7 @@ namespace wfPlayer
 
             public override string ToString()
             {
-                return $"${Name}({Id}):{Prologue}/{Epilogue}";
+                return $"{Name}({Id}):{Prologue}/{Epilogue}";
             }
 
             public override int GetHashCode()
@@ -168,27 +162,72 @@ namespace wfPlayer
             #endregion
         }
 
-        private Trim mTrimming = Trim.NoTrim;
-        public Trim Trimming
+        private ITrim mTrimming = Trim.NoTrim;
+        public ITrim Trimming
         {
             get => mTrimming;
             set { if (setProp("Trimming", ref mTrimming, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.TRIMMING; } }
         }
 
-        public void UpdateDB(WfPlayListDB db)
+        bool mPlayCountModified = false;
+        public void OnPlayStarted()
+        {
+            if(!mPlayCountModified)
+            {
+                mPlayCountModified = true;
+                PlayCount++;
+            }
+            LastPlayDate = DateTime.UtcNow;
+        }
+
+        public void SaveModified()
         {
             if(mDirty==0)
             {
                 return;
             }
-            db.UpdatePlaylistItem(this, mDirty);
+            WfPlayListDB.Instance.UpdatePlaylistItem(this, mDirty);
             mDirty = 0;
         }
     }
 
     public class WfFileItemList : ObservableCollection<WfFileItem>, IWfSourceList
     {
-        private int CurrentIndex;
+        public WfFileItemList()
+        {
+        }
+
+        private WfFileItemList(IOrderedEnumerable<WfFileItem> src, WfFileItemList org)
+            : base(src)
+        {
+            SetCurrentByPath(((WfFileItem)org.Current)?.FullPath);
+        }
+
+        public delegate void CurrentChangedHandler(int from, WfFileItem fromItem, int to, WfFileItem toItem);
+        public event CurrentChangedHandler CurrentChanged;
+
+        private int mCurrentIndex = -1;
+        public int CurrentIndex
+        {
+            get => Count==0 ? -1 : mCurrentIndex;
+            set
+            {
+                if(mCurrentIndex != value)
+                {
+                    if (0 <= value && value < Count)
+                    {
+                        int org = mCurrentIndex;
+                        var orgItem = Current;
+                        mCurrentIndex = value;
+                        CurrentChanged?.Invoke(org, (WfFileItem)orgItem, mCurrentIndex, (WfFileItem)Current);
+                        if(orgItem!=null)
+                        {
+                            orgItem.SaveModified();
+                        }
+                    }
+                }
+            }
+        }
 
         public bool HasNext => CurrentIndex + 1 < Count;
 
@@ -209,16 +248,30 @@ namespace wfPlayer
             }
         }
 
-        public void SetCurrentByPath(string path)
+        public int IndexOfPath(string path)
         {
-            for(int i=0; i<Count; i++)
+            if (null != path)
             {
-                if(this[i].FullPath == path)
+                for (int i = 0; i < Count; i++)
                 {
-                    CurrentIndex = i;
+                    if (this[i].FullPath == path)
+                    {
+                        return i;
+                    }
                 }
             }
+            return -1;
         }
+
+        public void SetCurrentByPath(string path)
+        {
+            int i = IndexOfPath(path);
+            if(i>=0)
+            {
+                CurrentIndex = i;
+            }
+        }
+
 
         //protected override void ClearItems()
         //{

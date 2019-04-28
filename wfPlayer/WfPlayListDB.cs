@@ -139,7 +139,7 @@ namespace wfPlayer
                                     Convert.ToInt64(mReader["size"]),
                                     DateTime.FromFileTimeUtc(Convert.ToInt64(mReader["date"])),
                                     Convert.ToString(mReader["mark"]),
-                                    (WfFileItem.Ratings)Convert.ToInt32(mReader["rating"]), exists,
+                                    (Ratings)Convert.ToInt32(mReader["rating"]), exists,
                                     lastPlayDate,
                                     Convert.ToInt32(mReader["playCount"]),
                                     trim
@@ -186,8 +186,19 @@ namespace wfPlayer
             }
         }
 
+        public static WfPlayListDB Instance { get; private set; } = null;
+        public static WfPlayListDB CreateInstance(string path)
+        {
+            if(Instance!=null)
+            {
+                Instance.Dispose();
+            }
+            Instance = new WfPlayListDB(path);
+            return Instance;
+        }
+
         private SQLiteConnection mDB;
-        public WfPlayListDB(string dbPath)
+        private WfPlayListDB(string dbPath)
         {
             var builder = new SQLiteConnectionStringBuilder() { DataSource = dbPath ?? "wfplay.db" };
             mDB = new SQLiteConnection(builder.ToString());
@@ -362,25 +373,25 @@ namespace wfPlayer
                 if(0!=(flags&(long)FieldFlag.RATING))
                 {
                     if (prev) sql.Append(", ");
-                    sql.Append($"rating='{(int)item.Rating}'");
+                    sql.Append($"rating='{(int)item.Rating}' "); prev = true;
                 }
                 if(0!=(flags&(long)FieldFlag.PLAY_COUNT))
                 {
                     if (prev) sql.Append(", ");
-                    sql.Append($"playCount='{item.PlayCount}'");
+                    sql.Append($"playCount='{item.PlayCount} '"); prev = true;
                 }
                 if (0 != (flags & (long)FieldFlag.LAST_PLAY))
                 {
                     long tm = item.LastPlayDate == DateTime.MinValue ? 0 : item.LastPlayDate.ToFileTimeUtc();
                     if (prev) sql.Append(", ");
-                    sql.Append($"lastPlay='{tm}'");
+                    sql.Append($"lastPlay='{tm}' "); prev = true;
                 }
                 if (0 != (flags & (long)FieldFlag.TRIMMING))
                 {
                     if (prev) sql.Append(", ");
-                    sql.Append($"trimming='{item.Trimming.Id}'");
+                    sql.Append($"trimming='{item.Trimming.Id}' "); prev = true;
                 }
-                sql.Append($"WHERE path=${item.FullPath}");
+                sql.Append($" WHERE path='{item.FullPath}'");
                 executeSql(sql.ToString());
             }
         }

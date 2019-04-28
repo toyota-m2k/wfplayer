@@ -221,4 +221,18 @@ namespace wfPlayer
             throw new NotImplementedException();
         }
     }
+
+    public class DecimalStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return String.Format("{0:#,0}", value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 }

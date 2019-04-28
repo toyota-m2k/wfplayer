@@ -35,12 +35,15 @@ namespace wfPlayer
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            mPlayListDB = new WfPlayListDB(null);
+            mPlayListDB = WfPlayListDB.CreateInstance(null);
             mFileList = new WfFileItemList();
             LoadListFromDB();
-            var path = mPlayListDB.GetValueAt("LastItem");
 
             mFileListView.DataContext = mFileList;
+            var path = mPlayListDB.GetValueAt("LastItem");
+            int index = mFileList.IndexOfPath(path);
+            mFileListView.SelectedIndex = (index >= 0) ? index : 0;
+ 
             //ListVideosInFolder(@"F:\mitsuki\private\movie\selected-25\www.moviejap.com");
         }
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -116,6 +119,7 @@ namespace wfPlayer
             if(mFileList.Count>0)
             {
                 var page = new WfPlayerWindow();
+                mFileList.CurrentIndex = mFileListView.SelectedIndex;
                 page.SetSources(mFileList);
                 page.Show();
                 page.Closed += (s, x) =>
@@ -128,5 +132,16 @@ namespace wfPlayer
                 };
             }
         }
+
+        private void OnHeaderClick(object sender, RoutedEventArgs e)
+        {
+            //var header = (GridViewColumnHeader)e.OriginalSource;
+            //if (header.Column == null)
+            //{
+            //    return;
+            //}
+            //switch(header.Column.Header)
+        }
+
     }
 }

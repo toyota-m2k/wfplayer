@@ -9,6 +9,9 @@
     <local:EnumBooleanConverter x:Key="EnumBooleanConverter"/>
     <local:EnumVisibilityConverter x:Key="EnumVisibilityConverter"/>
     <local:NegEnumVisibilityConverter x:Key="NegEnumVisibilityConverter"/>
+    <local:DateStringConverter x:Key="DateStringConverter"/>
+    <local:DecimalStringConverter x:Key="DecimalStringConverter"/>
+
 
 
     <!-- SVG Path -->

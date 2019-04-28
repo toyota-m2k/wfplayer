@@ -204,7 +204,7 @@ namespace wfPlayer
             mMediaElement.Position = TimeSpan.FromMilliseconds(0);
             mMediaElement.Play();
             var r = await mVideoLoadingTaskSource.Task;
-            mMediaElement.Stop();
+            mMediaElement.Pause();
             mVideoLoadingTaskSource = null;
             notify("Ready");
             return r;
@@ -249,9 +249,13 @@ namespace wfPlayer
             var uri = mSources?.Next?.Uri;
             if(null!=uri)
             {
+                bool playing = Playing;
                 Stop();
                 await SetVideoSource(uri);
-                Play();
+                if (playing)
+                {
+                    Play();
+                }
                 VideoSourcesChanged();
                 return true;
             }
@@ -263,9 +267,13 @@ namespace wfPlayer
             var uri = mSources?.Prev?.Uri;
             if (null!=uri)
             {
+                bool playing = Playing;
                 Stop();
                 await SetVideoSource(uri);
-                Play();
+                if (playing)
+                {
+                    Play();
+                }
                 VideoSourcesChanged();
                 return true;
             }
@@ -286,6 +294,7 @@ namespace wfPlayer
             {
                 mMediaElement.Play();
                 Started = true;
+                mSources.Current.OnPlayStarted();
             }
         }
 
@@ -375,9 +384,9 @@ namespace wfPlayer
 
         private async void OnMediaEnded(object sender, RoutedEventArgs e)
         {
-            Stop();
             if(!await Next())
             {
+                Stop();
                 Close();
             }
         }
@@ -541,7 +550,7 @@ namespace wfPlayer
             mMouseInPanel.Value = false;
         }
 
-        private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private async void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             Debug.WriteLine($"KEY:{e.Key} - {e.SystemKey} - {e.KeyStates} - Rep={e.IsRepeat} - D/U/T={e.IsDown}/{e.IsUp}/{e.IsToggled}");
             switch (e.Key)
@@ -550,10 +559,10 @@ namespace wfPlayer
                     Close();
                     break;
                 case System.Windows.Input.Key.NumPad2:
-                    Next();
+                    await Next();
                     break;
                 case System.Windows.Input.Key.NumPad8:
-                    Prev();
+                    await Prev();
                     break;
                 default:
                     break;

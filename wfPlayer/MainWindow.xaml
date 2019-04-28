@@ -8,16 +8,14 @@
         Unloaded="OnUnloaded"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <ResourceDictionary Source="WfResource.xaml"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="3*"/>
-        </Grid.ColumnDefinitions>
 
         <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
             <Button Content="Select Folder..." Click="OnRegisterFolder"/>
@@ -25,13 +23,45 @@
         </StackPanel>
 
         
-        <ListView Grid.Row="1" Grid.Column="1" x:Name="mFileListView" ItemsSource="{Binding}">
+        <ListView Grid.Row="1" x:Name="mFileListView" ItemsSource="{Binding}" GridViewColumnHeader.Click="OnHeaderClick">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Name" Width="150" DisplayMemberBinding="{Binding Name}"/>
                     <GridViewColumn Header="Type" Width="50" DisplayMemberBinding="{Binding Type}"/>
-                    <GridViewColumn Header="Size" Width="100" DisplayMemberBinding="{Binding Size}"/>
-                    <GridViewColumn Header="Date" Width="100" DisplayMemberBinding="{Binding Date}"/>
+                    <GridViewColumn Header="Size" Width="100">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Size, Converter={StaticResource DecimalStringConverter}}" TextAlignment="Right"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Date" Width="120">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Date, Converter={StaticResource DateStringConverter}}" TextAlignment="Right"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Last Play" Width="120">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding LastPlayDate, Converter={StaticResource DateStringConverter}}" TextAlignment="Right"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Count" Width="50">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding PlayCount}" TextAlignment="Right"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Trimming" Width="100" DisplayMemberBinding="{Binding Trimming.Name}"/>
                     <GridViewColumn Header="Mark" Width="50" DisplayMemberBinding="{Binding Mark}"/>
                     <GridViewColumn Header="Path" Width="250" DisplayMemberBinding="{Binding FullPath}"/>
                 </GridView>
