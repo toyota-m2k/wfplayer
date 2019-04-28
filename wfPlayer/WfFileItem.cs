@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace wfPlayer
 {
@@ -51,13 +47,6 @@ namespace wfPlayer
 
         #endregion
 
-        private UtObservableProperty<string> mMark;
-        public string Mark
-        {
-            get => mMark.Value;
-            set => mMark.Value = value;
-        }
-
         public WfFileItem(string path)
         {
             FullPath = path;
@@ -65,19 +54,24 @@ namespace wfPlayer
             Exists = info.Exists;
             Size = info.Length;
             Date = info.CreationTimeUtc;
-            mMark = new UtObservableProperty<string>("Mark", "", this);
             mRating = Ratings.NORMAL;
         }
-        public WfFileItem(string path, long size, DateTime date, string mark, Ratings rating, bool exists)
+        public WfFileItem(string path, long size, DateTime date, string mark, Ratings rating, bool exists, DateTime lastPlay, int playCount, Trim trimming)
         {
             FullPath = path;
             Size = size;
             Date = date;
-            mMark = new UtObservableProperty<string>("Mark", mark??"", this);
+            mMark = mark;
             mRating = rating;
             Exists = exists;
 
+            LastPlayDate = lastPlay;
+            PlayCount = playCount;
+            Trimming = trimming;
         }
+
+        #region RO Properties
+
         public bool Exists { get; }
 
         public string Name => Path.GetFileNameWithoutExtension(FullPath);
@@ -86,11 +80,37 @@ namespace wfPlayer
 
         public string FullPath { get; }
 
+        public Uri Uri => new Uri(FullPath);
+
         public long Size { get; }
 
         public DateTime Date { get; }
 
-        public Uri Uri => new Uri(FullPath);
+        #endregion 
+        #region RW Properties
+
+        private long mDirty = 0;
+
+        private string mMark = "";
+        public string Mark
+        {
+            get => mMark;
+            set { if (setProp("Mark", ref mMark, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.MARK; } }
+        }
+
+        private DateTime mLastPlayDate = DateTime.MinValue;
+        public DateTime LastPlayDate
+        {
+            get => mLastPlayDate;
+            set { if(setProp("LastPlayDate", ref mLastPlayDate, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.LAST_PLAY; } }
+        }
+
+        private int mPlayCount = 0;
+        public int PlayCount
+        {
+            get => mPlayCount;
+            set { if (setProp("PlayCount", ref mPlayCount, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.PLAY_COUNT; } }
+        }
 
         public enum Ratings
         {
@@ -103,7 +123,66 @@ namespace wfPlayer
         public Ratings Rating
         {
             get => mRating;
-            set => setProp("Rating", ref mRating, value);
+            set { if (setProp("Rating", ref mRating, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.RATING; } }
+        }
+
+        public class Trim
+        {
+            public long Id { get; }
+            public string Name { get; }
+            public TimeSpan Prologue { get; }
+            public TimeSpan Epilogue { get; }
+
+            public Trim(long id, string name, TimeSpan prologue, TimeSpan epilogue)
+            {
+                Id = id;
+                Name = name;
+                Prologue = prologue;
+                Epilogue = epilogue;
+            }
+
+            public static Trim NoTrim { get; } = new Trim(0, "", TimeSpan.Zero, TimeSpan.Zero);
+
+            public bool IsEmpty() => Id == 0;
+            public bool HasValue() => !IsEmpty();
+
+            public override bool Equals(object obj)
+            {
+                var s = obj as Trim;
+                if(null==s)
+                {
+                    return false;
+                }
+                return Id == s.Id && Name == Name && Prologue.TotalMilliseconds == Prologue.TotalMilliseconds && Epilogue.TotalMilliseconds == Epilogue.TotalMilliseconds;
+            }
+
+            public override string ToString()
+            {
+                return $"${Name}({Id}):{Prologue}/{Epilogue}";
+            }
+
+            public override int GetHashCode()
+            {
+                return ToString().GetHashCode();
+            }
+            #endregion
+        }
+
+        private Trim mTrimming = Trim.NoTrim;
+        public Trim Trimming
+        {
+            get => mTrimming;
+            set { if (setProp("Trimming", ref mTrimming, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.TRIMMING; } }
+        }
+
+        public void UpdateDB(WfPlayListDB db)
+        {
+            if(mDirty==0)
+            {
+                return;
+            }
+            db.UpdatePlaylistItem(this, mDirty);
+            mDirty = 0;
         }
     }
 

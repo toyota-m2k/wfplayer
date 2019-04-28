@@ -12,6 +12,15 @@ namespace wfPlayer
 {
     public class WfPlayListDB : IDisposable
     {
+        public enum FieldFlag
+        {
+            MARK = 0x01,
+            LAST_PLAY = 0x02,
+            PLAY_COUNT = 0x04,
+            RATING = 0x08,
+            TRIMMING = 0x10,
+        }
+
         public class Txn : IDisposable
         {
             private SQLiteTransaction mTxn;
@@ -63,8 +72,9 @@ namespace wfPlayer
             {
                 try
                 {
-                    mCmd.CommandText = $"INSERT INTO t_playlist (path,date,size,mark,rating) "
-                                     + $"VALUES('{f.FullPath}','{f.Date.ToFileTimeUtc()}','{f.Size}','{f.Mark}','{f.Rating}')";
+                    long lastPlay = f.LastPlayDate == DateTime.MinValue ? 0 : f.LastPlayDate.ToFileTimeUtc();
+                    mCmd.CommandText = $"INSERT INTO t_playlist (path,date,size,mark,rating,lastPlay,playCount,trimming) "
+                                     + $"VALUES('{f.FullPath}','{f.Date.ToFileTimeUtc()}','{f.Size}','{f.Mark}','{(int)f.Rating}','{lastPlay}','{f.PlayCount}','{f.Trimming.Id}')";
                     return 1 == mCmd.ExecuteNonQuery();
                 }
                 catch (SQLiteException e)
@@ -102,12 +112,38 @@ namespace wfPlayer
                     {
                         exists = File.Exists(path);
                     }
+                    long lastPlay = Convert.ToInt64(mReader["lastPlay"]);
+                    DateTime lastPlayDate = (lastPlay == 0) ? DateTime.MinValue : DateTime.FromFileTimeUtc(lastPlay);
+
+                    WfFileItem.Trim trim = WfFileItem.Trim.NoTrim;
+                    var rawTrimId = mReader["trim_id"];
+                    if (!(rawTrimId is DBNull))
+                    {
+                        long trimId = Convert.ToInt64(rawTrimId);
+                        if (trimId > 0)
+                        {
+                            try
+                            {
+                                trim = new WfFileItem.Trim(trimId, Convert.ToString(mReader["trim_name"]),
+                                    TimeSpan.FromMilliseconds(Convert.ToInt64(mReader["prologue"])), TimeSpan.FromMilliseconds(Convert.ToInt64(mReader["epilogue"])));
+                            }
+                            catch (SQLiteException e)
+                            {
+                                trim = WfFileItem.Trim.NoTrim;
+                            }
+                        }
+                    }
+
                     mValue = new WfFileItem(
                                     path,
                                     Convert.ToInt64(mReader["size"]),
                                     DateTime.FromFileTimeUtc(Convert.ToInt64(mReader["date"])),
                                     Convert.ToString(mReader["mark"]),
-                                    (WfFileItem.Ratings)Convert.ToInt32(mReader["rating"]), exists);
+                                    (WfFileItem.Ratings)Convert.ToInt32(mReader["rating"]), exists,
+                                    lastPlayDate,
+                                    Convert.ToInt32(mReader["playCount"]),
+                                    trim
+                                    );
                 }
             }
 
@@ -156,14 +192,24 @@ namespace wfPlayer
             var builder = new SQLiteConnectionStringBuilder() { DataSource = dbPath ?? "wfplay.db" };
             mDB = new SQLiteConnection(builder.ToString());
             mDB.Open();
-            executeSql(@"
-                CREATE TABLE IF NOT EXISTS t_playlist (
-                id INTEGER NOT NULL PRIMARY KEY,
-                path TEXT NOT NULL UNIQUE,
-                date INTEGER NOT NULL,
-                size INTEGER NOT NULL,
-                mark TEXT,
-                rating INTEGER NOT NULL
+            executeSql(
+                @"CREATE TABLE IF NOT EXISTS t_trim_patterns (
+                    trim_id INTEGER NOT NULL PRIMARY KEY,
+                    trim_name TEXT NOT NULL UNIQUE,
+                    prologue INTEGER NOT NULL,
+                    epilogue INTEGER NOT NULL
+                )",
+                @"CREATE TABLE IF NOT EXISTS t_playlist (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    path TEXT NOT NULL UNIQUE,
+                    date INTEGER NOT NULL,
+                    size INTEGER NOT NULL,
+                    mark TEXT,
+                    rating INTEGER NOT NULL,
+                    lastPlay INTEGER NOT NULL,
+                    playCount INTEGER NOT NULL,
+                    trimming INTEGER NOT NULL,
+                    flag INTEGER DEFAULT 0
                 )",
                 @"CREATE INDEX IF NOT EXISTS idx_path ON t_playlist(path)",
                 @"CREATE INDEX IF NOT EXISTS idx_status ON t_playlist(rating)",
@@ -295,8 +341,48 @@ namespace wfPlayer
         public Retriever QueryAll(bool updateExists)
         {
             var cmd = mDB.CreateCommand();
-            cmd.CommandText = @"SELECT * FROM t_playlist";
+            cmd.CommandText = @"SELECT * FROM t_playlist LEFT OUTER JOIN t_trim_patterns on t_playlist.trimming=t_trim_patterns.trim_id";
             return new Retriever(cmd.ExecuteReader(), updateExists);
+        }
+
+        public void UpdatePlaylistItem(WfFileItem item, long flags)
+        {
+            if(flags==0)
+            {
+                return;
+            }
+            using (var cmd = mDB.CreateCommand())
+            {
+                var sql = new StringBuilder("UPDATE t_playlist SET ");
+                bool prev = false;
+                if(0!=(flags & (long)FieldFlag.MARK))
+                {
+                    sql.Append($"mark='{item.Mark}' "); prev = true;
+                }
+                if(0!=(flags&(long)FieldFlag.RATING))
+                {
+                    if (prev) sql.Append(", ");
+                    sql.Append($"rating='{(int)item.Rating}'");
+                }
+                if(0!=(flags&(long)FieldFlag.PLAY_COUNT))
+                {
+                    if (prev) sql.Append(", ");
+                    sql.Append($"playCount='{item.PlayCount}'");
+                }
+                if (0 != (flags & (long)FieldFlag.LAST_PLAY))
+                {
+                    long tm = item.LastPlayDate == DateTime.MinValue ? 0 : item.LastPlayDate.ToFileTimeUtc();
+                    if (prev) sql.Append(", ");
+                    sql.Append($"lastPlay='{tm}'");
+                }
+                if (0 != (flags & (long)FieldFlag.TRIMMING))
+                {
+                    if (prev) sql.Append(", ");
+                    sql.Append($"trimming='{item.Trimming.Id}'");
+                }
+                sql.Append($"WHERE path=${item.FullPath}");
+                executeSql(sql.ToString());
+            }
         }
 
         public bool SetValueAt(string key, string value)

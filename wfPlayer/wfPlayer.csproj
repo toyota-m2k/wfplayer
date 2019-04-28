@@ -77,6 +77,7 @@
     </ApplicationDefinition>
     <Compile Include="CheckButton.cs" />
     <Compile Include="TimelineSlider.cs" />
+    <Compile Include="Utils.cs" />
     <Compile Include="UtObservableProperty.cs" />
     <Compile Include="WfFileItem.cs" />
     <Compile Include="WfpConverter.cs" />

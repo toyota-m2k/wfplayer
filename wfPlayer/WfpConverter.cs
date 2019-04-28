@@ -201,4 +201,24 @@ namespace wfPlayer
             return DependencyProperty.UnsetValue;
         }
     }
+
+    public class DateStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is DateTime)
+            {
+                if (!DateTime.MinValue.Equals(value))
+                {
+                    return ((DateTime)value).ToString();
+                }
+            }
+            return "";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
