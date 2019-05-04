@@ -125,7 +125,9 @@ namespace wfPlayer
                             try
                             {
                                 trim = new WfFileItem.Trim(trimId, Convert.ToString(mReader["trim_name"]),
-                                    TimeSpan.FromMilliseconds(Convert.ToInt64(mReader["prologue"])), TimeSpan.FromMilliseconds(Convert.ToInt64(mReader["epilogue"])));
+                                    Convert.ToInt64(mReader["prologue"]), 
+                                    Convert.ToInt64(mReader["epilogue"]),
+                                    refPath:"");
                             }
                             catch (SQLiteException e)
                             {
@@ -197,6 +199,8 @@ namespace wfPlayer
             return Instance;
         }
 
+        public TrimmingPattern TP;
+
         private SQLiteConnection mDB;
         private WfPlayListDB(string dbPath)
         {
@@ -208,7 +212,8 @@ namespace wfPlayer
                     trim_id INTEGER NOT NULL PRIMARY KEY,
                     trim_name TEXT NOT NULL UNIQUE,
                     prologue INTEGER NOT NULL,
-                    epilogue INTEGER NOT NULL
+                    epilogue INTEGER NOT NULL,
+                    ref_path TEXT
                 )",
                 @"CREATE TABLE IF NOT EXISTS t_playlist (
                     id INTEGER NOT NULL PRIMARY KEY,
@@ -235,6 +240,7 @@ namespace wfPlayer
                 value TEXT NOT NULL UNIQUE
                 )"
                 );
+            TP = new TrimmingPattern(mDB);
         }
 
         static List<string> splitPath(string path)
@@ -455,6 +461,127 @@ namespace wfPlayer
             mDB?.Close();
             mDB?.Dispose();
             mDB = null;
+        }
+
+        public class TrimmingPattern
+        {
+            WeakReference<SQLiteConnection> mRefDB;
+            public TrimmingPattern(SQLiteConnection db)
+            {
+                mRefDB = new WeakReference<SQLiteConnection>(db);
+            }
+            SQLiteConnection DB
+            {
+                get
+                {
+                    SQLiteConnection db = null;
+                    return (mRefDB?.TryGetTarget(out db) ?? false) ? db : null;
+                }
+            }
+
+            public ITrim Register(ITrim trim, long id=0)
+            {
+                return Register(id, trim.Name, trim.Prologue, trim.Epilogue, trim.RefPath);
+            }
+            public ITrim Register(long id, string name, double prologue, double epilogue, string refPath)
+            {
+                using (var cmd = DB.CreateCommand())
+                {
+                    try
+                    {
+                        if(id==0)
+                        {
+                            // register
+                            cmd.CommandText = $"INSERT INTO t_trim_patterns (trim_name,prologue,epilogue,ref_path) VALUES('{name}','{(long)prologue}','{(long)epilogue}','{refPath}' )";
+                        }
+                        else
+                        {
+                            // update
+                            cmd.CommandText = $"UPDATE t_trim_patterns SET (trim_name,prologue,epilogue,ref_path) VALUES('{name}','{(long)prologue}','{(long)epilogue}','{refPath}' ) WHERE trim_id='{id}'";
+                        }
+                        if(1 == cmd.ExecuteNonQuery())
+                        {
+                            return Get(name);
+                        }
+                    }
+                    catch (SQLiteException e)
+                    {
+                    }
+                    return null;
+                }
+
+            }
+
+            public bool Remove(string name)
+            {
+                using (var cmd = DB.CreateCommand())
+                {
+                    try
+                    {
+
+                        cmd.CommandText = $"DELETE FROM t_trim_patterns WHERE trim_name='{name}'";
+                        return 1 == cmd.ExecuteNonQuery();
+                    }
+                    catch (Exception e)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            public ITrim Get(string name)
+            {
+                using (var cmd = DB.CreateCommand())
+                {
+                    try
+                    {
+
+                        cmd.CommandText = $"SELECT * FROM t_trim_patterns WHERE trim_name='{name}'";
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new WfFileItem.Trim(Convert.ToInt64(reader["trim_id"]),
+                                    Convert.ToString(reader["trim_name"]),
+                                    Convert.ToInt64(reader["prologue"]),
+                                    Convert.ToInt64(reader["epilogue"]),
+                                    Convert.ToString(reader["ref_path"]));
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                    }
+                    return null;
+                }
+            }
+
+            public int List(ICollection<WfFileItem.Trim> list)
+            {
+                using (var cmd = DB.CreateCommand())
+                {
+                    try
+                    {
+                        cmd.CommandText = $"SELECT * FROM t_trim_patterns";
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                list.Add(new WfFileItem.Trim(Convert.ToInt64(reader["trim_id"]),
+                                    Convert.ToString(reader["trim_name"]),
+                                    Convert.ToInt64(reader["prologue"]),
+                                    Convert.ToInt64(reader["epilogue"]),
+                                    Convert.ToString(reader["ref_path"])));
+                            }
+                            return list.Count;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                    }
+                    return -1;
+                }
+            }
         }
     }
 }

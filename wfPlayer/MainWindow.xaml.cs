@@ -1,21 +1,9 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace wfPlayer
 {
@@ -37,37 +25,51 @@ namespace wfPlayer
         {
             mPlayListDB = WfPlayListDB.CreateInstance(null);
             mFileList = new WfFileItemList();
+            mFileList.CurrentChanged += PlayingItemChanged;
             LoadListFromDB();
 
             mFileListView.DataContext = mFileList;
             var path = mPlayListDB.GetValueAt("LastItem");
             int index = mFileList.IndexOfPath(path);
-            mFileListView.SelectedIndex = (index >= 0) ? index : 0;
- 
-            //ListVideosInFolder(@"F:\mitsuki\private\movie\selected-25\www.moviejap.com");
+            if(index<0)
+            {
+                index = 0;
+            }
+            mFileListView.SelectedIndex = index;
+            mFileListView.ScrollIntoView(mFileList[index]);
         }
+
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
+            mFileList.CurrentChanged -= PlayingItemChanged;
+        }
+
+        private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            var sel = mFileListView.SelectedItem as WfFileItem;
+            mPlayListDB.SetValueAt("LastItem", sel.FullPath);
+        }
+
+        private void PlayingItemChanged(int from, WfFileItem fromItem, int to, WfFileItem toItem)
+        {
+            mFileListView.SelectedIndex = to;
+            mFileListView.ScrollIntoView(toItem);
+        }
+
+        #region Command Handlers
+
+        private void OnNewFile(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnOpenFile(object sender, RoutedEventArgs e)
+        {
+
         }
 
         private void OnRegisterFolder(object sender, RoutedEventArgs e)
         {
-            //var dlg = new OpenFileDialog();
-            //dlg.Filter= "全てのファイル(*.*)|*.*";
-            //dlg.Multiselect = true;
-            //if (dlg.ShowDialog() == true)
-            //{
-            //    var page = new WfPlayerWindow();
-            //    page.SetSources(dlg.FileNames);
-            //    page.Show();
-            //    //page.Closed += (s, x) =>
-            //    //{
-            //    //    Show();
-            //    //};
-
-            //    //Hide();
-            //}
-
             using (var fbd = new FolderBrowserDialog())
             {
                 DialogResult result = fbd.ShowDialog();
@@ -77,6 +79,51 @@ namespace wfPlayer
                 }
             }
         }
+
+        private void OnPlayAll(object sender, RoutedEventArgs e)
+        {
+            if (mFileList.Count > 0)
+            {
+                var page = new WfPlayerWindow();
+                mFileList.CurrentIndex = mFileListView.SelectedIndex;
+                page.SetSources(mFileList);
+                page.Show();
+                page.Closed += (s, x) =>
+                {
+                    var c = mFileList.Current;
+                    if (null != c)
+                    {
+                        mPlayListDB.SetValueAt("LastItem", ((WfFileItem)c).FullPath);
+                    }
+                };
+            }
+        }
+
+        private void OnCreateTrimming(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnSelectTrimming(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnResetTrimming(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnResetCounter(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnSetRating(object sender, RoutedEventArgs e)
+        {
+
+        }
+        #endregion
 
         private void LoadListFromDB()
         {
@@ -89,7 +136,6 @@ namespace wfPlayer
                 }
             }
         }
-
 
         private void RegisterFilesInPath(string folderPath)
         {
@@ -114,23 +160,9 @@ namespace wfPlayer
             }
         }
 
-        private void OnPlayAll(object sender, RoutedEventArgs e)
+        private void OnListItemDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if(mFileList.Count>0)
-            {
-                var page = new WfPlayerWindow();
-                mFileList.CurrentIndex = mFileListView.SelectedIndex;
-                page.SetSources(mFileList);
-                page.Show();
-                page.Closed += (s, x) =>
-                {
-                    var c = mFileList.Current;
-                    if(null!=c)
-                    {
-                        mPlayListDB.SetValueAt("LastItem", ((WfFileItem)c).FullPath);
-                    }
-                };
-            }
+            OnPlayAll(null, null);
         }
 
         private void OnHeaderClick(object sender, RoutedEventArgs e)
@@ -141,6 +173,71 @@ namespace wfPlayer
             //    return;
             //}
             //switch(header.Column.Header)
+        }
+
+        public readonly static RoutedCommand CreateTrimming = new RoutedCommand("CreateTrimming", typeof(MainWindow));
+        public readonly static RoutedCommand ApplyTrimming = new RoutedCommand("ApplyTrimming", typeof(MainWindow));
+        public readonly static RoutedCommand ResetCounter = new RoutedCommand("ResetCounter", typeof(MainWindow));
+
+        private void CanCreateTrimming(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = mFileListView.SelectedIndex >= 0;
+        }
+        private void CanApplyTrimming(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = mFileListView.SelectedIndex >= 0;
+        }
+
+        private void ExecCreateTrimming(object sender, ExecutedRoutedEventArgs e)
+        {
+            var item = mFileListView.SelectedItem as WfFileItem;
+            var tp = new WfTrimmingPlayer(item.Trimming, item.FullPath);
+            WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
+            {
+                item.Trimming = tp.Result;
+                db.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+            };
+            tp.OnResult += onNewTrimming;
+            tp.ShowDialog();
+            tp.OnResult -= onNewTrimming;
+            e.Handled = true;
+        }
+
+        private void ExecApplyTrimming(object sender, ExecutedRoutedEventArgs e)
+        {
+            var dlg = new WfTrimmingPatternList();
+            dlg.ShowDialog();
+            if(dlg.Result!=null)
+            {
+                using(var txn = WfPlayListDB.Instance.Transaction())
+                {
+                    foreach(WfFileItem v in mFileListView.SelectedItems)
+                    {
+                        v.Trimming = dlg.Result;
+                        WfPlayListDB.Instance.UpdatePlaylistItem(v, (long)WfPlayListDB.FieldFlag.TRIMMING);
+                    }
+                }
+            }
+        }
+
+        private void ExecResetCounter(object sender, ExecutedRoutedEventArgs e)
+        {
+            using (var txn = WfPlayListDB.Instance.Transaction())
+            {
+                foreach (WfFileItem c in mFileListView.SelectedItems)
+                {
+                    if (c.PlayCount > 0)
+                    {
+                        c.PlayCount = 0;
+                        WfPlayListDB.Instance.UpdatePlaylistItem(c, (long)WfPlayListDB.FieldFlag.PLAY_COUNT);
+                    }
+                }
+            }
+        }
+
+        private void CanResetCounter(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = mFileListView.SelectedIndex >= 0;
         }
 
     }

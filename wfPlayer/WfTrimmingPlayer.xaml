@@ -1,0 +1,88 @@
+﻿<Window x:Class="wfPlayer.WfTrimmingPlayer"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:wfPlayer"
+        mc:Ignorable="d"
+        Loaded="OnLoaded"
+        Unloaded="OnUnloaded"
+        Title="WfTrimmingPlayer" Height="450" Width="800">
+    <Window.Resources>
+        <ResourceDictionary Source="WfResource.xaml"/>
+    </Window.Resources>
+
+    <Grid Background="#303030">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <MediaElement 
+            Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+            LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Uniform"
+            Name="mMediaElement" MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed"
+            Source="{Binding VideoSource}"
+            Volume="{Binding Volume, Mode=OneWay}"
+            IsMuted="{Binding Mute, Mode=OneWay}"
+            />
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Stretch">
+                <local:CheckButton Click="OnPlay" IsChecked="{Binding Started, Mode=OneWay}" IsEnabled="{Binding IsReady}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
+                <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" IsEnabled="{Binding Started}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
+                <Button Click="OnStop"  IsEnabled="{Binding Started}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}" Margin="0,0,8,0"/>
+
+                <Button Click="OnStepBack2"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepBack2}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnStepBack"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepBack}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnStepForward"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepForward}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnStepForward2"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepForward2}" Style="{StaticResource PushButtonStyle}"/>
+            </StackPanel>
+            <ToggleButton Grid.Column="1" IsChecked="{Binding Mute}" Content="{StaticResource PathMute}" Style="{StaticResource ToggleButtonStyle}" HorizontalAlignment="Right"/>
+        </Grid>
+        <local:TimelineSlider Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" 
+            x:Name="mPositionSlider" ValueChanged="OnSliderValueChanged" 
+            Minimum="0" Maximum="{Binding Duration}" 
+            LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}" 
+            DragStateChanged="OnSliderDragStateChanged" Margin="8"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Prologue" Margin="8" Foreground="White" FontWeight="Bold"/>
+        <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" Margin="8,0,8,8">
+            <CheckBox Content="Enabled" Name="mStartCheck" IsChecked="{Binding TrimStartEnabled, Mode=TwoWay}" Foreground="White" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding TrimStart}" IsReadOnly="True" Width="150" Margin="8,0,0,0"/>
+            <Button Click="OnSetTrimStart" IsEnabled="{Binding Path=IsChecked, ElementName=mStartCheck}"  Content="{StaticResource PathRoundArrow1}" Style="{StaticResource SmallPushButtonStyle}">
+                <Button.LayoutTransform>
+                    <RotateTransform CenterX="0.5" CenterY="0.5" Angle="180"/>
+                </Button.LayoutTransform>
+            </Button>
+        </StackPanel>
+        <TextBlock Grid.Row="3" Grid.Column="1" Text="Epilogue" Margin="8" Foreground="White" FontWeight="Bold"/>
+        <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="8,0,8,8">
+            <CheckBox Content="Enabled" Name="mEndCheck" IsChecked="{Binding TrimEndEnabled, Mode=TwoWay}" Foreground="White" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding TrimEnd}" IsReadOnly="True" Width="150" Margin="8,0,0,0"/>
+            <Button Click="OnSetTrimEnd" IsEnabled="{Binding Path=IsChecked, ElementName=mEndCheck}" Content="{StaticResource PathRoundArrow2}" Style="{StaticResource SmallPushButtonStyle}">
+                <Button.LayoutTransform>
+                    <RotateTransform CenterX="0.5" CenterY="0.5" Angle="180"/>
+                </Button.LayoutTransform>
+            </Button>
+        </StackPanel>
+        <StackPanel Grid.Row="5" Grid.Column="0"  Orientation="Horizontal" Margin="8">
+            <TextBlock Text="Trimming Name" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding TrimmingName, Mode=TwoWay}" Width="200" Margin="0,0,16,0"/>
+        </StackPanel>
+        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+            <Button Content="Register" Padding="8,1" Margin="0,0,8,0" Click="OnOk"/>
+            <Button Content="Cancel" Padding="8,1" Click="OnCancel"/>
+        </StackPanel>
+    </Grid>
+</Window>

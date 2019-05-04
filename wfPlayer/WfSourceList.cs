@@ -10,21 +10,24 @@ namespace wfPlayer
     {
         GOOD = 0,       // 優良
         NORMAL,         // ふつう
-        SKIP,           // 一覧に表示しても再生はしない
-        DELETING,       // 削除予定
+        BAD,           // 一覧に表示しても再生はしない
+        DREADFUL,       // 削除予定
     }
 
     public interface ITrim
     {
         long Id { get; }
         string Name { get; }
-        TimeSpan Prologue { get; }
-        TimeSpan Epilogue { get; }
+        long Prologue { get; }
+        long Epilogue { get; }
+        string RefPath { get; }
+        bool HasValue { get; }
     }
 
     public interface IWfSource
     {
         Uri Uri { get; }
+        string FullPath { get; }
         string Mark { get; set; }
         Ratings Rating { get; set; }
         ITrim Trimming { get; set; }

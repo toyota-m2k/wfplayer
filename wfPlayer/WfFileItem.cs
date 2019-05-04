@@ -124,21 +124,23 @@ namespace wfPlayer
         {
             public long Id { get; }
             public string Name { get; }
-            public TimeSpan Prologue { get; }
-            public TimeSpan Epilogue { get; }
+            public long Prologue { get; }
+            public long Epilogue { get; }
+            public string RefPath { get; }
 
-            public Trim(long id, string name, TimeSpan prologue, TimeSpan epilogue)
+            public Trim(long id, string name, long prologue, long epilogue, string refPath)
             {
                 Id = id;
                 Name = name;
                 Prologue = prologue;
                 Epilogue = epilogue;
+                RefPath = refPath;
             }
 
-            public static Trim NoTrim { get; } = new Trim(0, "", TimeSpan.Zero, TimeSpan.Zero);
+            public static Trim NoTrim { get; } = new Trim(0, "", 0, 0, "");
 
-            public bool IsEmpty() => Id == 0;
-            public bool HasValue() => !IsEmpty();
+            public bool IsEmpty => Id == 0;
+            public bool HasValue => !IsEmpty;
 
             public override bool Equals(object obj)
             {
@@ -147,7 +149,7 @@ namespace wfPlayer
                 {
                     return false;
                 }
-                return Id == s.Id && Name == Name && Prologue.TotalMilliseconds == Prologue.TotalMilliseconds && Epilogue.TotalMilliseconds == Epilogue.TotalMilliseconds;
+                return Id == s.Id && Name == s.Name && Prologue == s.Prologue && Epilogue == s.Epilogue;
             }
 
             public override string ToString()

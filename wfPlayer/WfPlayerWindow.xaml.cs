@@ -188,11 +188,13 @@ namespace wfPlayer
         public bool HasNext => mSources?.HasNext ?? false;
         public bool HasPrev => mSources?.HasPrev ?? false;
 
+        public bool TrimmingEnabled => Current?.Trimming?.HasValue ?? false;
+
         #endregion
 
         #region ビデオソース
         private TaskCompletionSource<bool> mVideoLoadingTaskSource = null;
-        private async Task<bool> SetVideoSource(Uri uri)
+        private async Task<bool> SetVideoSource(IWfSource rec)
         {
             if(null!=mVideoLoadingTaskSource)
             {
@@ -200,8 +202,8 @@ namespace wfPlayer
             }
             notify("Ready");
             mVideoLoadingTaskSource = new TaskCompletionSource<bool>();
-            mMediaElement.Source = uri;
-            mMediaElement.Position = TimeSpan.FromMilliseconds(0);
+            mMediaElement.Source = rec.Uri;
+            mMediaElement.Position = TimeSpan.FromMilliseconds(rec.Trimming.Prologue);
             mMediaElement.Play();
             var r = await mVideoLoadingTaskSource.Task;
             mMediaElement.Pause();
@@ -213,10 +215,13 @@ namespace wfPlayer
         //private List<string> mSources;
         private IWfSourceList mSources;
 
+        private IWfSource Current => mSources?.Current;
+
         private void VideoSourcesChanged()
         {
             notify("HasNext");
             notify("HasPrev");
+            notify("TrimmingEnabled");
         }
 
         public async void SetSources(IWfSourceList sources)
@@ -236,22 +241,21 @@ namespace wfPlayer
                 return;
             }
             var rec = mSources.Current ?? mSources.Head;
-            var uri = rec?.Uri;
-            if(null!=uri)
+            if(null!=rec)
             {
-                await SetVideoSource(uri);
+                await SetVideoSource(rec);
                 VideoSourcesChanged();
             }
         }
 
         private async Task<bool> Next()
         {
-            var uri = mSources?.Next?.Uri;
-            if(null!=uri)
+            var rec = mSources?.Next;
+            if(null!=rec)
             {
                 bool playing = Playing;
                 Stop();
-                await SetVideoSource(uri);
+                await SetVideoSource(rec);
                 if (playing)
                 {
                     Play();
@@ -264,12 +268,12 @@ namespace wfPlayer
 
         private async Task<bool> Prev()
         {
-            var uri = mSources?.Prev?.Uri;
-            if (null!=uri)
+            var rec = mSources?.Prev;
+            if (null!=rec)
             {
                 bool playing = Playing;
                 Stop();
-                await SetVideoSource(uri);
+                await SetVideoSource(rec);
                 if (playing)
                 {
                     Play();
@@ -326,7 +330,7 @@ namespace wfPlayer
             mMediaElement.Stop();
             Started = false;
             Pausing = false;
-            mPositionSlider.Value = 0;
+            mPositionSlider.Value = mSources.Current.Trimming.Prologue;
         }
 
         #endregion
@@ -378,7 +382,7 @@ namespace wfPlayer
         {
             Duration = mMediaElement.NaturalDuration.TimeSpan.TotalMilliseconds;
             mMediaElement.SpeedRatio = calcSpeedRatio(Speed);
-            await updateTimelinePosition(0, true, true);
+            await updateTimelinePosition(Current.Trimming.Prologue, true, true);
             mVideoLoadingTaskSource.TrySetResult(true);
         }
 
@@ -393,7 +397,7 @@ namespace wfPlayer
 
         private async void OnMediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
-            mVideoLoadingTaskSource.TrySetResult(false);
+            mVideoLoadingTaskSource?.TrySetResult(false);
             if (!await Next())
             {
                 Close();
@@ -519,8 +523,16 @@ namespace wfPlayer
                     {
                         if (!mDragging)
                         {
+                            var current = mMediaElement.Position.TotalMilliseconds;
+                            if(Duration - current < Current.Trimming.Epilogue)
+                            {
+                                mPositionTimer.Stop();
+                                mPositionTimer = null;
+                                OnMediaEnded(null, null);
+                                return;
+                            }
                             mUpdatingPositionFromTimer = true;
-                            mPositionSlider.Value = mMediaElement.Position.TotalMilliseconds;
+                            mPositionSlider.Value = current;
                             mUpdatingPositionFromTimer = false;
                         }
                     };
@@ -568,5 +580,54 @@ namespace wfPlayer
                     break;
             }
         }
+
+        private void EditTrimming(object sender, RoutedEventArgs e)
+        {
+            var item = Current as WfFileItem;
+            if (null == item)
+            {
+                return;
+            }
+            var tp = new WfTrimmingPlayer(item.Trimming, item.FullPath);
+            WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
+            {
+                item.Trimming = tp.Result;
+                db.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+                notify("TrimmingEnabled");
+            };
+            tp.OnResult += onNewTrimming;
+            tp.ShowDialog();
+            tp.OnResult -= onNewTrimming;
+        }
+
+        private void SelectTrimming(object sender, RoutedEventArgs e)
+        {
+            var item = Current as WfFileItem;
+            if(null==item)
+            {
+                return;
+            }
+            var dlg = new WfTrimmingPatternList();
+            dlg.ShowDialog();
+            if (null != dlg.Result)
+            {
+                item.Trimming = dlg.Result;
+                WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+                notify("TrimmingEnabled");
+            }
+        }
+
+        private void ResetTrimming(object sender, RoutedEventArgs e)
+        {
+            var item = Current as WfFileItem;
+            if (null == item||!item.Trimming.HasValue)
+            {
+                return;
+            }
+            item.Trimming = WfFileItem.Trim.NoTrim;
+            WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+            notify("TrimmingEnabled");
+        }
+
     }
 }

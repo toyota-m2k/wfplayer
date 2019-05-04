@@ -89,6 +89,12 @@
     </Compile>
     <Compile Include="WfPlayListDB.cs" />
     <Compile Include="WfSourceList.cs" />
+    <Compile Include="WfTrimmingPatternList.xaml.cs">
+      <DependentUpon>WfTrimmingPatternList.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WfTrimmingPlayer.xaml.cs">
+      <DependentUpon>WfTrimmingPlayer.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -110,6 +116,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="WfResource.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WfTrimmingPatternList.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WfTrimmingPlayer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

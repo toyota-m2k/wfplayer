@@ -29,7 +29,7 @@
                           IsMuted="{Binding Mute, Mode=OneWay}"
                           />
         </Grid>
-        <Grid Grid.Column="1" Grid.Row="1" Name="mPanelBase" Background="{StaticResource ControlPanelBG}" Opacity="0" MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave">
+        <Grid Grid.Column="1" Grid.Row="1" Name="mPanelBase" Background="{StaticResource ControlPanelBG}" Opacity="1" MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave">
             <Grid.Resources>
                 <ResourceDictionary>
                     <!-- Fade in/out effect -->
@@ -62,14 +62,25 @@
             </Grid.Style>
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
                 <local:TimelineSlider x:Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}" ValueChanged="OnPositionChanged" LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}" DragStateChanged="OnSliderDragStateChanged"/>
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <local:CheckButton Click="OnPlay" IsChecked="{Binding Started, Mode=OneWay}" IsEnabled="{Binding Ready}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
-                    <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" IsEnabled="{Binding Ready}" Style="{StaticResource PushButtonStyle}"/>
-                    <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" IsEnabled="{Binding Started}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
-                    <Button Click="OnStop"  IsEnabled="{Binding Started}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
-                    <Button IsEnabled="{Binding HasPrev}" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
-                    <Button IsEnabled="{Binding HasNext}" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
-                </StackPanel>
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" Grid.Column="0">
+                        <local:CheckButton Click="OnPlay" IsChecked="{Binding Started, Mode=OneWay}" IsEnabled="{Binding Ready}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
+                        <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" IsEnabled="{Binding Ready}" Style="{StaticResource PushButtonStyle}"/>
+                        <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" IsEnabled="{Binding Started}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
+                        <Button Click="OnStop"  IsEnabled="{Binding Started}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
+                        <Button IsEnabled="{Binding HasPrev}" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
+                        <Button IsEnabled="{Binding HasNext}" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
+                        <Button IsEnabled="{Binding Ready}" Click="EditTrimming"  Content="{StaticResource PathCut}" Style="{StaticResource PushButtonStyle}"/>
+                        <Button IsEnabled="{Binding Ready}" Click="SelectTrimming"  Content="{StaticResource PathList}" Style="{StaticResource PushButtonStyle}"/>
+                        <Button IsEnabled="{Binding TrimmingEnabled}" Click="ResetTrimming"  Content="{StaticResource PathRemove}" Style="{StaticResource PushButtonStyle}"/>
+                    </StackPanel>
+                </Grid>
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
