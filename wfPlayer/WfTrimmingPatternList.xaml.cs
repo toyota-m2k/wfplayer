@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace wfPlayer
 {
@@ -55,12 +45,36 @@ namespace wfPlayer
 
         private void ExecEditTrimming(object sender, ExecutedRoutedEventArgs e)
         {
-
+            var index = mTPListView.SelectedIndex;
+            if(index<0||mList.Count<=index)
+            {
+                return;
+            }
+            var item = mList[index];
+            var dlg = new WfTrimmingPlayer(item);
+            dlg.ShowDialog();
+            if(dlg.Result!=null)
+            {
+                mList.RemoveAt(index);
+                mList.Insert(index, (WfFileItem.Trim)dlg.Result);
+            }
         }
 
         private void ExecDeleteTrimming(object sender, ExecutedRoutedEventArgs e)
         {
-
+            var removed = new List<WfFileItem.Trim>();
+            using (var txn = WfPlayListDB.Instance.Transaction())
+            {
+                foreach (WfFileItem.Trim v in mTPListView.SelectedItems)
+                {
+                    WfPlayListDB.Instance.TP.Remove(v.Name);
+                    removed.Add(v);
+                }
+            }
+            foreach(var v in removed)
+            {
+                mList.Remove(v);
+            }
         }
 
         public ITrim Result { get; private set; } = null;

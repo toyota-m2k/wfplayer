@@ -1,17 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace wfPlayer
@@ -85,26 +75,26 @@ namespace wfPlayer
         public double TrimStart
         {
             get => mTrimStart;
-            set => setProp("TrimStart", ref mTrimStart, value);
+            set => setProp(new string[] { "TrimStart", "IsValid" }, ref mTrimStart, value);
         }
         private double mTrimEnd = 0;
         public double TrimEnd
         {
             get => mTrimEnd;
-            set => setProp("TrimEnd", ref mTrimEnd, value);
+            set => setProp(new string[] { "TrimEnd", "IsValid" }, ref mTrimEnd, value);
         }
 
         private bool mTrimStartEnabled = false;
         public bool TrimStartEnabled
         {
             get => mTrimStartEnabled;
-            set => setProp("TrimStartEnabled", ref mTrimStartEnabled, value);
+            set => setProp(new string[] { "TrimStartEnabled", "IsValid" }, ref mTrimStartEnabled, value);
         }
         private bool mTrimEndEnabled = false;
         public bool TrimEndEnabled
         {
             get => mTrimEndEnabled;
-            set => setProp("TrimEndEnabled", ref mTrimEndEnabled, value);
+            set => setProp(new string[] { "TrimEndEnabled", "IsValid" }, ref mTrimEndEnabled, value);
         }
         private double mDuration = 0;
         public double Duration
@@ -147,6 +137,8 @@ namespace wfPlayer
         public double LargePositionChange => Duration / 10;
         public double SmallPositionChange => 1000;
 
+        public bool IsValid => (TrimEndEnabled && TrimEnd > 0) || (TrimStartEnabled && TrimStart > 0);
+
         #endregion
 
         #region Private Fields
@@ -160,9 +152,9 @@ namespace wfPlayer
         public delegate void ResultEventProc(ITrim result, WfPlayListDB dbWithTransaction);
         public event ResultEventProc OnResult;
 
-        public WfTrimmingPlayer(ITrim trim, string videoPath)
+        public WfTrimmingPlayer(ITrim trim, string videoPath=null)
         {
-            mVideoPath = videoPath;
+            mVideoPath = videoPath ?? trim.RefPath;
             if (null != trim) {
                 mEditingTrim = trim;
                 mTrimmingName = trim.Name;
@@ -417,6 +409,10 @@ namespace wfPlayer
 
         private void OnOk(object sender, RoutedEventArgs e)
         {
+            if(!IsValid)
+            {
+                return;
+            }
             using (var txn = WfPlayListDB.Instance.Transaction())
             {
                 Result = WfPlayListDB.Instance.TP.Register(mEditingTrim?.Id ?? 0, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mEditingTrim?.RefPath ?? mVideoPath);

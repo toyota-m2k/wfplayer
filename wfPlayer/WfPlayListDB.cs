@@ -485,6 +485,11 @@ namespace wfPlayer
             }
             public ITrim Register(long id, string name, double prologue, double epilogue, string refPath)
             {
+                if(String.IsNullOrEmpty(name)||(prologue==0&&epilogue==0))
+                {
+                    return null;
+                }
+
                 using (var cmd = DB.CreateCommand())
                 {
                     try
