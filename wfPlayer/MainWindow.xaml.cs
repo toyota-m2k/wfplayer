@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -205,6 +206,7 @@ namespace wfPlayer
             {
                 SaveCurrentSelection();
             }
+            WfGlobalParams.Instance.FilePath = dbPath;
             WfGlobalParams.Instance.AddMru(dbPath);
             mPlayListDB = WfPlayListDB.CreateInstance(dbPath);
             mFileList = new WfFileItemList();
@@ -223,6 +225,18 @@ namespace wfPlayer
                 mFileListView.SelectedIndex = index;
                 mFileListView.ScrollIntoView(mFileList[index]);
             }
+
+            UpdateTitle();
+        }
+
+        private void UpdateTitle()
+        {
+            var path = WfGlobalParams.Instance.FilePath;
+
+            string fname =  !string.IsNullOrEmpty(path) ? Path.GetFileName(path) : "<untitled>";
+            var v = FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            //Debug.WriteLine(v.ToString());
+            this.Title = String.Format("{0} (v{1}.{2}.{3})  - {4}", v.ProductName, v.FileMajorPart, v.FileMinorPart, v.FileBuildPart, fname);
         }
 
         private void RegisterFolder()

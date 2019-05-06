@@ -190,6 +190,64 @@ namespace wfPlayer
 
         public bool TrimmingEnabled => Current?.Trimming?.HasValue ?? false;
 
+        public Ratings CurrentRating
+        {
+            get => Current?.Rating ?? Ratings.NORMAL;
+            set
+            {
+                var item = Current;
+                if (null == item)
+                {
+                    return;
+                }
+                if (item.Rating != value)
+                {
+                    item.Rating = value;
+                    WfPlayListDB.Instance.UpdatePlaylistItem((WfFileItem)item, (long)WfPlayListDB.FieldFlag.RATING);
+                    notify("Rating");
+                }
+            }
+        }
+
+        public class RatingBindable
+        {
+            public RatingBindable(WfPlayerWindow parent)
+            {
+                mParent = new WeakReference<WfPlayerWindow>(parent);
+            }
+            private WeakReference<WfPlayerWindow> mParent;
+            private WfPlayerWindow Parent
+            {
+                get
+                {
+                    WfPlayerWindow v = null;
+                    return (mParent.TryGetTarget(out v)) ? v : null;
+                }
+            }
+
+            public bool Normal
+            {
+                get => Parent.CurrentRating == Ratings.NORMAL;
+                set => Parent.CurrentRating = Ratings.NORMAL;
+            }
+            public bool Good
+            {
+                get => Parent.CurrentRating == Ratings.GOOD;
+                set => Parent.CurrentRating = Ratings.GOOD;
+            }
+            public bool Bad
+            {
+                get => Parent.CurrentRating == Ratings.BAD;
+                set => Parent.CurrentRating = Ratings.BAD;
+            }
+            public bool Dreadful
+            {
+                get => Parent.CurrentRating == Ratings.DREADFUL;
+                set => Parent.CurrentRating = Ratings.DREADFUL;
+            }
+        }
+        public RatingBindable Rating { get; }
+
         #endregion
 
         #region ビデオソース
@@ -200,6 +258,8 @@ namespace wfPlayer
             {
                 await mVideoLoadingTaskSource.Task;
             }
+            UpdateTitle(rec);
+            notify("Rating");
             notify("Ready");
             mVideoLoadingTaskSource = new TaskCompletionSource<bool>();
             mMediaElement.Source = rec.Uri;
@@ -210,6 +270,12 @@ namespace wfPlayer
             mVideoLoadingTaskSource = null;
             notify("Ready");
             return r;
+        }
+
+        private void UpdateTitle(IWfSource rec)
+        {
+            string name = System.IO.Path.GetFileName(rec.FullPath);
+            this.Title = $"WfPlayer - {name}";
         }
 
         //private List<string> mSources;
@@ -341,6 +407,7 @@ namespace wfPlayer
         public WfPlayerWindow()
         {
             Duration = 1.0;
+            Rating = new RatingBindable(this);
             mSources = null;
             mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel");
             mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel");
