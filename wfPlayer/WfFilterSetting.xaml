@@ -1,0 +1,41 @@
+﻿<Window x:Class="wfPlayer.WfFilterSetting"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:wfPlayer"
+        mc:Ignorable="d"
+        Title="Filter" Height="198" Width="335">
+    <Window.Resources>
+        <ResourceDictionary Source="WfResource.xaml"/>
+    </Window.Resources>
+    <Grid Background="{StaticResource ControlPanelBG}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Vertical" Margin="10">
+            <StackPanel.Resources>
+                <local:WfFilter x:Key="Filter"/>
+            </StackPanel.Resources>
+            <TextBlock Text="Ratings" Foreground="White" FontWeight="Bold" Margin="0,0,0,8"/>
+            <StackPanel Orientation="Horizontal">
+                <ToggleButton IsChecked="{Binding Good, Mode=TwoWay}" Content="{StaticResource PathGood}" Style="{StaticResource ToggleButtonStyle}"/>
+                <ToggleButton IsChecked="{Binding Normal, Mode=TwoWay}" Content="{StaticResource PathNormal}" Style="{StaticResource ToggleButtonStyle}"/>
+                <ToggleButton IsChecked="{Binding Bad, Mode=TwoWay}" Content="{StaticResource PathBad}" Style="{StaticResource ToggleButtonStyle}"/>
+                <ToggleButton IsChecked="{Binding Dreadful, Mode=TwoWay}" Content="{StaticResource PathDreadful}" Style="{StaticResource ToggleButtonStyle}"/>
+            </StackPanel>
+
+            <TextBlock Text="Play Count" Foreground="White" FontWeight="Bold" Margin="0,8"/>
+            <StackPanel Orientation="Horizontal">
+                <ComboBox ItemsSource="{Binding ComparisonEnumNameDictionary, Source={StaticResource Filter}}"
+                          DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding CP, Mode=TwoWay}"/>
+                <local:NumericTextBox Width="50" Text="{Binding PlayCount}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                <Button Content="OK" Width="60" Click="OnOK"/>
+                <Button Content="Cancel" Width="60" Margin="8,0,0,0" Click="OnCancel"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

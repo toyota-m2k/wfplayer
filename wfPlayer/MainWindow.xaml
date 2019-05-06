@@ -49,19 +49,21 @@
         <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="#404080">
             <Button Click="OnOpenFile" Content="{StaticResource PathOpenFile}" Style="{StaticResource PushButtonStyle}"/>
 
-            <Button Click="OnRegisterFolder" Content="{StaticResource PathAddFolder}" Style="{StaticResource PushButtonStyle}" Margin="2,0,0,0"/>
+            <Button Click="OnRegisterFolder" Content="{StaticResource PathAddFolder}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0"/>
             <Button Click="OnPlayAll" Content="{StaticResource PathPlay}" Style="{StaticResource PushButtonStyle}"/>
 
-            <Button Click="OnCreateTrimming"  Content="{StaticResource PathCut}" Style="{StaticResource PushButtonStyle}" Margin="2,0,0,0"/>
+            <Button Click="OnCreateTrimming"  Content="{StaticResource PathCut}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0"/>
             <Button Click="OnSelectTrimming"  Content="{StaticResource PathList}" Style="{StaticResource PushButtonStyle}"/>
             <Button Click="OnResetTrimming"  Content="{StaticResource PathRemove}" Style="{StaticResource PushButtonStyle}"/>
 
-            <Button Click="OnResetCounter"  Content="{StaticResource PathCounter}" Style="{StaticResource PushButtonStyle}" Margin="2,0,0,0"/>
+            <Button Click="OnResetCounter"  Content="{StaticResource PathCounter}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0"/>
 
-            <Button Click="OnSetRating" Tag="0" Content="{StaticResource PathGood}" Style="{StaticResource PushButtonStyle}" Margin="2,0,0,0"/>
+            <Button Click="OnSetRating" Tag="0" Content="{StaticResource PathGood}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0"/>
             <Button Click="OnSetRating" Tag="1" Content="{StaticResource PathNormal}" Style="{StaticResource PushButtonStyle}"/>
             <Button Click="OnSetRating" Tag="2" Content="{StaticResource PathBad}" Style="{StaticResource PushButtonStyle}"/>
             <Button Click="OnSetRating" Tag="3" Content="{StaticResource PathDreadful}" Style="{StaticResource PushButtonStyle}"/>
+
+            <local:CheckButton Click="OnFilter" IsChecked="{Binding IsFiltered, Mode=OneWay}" Content="{StaticResource PathFilter}" Style="{StaticResource CheckButtonStyle}" Margin="4,0,0,0"/>
         </StackPanel>
 
         

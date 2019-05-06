@@ -59,6 +59,13 @@ namespace wfPlayer
 
         public bool ItemMultiSelected => mFileListView.SelectedItems.Count > 1;
 
+        private bool mIsFiltered = false;
+        public bool IsFiltered
+        {
+            get => mIsFiltered;
+            set => setProp("IsFiltered", ref mIsFiltered, value);
+        }
+
         #endregion
 
         #region Private Field
@@ -72,13 +79,20 @@ namespace wfPlayer
 
         public MainWindow()
         {
+            DataContext = this;
             InitializeComponent();
 
         }
 
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            WfGlobalParams.Instance.Placement.ApplyPlacementTo(this);
+        }
+
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            OpenDB(null);
+            OpenDB(WfGlobalParams.Instance.FilePath);
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -89,6 +103,8 @@ namespace wfPlayer
         private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             SaveCurrentSelection();
+            WfGlobalParams.Instance.Placement.GetPlacementFrom(this);
+            WfGlobalParams.Instance.Serialize();
         }
 
         #endregion
@@ -189,6 +205,7 @@ namespace wfPlayer
             {
                 SaveCurrentSelection();
             }
+            WfGlobalParams.Instance.AddMru(dbPath);
             mPlayListDB = WfPlayListDB.CreateInstance(dbPath);
             mFileList = new WfFileItemList();
             mFileList.CurrentChanged += PlayingItemChanged;
@@ -315,10 +332,10 @@ namespace wfPlayer
 
         #region Sub-Routines
 
-        private void LoadListFromDB()
+        private void LoadListFromDB(string filter="")
         {
             mFileList.Clear();
-            using (var retriever = mPlayListDB.QueryAll(false))
+            using (var retriever = mPlayListDB.QueryAll(false, filter))
             {
                 foreach (var item in retriever)
                 {
@@ -400,5 +417,25 @@ namespace wfPlayer
         }
 
         #endregion
+
+        private void OnFilter(object sender, RoutedEventArgs e)
+        {
+            if (IsFiltered)
+            {
+                LoadListFromDB();
+                IsFiltered = false;
+            }
+            else
+            {
+                var dlg = new WfFilterSetting(WfGlobalParams.Instance.Filter);
+                dlg.ShowDialog();
+                if (dlg.Result != null)
+                {
+                    WfGlobalParams.Instance.Filter = dlg.Result;
+                    LoadListFromDB(dlg.Result.SQL);
+                    IsFiltered = true;
+                }
+            }
+        }
     }
 }

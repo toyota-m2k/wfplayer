@@ -36,6 +36,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>wfplayer3.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
@@ -76,10 +79,16 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="CheckButton.cs" />
+    <Compile Include="NumericTextBox.cs" />
     <Compile Include="TimelineSlider.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="UtObservableProperty.cs" />
     <Compile Include="WfFileItem.cs" />
+    <Compile Include="WfFilter.cs" />
+    <Compile Include="WfFilterSetting.xaml.cs">
+      <DependentUpon>WfFilterSetting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WfGlobalParams.cs" />
     <Compile Include="WfpConverter.cs" />
     <Compile Include="wfPlayerPage.xaml.cs">
       <DependentUpon>wfPlayerPage.xaml</DependentUpon>
@@ -95,6 +104,7 @@
     <Compile Include="WfTrimmingPlayer.xaml.cs">
       <DependentUpon>WfTrimmingPlayer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WinPlacement.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -107,6 +117,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="WfFilterSetting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="wfPlayerPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -163,6 +177,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="wfplayer3.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.110.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.110.0\build\net46\System.Data.SQLite.Core.targets')" />

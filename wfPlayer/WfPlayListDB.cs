@@ -355,10 +355,10 @@ namespace wfPlayer
             return new Appender(cmd, txn);
         }
 
-        public Retriever QueryAll(bool updateExists)
+        public Retriever QueryAll(bool updateExists, string filter="")
         {
             var cmd = mDB.CreateCommand();
-            cmd.CommandText = @"SELECT * FROM t_playlist LEFT OUTER JOIN t_trim_patterns on t_playlist.trimming=t_trim_patterns.trim_id";
+            cmd.CommandText = $"SELECT * FROM t_playlist LEFT OUTER JOIN t_trim_patterns on t_playlist.trimming=t_trim_patterns.trim_id {filter}";
             return new Retriever(cmd.ExecuteReader(), updateExists);
         }
 
