@@ -11,7 +11,7 @@ namespace wfPlayer
     {
         public WinPlacement Placement { get; set; } = new WinPlacement();
 
-        public string FilePath { get; set; } = "default.wfp";
+        public string FilePath { get; set; } = "default.wpd";
 
         public WfFilter Filter { get; set; } = new WfFilter();
 

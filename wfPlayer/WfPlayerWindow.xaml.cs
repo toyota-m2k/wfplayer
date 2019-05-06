@@ -422,7 +422,7 @@ namespace wfPlayer
             if (!Playing)
             {
                 mMediaElement.Play();
-                await Task.Delay(50);
+                await Task.Delay(100);
                 mMediaElement.Pause();
             }
         }
@@ -455,6 +455,10 @@ namespace wfPlayer
 
         private async void OnMediaEnded(object sender, RoutedEventArgs e)
         {
+            if(!Playing)
+            {
+                return;
+            }
             if(!await Next())
             {
                 Stop();
