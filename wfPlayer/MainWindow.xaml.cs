@@ -451,5 +451,15 @@ namespace wfPlayer
                 }
             }
         }
+
+        private void OnSort(object sender, RoutedEventArgs e)
+        {
+            var dlg = new WfSortSetting(WfGlobalParams.Instance.SortInfo);
+            dlg.ShowDialog();
+            if(dlg.Result!=null)
+            {
+                WfGlobalParams.Instance.SortInfo = dlg.Result;
+            }
+        }
     }
 }

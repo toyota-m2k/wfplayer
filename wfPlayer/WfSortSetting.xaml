@@ -1,0 +1,55 @@
+﻿<Window x:Class="wfPlayer.WfSortSetting"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:wfPlayer"
+        mc:Ignorable="d"
+        Title="Sort" Height="320" Width="328">
+    <Window.Resources>
+        <ResourceDictionary Source="WfResource.xaml"/>
+    </Window.Resources>
+    <Grid Background="{StaticResource ControlPanelBG}">
+        <StackPanel Margin="15" Orientation="Vertical">
+            <TextBlock Text="ORDER" Foreground="White" FontWeight="Bold" Margin="0,0,0,8"/>
+            <Grid Background="Gray">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="10" Orientation="Horizontal">
+                    <RadioButton Content="Ascending" GroupName="Asc" Foreground="White" Margin="0,0,20,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="10" Orientation="Horizontal">
+                    <RadioButton Content="Descending" GroupName="Asc" Foreground="White"/>
+                </StackPanel>
+            </Grid>
+            <TextBlock Text="KEY" Foreground="White" FontWeight="Bold" Margin="0,0,0,8"/>
+            <Grid Background="Gray">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="10" Orientation="Vertical">
+                    <RadioButton Content="None (id)" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Path" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Name" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Type" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Rating" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="10" Orientation="Vertical">
+                    <RadioButton Content="Play Count" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Last Play" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="File Date" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Size" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Trimming" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+                <Button Content="OK" Click="OnOK" Width="60" Margin="0,0,8,0"/>
+                <Button Content="Cancel" Width="60" Click="OnCancel"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -15,6 +15,8 @@ namespace wfPlayer
 
         public WfFilter Filter { get; set; } = new WfFilter();
 
+        public WfSortInfo SortInfo { get; set; } = new WfSortInfo();
+
         public List<string> MRU { get; set; } = new List<string>(12);
 
         public void AddMru(string path)

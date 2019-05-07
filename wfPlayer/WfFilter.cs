@@ -84,7 +84,7 @@ namespace wfPlayer
                 if(!String.IsNullOrEmpty(Path))
                 {
                     var s = Path.Replace("%", @"\%");
-                    sb.Append($" AND path LIKE {s}%");
+                    sb.Append($" AND path LIKE '%{s}%'");
                 }
 
                 return sb.ToString();
@@ -95,5 +95,18 @@ namespace wfPlayer
         [System.Xml.Serialization.XmlIgnore]
         public Dictionary<Comparison, string> ComparisonEnumNameDictionary { get; }
           = new Dictionary<Comparison, string>() { {Comparison.EQ, "==" }, { Comparison.GE, ">=" }, { Comparison.LE, "<=" } };
+
+        public WfFilter Clone()
+        {
+            var r = new WfFilter();
+            r.Normal = this.Normal;
+            r.Good = this.Good;
+            r.Bad = this.Bad;
+            r.Dreadful= this.Dreadful;
+            r.PlayCount = this.PlayCount;
+            r.CP= this.CP;
+            r.Path = this.Path;
+            return r;
+        }
     }
 }

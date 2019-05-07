@@ -15,29 +15,26 @@ using System.Windows.Shapes;
 namespace wfPlayer
 {
     /// <summary>
-    /// WfFilterSetting.xaml の相互作用ロジック
+    /// WfSortSetting.xaml の相互作用ロジック
     /// </summary>
-    public partial class WfFilterSetting : Window
+    public partial class WfSortSetting : Window
     {
-        private WfFilter mFilter;
-        public WfFilter Result { get; private set; }
-
-        public WfFilterSetting(WfFilter filter)
+        public WfSortInfo Result { get; private set; } = null;
+        private WfSortInfo mSortInfo;
+        public WfSortSetting(WfSortInfo sortInfo)
         {
-            Result = null;
-            mFilter = filter?.Clone() ?? new WfFilter();
-            DataContext = mFilter;
+            mSortInfo = sortInfo.Clone();
             InitializeComponent();
-        }
-
-        private void OnCancel(object sender, RoutedEventArgs e)
-        {
-            Close();
         }
 
         private void OnOK(object sender, RoutedEventArgs e)
         {
-            Result = mFilter;
+            Result = mSortInfo;
+            Close();
+        }
+
+        private void OnCancel(object sender, RoutedEventArgs e)
+        {
             Close();
         }
     }
