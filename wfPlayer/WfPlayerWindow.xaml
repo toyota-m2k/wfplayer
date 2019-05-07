@@ -23,6 +23,7 @@
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Grid.RowSpan="2">
             <MediaElement LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="UniformToFill"
+                          ScrubbingEnabled="True"
                           Name="mMediaElement" MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed"
                           Source="{Binding VideoSource}"
                           Volume="{Binding Volume, Mode=OneWay}"

@@ -303,15 +303,11 @@ namespace wfPlayer
             }
         }
 
-        private async Task SeekTo(double position, bool slider, bool player)
+        private void SeekTo(double position, bool slider, bool player)
         {
             if(player)
             {
                 mMediaElement.Position = TimeSpan.FromMilliseconds(position);
-                if (!Started || mDragging)
-                {
-                    await EnsureVideoFrame();
-                }
             }
             if (slider)
             {
@@ -322,12 +318,12 @@ namespace wfPlayer
         private bool mUpdatingPositionFromTimer = false;
         private DispatcherTimer mPositionTimer = null;
 
-        private async void OnSliderValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void OnSliderValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            await SeekTo(e.NewValue, slider: false, player: !mUpdatingPositionFromTimer);
+            SeekTo(e.NewValue, slider: false, player: !mUpdatingPositionFromTimer);
         }
 
-        private async void OnSliderDragStateChanged(TimelineSlider.DragState state)
+        private void OnSliderDragStateChanged(TimelineSlider.DragState state)
         {
             switch (state)
             {
@@ -336,9 +332,10 @@ namespace wfPlayer
                     mMediaElement.Pause();
                     break;
                 case TimelineSlider.DragState.DRAGGING:
-                    await SeekTo(mPositionSlider.Value, slider: false, player: true);
+                    SeekTo(mPositionSlider.Value, slider: false, player: true);
                     break;
                 case TimelineSlider.DragState.END:
+                    SeekTo(mPositionSlider.Value, slider: false, player: true);
                     mDragging = false;
                     if (Playing)
                     {

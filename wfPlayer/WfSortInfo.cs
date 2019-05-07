@@ -80,6 +80,11 @@ namespace wfPlayer
         {
 
         }
+        public WfSortInfo(WfSortKey key, WfSortOrder order)
+        {
+            mKey = key;
+            mOrder = order;
+        }
 
         public WfSortInfo Clone()
         {
@@ -140,7 +145,7 @@ namespace wfPlayer
                         sb.Append("size");
                         break;
                     case WfSortKey.TRIMMING:
-                        sb.Append("timming");
+                        sb.Append("trimming");
                         break;
 
                     case WfSortKey.TYPE:

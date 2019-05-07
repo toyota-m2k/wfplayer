@@ -29,6 +29,7 @@
         <MediaElement 
             Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
             LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Uniform"
+            ScrubbingEnabled="True"
             Name="mMediaElement" MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed"
             Source="{Binding VideoSource}"
             Volume="{Binding Volume, Mode=OneWay}"

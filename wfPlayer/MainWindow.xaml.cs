@@ -183,12 +183,29 @@ namespace wfPlayer
         private void OnHeaderClick(object sender, RoutedEventArgs e)
         {
             var header = (GridViewColumnHeader)e.OriginalSource;
+            WfSortKey key = WfSortKey.NONE;
             switch(header.Content.ToString())
             {
-                case "Size":
-                    break;
-
+                case "Size": key = WfSortKey.SIZE; break;
+                case "Name": key = WfSortKey.NAME; break;
+                case "Type": key = WfSortKey.TYPE; break;
+                case "Date": key = WfSortKey.DATE; break;
+                case "Last Play": key = WfSortKey.LAST_PLAY; break;
+                case "Count": key = WfSortKey.PLAY_COUNT; break;
+                case "Trimming": key = WfSortKey.TRIMMING; break;
+                case "Rating": key = WfSortKey.RATING; break;
+                case "Path": key = WfSortKey.PATH; break;
+                default:
+                    return;
             }
+            var prev = WfGlobalParams.Instance.SortInfo;
+            var next = new WfSortInfo();
+            next.Key = key;
+            if (prev.Key == key)
+            {
+                next.Order = prev.Order == WfSortOrder.ASCENDING ? WfSortOrder.DESCENDING : WfSortOrder.ASCENDING;
+            }
+            ExecSort(next);
         }
 
         #region Operation / Function
@@ -521,36 +538,43 @@ namespace wfPlayer
             }
         }
 
+        private void ExecSort(WfSortInfo next)
+        {
+            var prev = WfGlobalParams.Instance.SortInfo;
+            if(prev == next)
+            {
+                return;
+            }
+            WfGlobalParams.Instance.SortInfo = next;
+            if (prev.Key == next.Key)
+            {
+                if (prev.Order != next.Order)
+                {
+                    SaveCurrentSelection();
+                    SetFileList(new WfFileItemList(mFileList.Reverse(), null));
+                    EnsureSelectItem();
+                }
+            }
+            else
+            {
+                if (next.IsExternalKey)
+                {
+                    InitSorter().Sort();
+                }
+                else
+                {
+                    LoadListFromDB();
+                }
+            }
+        }
+
         private void OnSort(object sender, RoutedEventArgs e)
         {
             var dlg = new WfSortSetting(WfGlobalParams.Instance.SortInfo);
             dlg.ShowDialog();
             if (dlg.Result != null)
             {
-                var current = mFileList.Current?.FullPath;
-                var prev = WfGlobalParams.Instance.SortInfo;
-                var next = dlg.Result;
-                WfGlobalParams.Instance.SortInfo = next;
-
-                if (prev.Key==next.Key)
-                {
-                    if(prev.Order!=next.Order)
-                    {
-                        SetFileList( new WfFileItemList(mFileList.Reverse(), current) );
-                        return;
-                    }
-                }
-                else
-                {
-                    if(next.IsExternalKey)
-                    {
-                        InitSorter().Sort();
-                    }
-                    else
-                    {
-                        LoadListFromDB();
-                    }
-                }
+                ExecSort(dlg.Result);
             }
         }
 

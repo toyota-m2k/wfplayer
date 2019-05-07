@@ -260,8 +260,9 @@ namespace wfPlayer
             }
             UpdateTitle(rec);
             notify("Rating");
-            notify("Ready");
+
             mVideoLoadingTaskSource = new TaskCompletionSource<bool>();
+            notify("Ready");
             mMediaElement.Source = rec.Uri;
             mMediaElement.Position = TimeSpan.FromMilliseconds(rec.Trimming.Prologue);
             mMediaElement.Play();
@@ -417,16 +418,6 @@ namespace wfPlayer
             InitializeComponent();
         }
 
-        private async Task EnsureVideoFrame()
-        {
-            if (!Playing)
-            {
-                mMediaElement.Play();
-                await Task.Delay(100);
-                mMediaElement.Pause();
-            }
-        }
-
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             mLoaded = true;
@@ -445,20 +436,16 @@ namespace wfPlayer
 
         #region Event Handlers
 
-        private async void OnMediaOpened(object sender, RoutedEventArgs e)
+        private void OnMediaOpened(object sender, RoutedEventArgs e)
         {
             Duration = mMediaElement.NaturalDuration.TimeSpan.TotalMilliseconds;
             mMediaElement.SpeedRatio = calcSpeedRatio(Speed);
-            await updateTimelinePosition(Current.Trimming.Prologue, true, true);
-            mVideoLoadingTaskSource.TrySetResult(true);
+            updateTimelinePosition(Current.Trimming.Prologue, true, true);
+            mVideoLoadingTaskSource?.TrySetResult(true);
         }
 
         private async void OnMediaEnded(object sender, RoutedEventArgs e)
         {
-            if(!Playing)
-            {
-                return;
-            }
             if(!await Next())
             {
                 Stop();
@@ -469,6 +456,10 @@ namespace wfPlayer
         private async void OnMediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
             mVideoLoadingTaskSource?.TrySetResult(false);
+            if (!Playing)
+            {
+                return;
+            }
             if (!await Next())
             {
                 Close();
@@ -533,20 +524,16 @@ namespace wfPlayer
          *  もう一つの問題は、再生中以外は、mMediaElement.Position を変更しても、画面表示が更新されないこと。
          *  こちらは、Play/Delay/Stop を呼び出すことで回避。
          */
-        private async void OnPositionChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void OnPositionChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            await updateTimelinePosition(e.NewValue, slider:false, player:!mUpdatingPositionFromTimer);
+            updateTimelinePosition(e.NewValue, slider:false, player:!mUpdatingPositionFromTimer);
         }
 
-        private async Task updateTimelinePosition(double position, bool slider, bool player)
+        private void updateTimelinePosition(double position, bool slider, bool player)
         {
             if (player)
             {
                 mMediaElement.Position = TimeSpan.FromMilliseconds(position);
-                if (!Started || mDragging)
-                {
-                    await EnsureVideoFrame();
-                }
             }
             if (slider)
             {
@@ -554,7 +541,7 @@ namespace wfPlayer
             }
         }
 
-        private async void OnSliderDragStateChanged(TimelineSlider.DragState state)
+        private void OnSliderDragStateChanged(TimelineSlider.DragState state)
         {
             switch(state)
             {
@@ -563,9 +550,10 @@ namespace wfPlayer
                     mMediaElement.Pause();
                     break;
                 case TimelineSlider.DragState.DRAGGING:
-                    await updateTimelinePosition(mPositionSlider.Value, slider:false, player:true);
+                    updateTimelinePosition(mPositionSlider.Value, slider:false, player:true);
                     break;
                 case TimelineSlider.DragState.END:
+                    updateTimelinePosition(mPositionSlider.Value, slider: false, player: true);
                     mDragging = false;
                     if (Playing)
                     {
