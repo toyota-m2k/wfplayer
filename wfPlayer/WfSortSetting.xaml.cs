@@ -24,6 +24,7 @@ namespace wfPlayer
         public WfSortSetting(WfSortInfo sortInfo)
         {
             mSortInfo = sortInfo.Clone();
+            DataContext = mSortInfo;
             InitializeComponent();
         }
 

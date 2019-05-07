@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 
@@ -73,6 +76,7 @@ namespace wfPlayer
 
         private WfFileItemList mFileList = null;
         private WfPlayListDB mPlayListDB = null;
+        private WfSorter<WfFileItem> mSorter = null;
 
         #endregion
 
@@ -178,16 +182,20 @@ namespace wfPlayer
 
         private void OnHeaderClick(object sender, RoutedEventArgs e)
         {
-            //var header = (GridViewColumnHeader)e.OriginalSource;
-            //if (header.Column == null)
-            //{
-            //    return;
-            //}
-            //switch(header.Column.Header)
+            var header = (GridViewColumnHeader)e.OriginalSource;
+            switch(header.Content.ToString())
+            {
+                case "Size":
+                    break;
+
+            }
         }
 
         #region Operation / Function
 
+        /**
+         * ファイル選択ダイアログを開いてDBファイルを選択して開く
+         */
         private void SelectDB()
         {
             var dlg = new OpenFileDialog();
@@ -200,35 +208,9 @@ namespace wfPlayer
             }
         }
 
-        private void OpenDB(string dbPath)
-        {
-            if(mPlayListDB!=null)
-            {
-                SaveCurrentSelection();
-            }
-            WfGlobalParams.Instance.FilePath = dbPath;
-            WfGlobalParams.Instance.AddMru(dbPath);
-            mPlayListDB = WfPlayListDB.CreateInstance(dbPath);
-            mFileList = new WfFileItemList();
-            mFileList.CurrentChanged += PlayingItemChanged;
-            LoadListFromDB();
-
-            mFileListView.DataContext = mFileList;
-            if (mFileList.Count > 0)
-            {
-                var path = mPlayListDB.GetValueAt("LastItem");
-                int index = mFileList.IndexOfPath(path);
-                if (index < 0)
-                {
-                    index = 0;
-                }
-                mFileListView.SelectedIndex = index;
-                mFileListView.ScrollIntoView(mFileList[index]);
-            }
-
-            UpdateTitle();
-        }
-
+        /**
+         * 選択されたDBファイル名をタイトルに表示する
+         */
         private void UpdateTitle()
         {
             var path = WfGlobalParams.Instance.FilePath;
@@ -239,6 +221,9 @@ namespace wfPlayer
             this.Title = String.Format("{0} (v{1}.{2}.{3})  - {4}", v.ProductName, v.FileMajorPart, v.FileMinorPart, v.FileBuildPart, fname);
         }
 
+        /**
+         * フォルダーを指定して、DBに追加する
+         */
         private void RegisterFolder()
         {
             using (var fbd = new FolderBrowserDialog())
@@ -251,6 +236,9 @@ namespace wfPlayer
             }
         }
 
+        /**
+         * 現在選択されているファイルから再生を開始する
+         */
         private void Play()
         {
             if (mFileList.Count > 0)
@@ -262,21 +250,24 @@ namespace wfPlayer
             }
         }
 
+        /**
+         * 選択されているファイルの再生回数カウンターをクリアする
+         */
         private void ResetPlayedCounter()
         {
             using (var txn = WfPlayListDB.Instance.Transaction())
             {
-                foreach (WfFileItem c in mFileListView.SelectedItems)
+                foreach (WfFileItem v in mFileListView.SelectedItems)
                 {
-                    if (c.PlayCount > 0)
-                    {
-                        c.PlayCount = 0;
-                        WfPlayListDB.Instance.UpdatePlaylistItem(c, (long)WfPlayListDB.FieldFlag.PLAY_COUNT);
-                    }
+                    v.PlayCount = 0;
+                    v.SaveModified();
                 }
             }
         }
 
+        /**
+         * カレントアイテムに、トリミングパターンを作成してセットする
+         */
         private void CreateTrimmingPattern()
         {
             var item = mFileListView.SelectedItem as WfFileItem;
@@ -290,7 +281,7 @@ namespace wfPlayer
                 if (null != tp.Result)
                 {
                     item.Trimming = tp.Result;
-                    db.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+                    item.SaveModified();
                 }
             };
             tp.OnResult += onNewTrimming;
@@ -298,6 +289,9 @@ namespace wfPlayer
             tp.OnResult -= onNewTrimming;
         }
 
+        /**
+         * トリミングパターンを選択して、選択アイテムに設定
+         */
         private void ApplyTrimmingPattern()
         {
             var dlg = new WfTrimmingPatternList();
@@ -309,12 +303,15 @@ namespace wfPlayer
                     foreach (WfFileItem v in mFileListView.SelectedItems)
                     {
                         v.Trimming = dlg.Result;
-                        WfPlayListDB.Instance.UpdatePlaylistItem(v, (long)WfPlayListDB.FieldFlag.TRIMMING);
+                        v.SaveModified();
                     }
                 }
             }
         }
 
+        /**
+         * 選択アイテムのトリミングパターンを解除する
+         */
         private void ResetTrimmingPattern()
         {
             using (var txn = WfPlayListDB.Instance.Transaction())
@@ -322,42 +319,111 @@ namespace wfPlayer
                 foreach (WfFileItem v in mFileListView.SelectedItems)
                 {
                     v.Trimming = WfFileItem.Trim.NoTrim;
-                    WfPlayListDB.Instance.UpdatePlaylistItem(v, (long)WfPlayListDB.FieldFlag.TRIMMING);
+                    v.SaveModified();
                 }
             }
         }
 
+        /**
+         * 選択ファイルのレイティングを変更する
+         */
         private void SetRating(Ratings rating)
         {
             using (var txn = WfPlayListDB.Instance.Transaction())
             {
                 foreach (WfFileItem v in mFileListView.SelectedItems)
                 {
-                    if (v.Rating != rating)
-                    {
-                        v.Rating = rating;
-                        WfPlayListDB.Instance.UpdatePlaylistItem(v, (long)WfPlayListDB.FieldFlag.RATING);
-                    }
+                    v.Rating = rating;
+                    v.SaveModified();
                 }
             }
         }
 
-        #endregion
-
-        #region Sub-Routines
-
-        private void LoadListFromDB(string filter="")
+        /**
+         * DBファイルパスを指定してDBを開く（なければ作成される）
+         */
+        private void OpenDB(string dbPath)
         {
+            if (mPlayListDB != null)
+            {
+                SaveCurrentSelection();
+            }
+            WfGlobalParams.Instance.FilePath = dbPath;
+            WfGlobalParams.Instance.AddMru(dbPath);
+            mPlayListDB = WfPlayListDB.CreateInstance(dbPath);
+            LoadListFromDB();
+            UpdateTitle();
+        }
+
+        /**
+         * DBからファイル一覧をロードする
+         */
+        private void LoadListFromDB()
+        {
+            if (mFileList == null)
+            {
+                SetFileList(new WfFileItemList());
+            }
+
+            var filter = "";
+            if(IsFiltered)
+            {
+                filter = WfGlobalParams.Instance.Filter.SQL;
+            }
+            var orderBy = WfGlobalParams.Instance.SortInfo.SQL;
+
             mFileList.Clear();
-            using (var retriever = mPlayListDB.QueryAll(false, filter))
+            InitSorter();
+            using (var retriever = mPlayListDB.QueryAll(false, filter, orderBy))
             {
                 foreach (var item in retriever)
                 {
-                    mFileList.Add(item);
+                    mSorter.Add(item);
                 }
+            }
+            EnsureSelectItem();
+        }
+
+        /**
+         * 前回のファイル選択状態を復元、または、先頭のファイルを選択する
+         */
+        private void EnsureSelectItem()
+        {
+            if (mFileList.Count > 0)
+            {
+                var path = mPlayListDB.GetValueAt("LastItem");
+                int index = mFileList.IndexOfPath(path);
+                if (index < 0)
+                {
+                    index = 0;
+                }
+                mFileListView.SelectedIndex = index;
+                mFileListView.ScrollIntoView(mFileList[index]);
             }
         }
 
+        /**
+         * ListViewのデータソースとなるFileItemListを設定する
+         */
+        public void SetFileList(WfFileItemList newList)
+        {
+            if(mFileList!=null)
+            {
+                mFileList.CurrentChanged -= PlayingItemChanged;
+                mFileListView.DataContext = null;
+                mFileList = null;
+            }
+            if(newList!=null)
+            {
+                mFileList = newList;
+                mFileList.CurrentChanged += PlayingItemChanged;
+                mFileListView.DataContext = mFileList;
+            }
+        }
+
+        /**
+         * パスで指定されたディレクトリ以下に含まれる動画ファイルを列挙してDBに登録する
+         */
         private void RegisterFilesInPath(string folderPath)
         {
             var videoExt = new[] { "mp4", "wmv", "avi", "mov", "avi", "mpg", "mpeg", "mpe", "ram", "rm" };
@@ -381,6 +447,9 @@ namespace wfPlayer
             }
         }
 
+        /**
+         * 現在のファイル選択状態をDBに保存する
+         */
         private void SaveCurrentSelection()
         {
             var sel = mFileListView?.SelectedItem as WfFileItem;
@@ -401,11 +470,11 @@ namespace wfPlayer
         {
             e.CanExecute = mFileListView.SelectedIndex >= 0;
         }
+
         private void CanApplyTrimming(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = mFileListView.SelectedIndex >= 0;
         }
-
 
         private void ExecCreateTrimming(object sender, ExecutedRoutedEventArgs e)
         {
@@ -436,8 +505,8 @@ namespace wfPlayer
         {
             if (IsFiltered)
             {
-                LoadListFromDB();
                 IsFiltered = false;
+                LoadListFromDB();
             }
             else
             {
@@ -446,8 +515,8 @@ namespace wfPlayer
                 if (dlg.Result != null)
                 {
                     WfGlobalParams.Instance.Filter = dlg.Result;
-                    LoadListFromDB(dlg.Result.SQL);
                     IsFiltered = true;
+                    LoadListFromDB();
                 }
             }
         }
@@ -456,10 +525,75 @@ namespace wfPlayer
         {
             var dlg = new WfSortSetting(WfGlobalParams.Instance.SortInfo);
             dlg.ShowDialog();
-            if(dlg.Result!=null)
+            if (dlg.Result != null)
             {
-                WfGlobalParams.Instance.SortInfo = dlg.Result;
+                var current = mFileList.Current?.FullPath;
+                var prev = WfGlobalParams.Instance.SortInfo;
+                var next = dlg.Result;
+                WfGlobalParams.Instance.SortInfo = next;
+
+                if (prev.Key==next.Key)
+                {
+                    if(prev.Order!=next.Order)
+                    {
+                        SetFileList( new WfFileItemList(mFileList.Reverse(), current) );
+                        return;
+                    }
+                }
+                else
+                {
+                    if(next.IsExternalKey)
+                    {
+                        InitSorter().Sort();
+                    }
+                    else
+                    {
+                        LoadListFromDB();
+                    }
+                }
             }
+        }
+
+        private int CompareInType(WfFileItem o1, WfFileItem o2)
+        {
+            int r = o1.Type.CompareTo(o2.Type);
+            if(r==0)
+            {
+                r = o1.FullPath.CompareTo(o2.FullPath);
+            }
+            return r;
+        }
+        private int CompareInName(WfFileItem o1, WfFileItem o2)
+        {
+            int r = o1.Name.CompareTo(o2.Name);
+            if (r == 0)
+            {
+                r = o1.FullPath.CompareTo(o2.FullPath);
+            }
+            return r;
+        }
+
+        private WfSorter<WfFileItem> InitSorter()
+        {
+            if(mSorter==null)
+            {
+                mSorter = new WfSorter<WfFileItem>();
+            }
+            var sortInfo = WfGlobalParams.Instance.SortInfo;
+            IWfSorterComparator<WfFileItem> comparator = null;
+            switch (sortInfo.Key)
+            {
+                case WfSortKey.NAME:
+                    comparator = CompareInName;
+                    break;
+                case WfSortKey.TYPE:
+                    comparator = CompareInType;
+                    break;
+                default:
+                    break;
+            }
+            mSorter.Instraction(mFileList, sortInfo.Order, comparator, false);
+            return mSorter;
         }
     }
 }

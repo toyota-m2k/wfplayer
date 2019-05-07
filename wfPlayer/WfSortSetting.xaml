@@ -18,10 +18,10 @@
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Margin="10" Orientation="Horizontal">
-                    <RadioButton Content="Ascending" GroupName="Asc" Foreground="White" Margin="0,0,20,0"/>
+                    <RadioButton Content="Ascending" GroupName="Asc" IsChecked="{Binding Order, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=ASCENDING}" Foreground="White" Margin="0,0,20,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="10" Orientation="Horizontal">
-                    <RadioButton Content="Descending" GroupName="Asc" Foreground="White"/>
+                    <RadioButton Content="Descending" GroupName="Asc" IsChecked="{Binding Order, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=DESCENDING}" Foreground="White"/>
                 </StackPanel>
             </Grid>
             <TextBlock Text="KEY" Foreground="White" FontWeight="Bold" Margin="0,0,0,8"/>
@@ -31,18 +31,18 @@
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Margin="10" Orientation="Vertical">
-                    <RadioButton Content="None (id)" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Path" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Name" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Type" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Rating" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="None (id)" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=NONE}" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Path" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=PATH}" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Name" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=NAME}" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Type" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=TYPE}" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Rating" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=RATING}" Foreground="White" Margin="0,0,0,8"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="10" Orientation="Vertical">
-                    <RadioButton Content="Play Count" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Last Play" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="File Date" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Size" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Trimming" GroupName="Key" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Play Count" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=PLAY_COUNT}" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Last Play" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=LAST_PLAY}" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="File Date" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=DATE}" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Size" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=SIZE}" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Trimming" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=TRIMMING}" Foreground="White" Margin="0,0,0,8"/>
                 </StackPanel>
             </Grid>
 

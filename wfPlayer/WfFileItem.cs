@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -199,10 +200,10 @@ namespace wfPlayer
         {
         }
 
-        private WfFileItemList(IOrderedEnumerable<WfFileItem> src, WfFileItemList org)
+        public WfFileItemList(IEnumerable<WfFileItem> src, string initialSelctPath)
             : base(src)
         {
-            SetCurrentByPath(((WfFileItem)org.Current)?.FullPath);
+            SetCurrentByPath(initialSelctPath);
         }
 
         public delegate void CurrentChangedHandler(int from, WfFileItem fromItem, int to, WfFileItem toItem);
@@ -267,10 +268,13 @@ namespace wfPlayer
 
         public void SetCurrentByPath(string path)
         {
-            int i = IndexOfPath(path);
-            if(i>=0)
+            if (!string.IsNullOrEmpty(path))
             {
-                CurrentIndex = i;
+                int i = IndexOfPath(path);
+                if (i >= 0)
+                {
+                    CurrentIndex = i;
+                }
             }
         }
 

@@ -85,6 +85,7 @@
       <DependentUpon>WfPlayerWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="WfPlayListDB.cs" />
+    <Compile Include="WfSorter.cs" />
     <Compile Include="WfSortInfo.cs" />
     <Compile Include="WfSortSetting.xaml.cs">
       <DependentUpon>WfSortSetting.xaml</DependentUpon>
