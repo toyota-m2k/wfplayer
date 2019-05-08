@@ -22,7 +22,7 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Grid.RowSpan="2">
-            <MediaElement LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="UniformToFill"
+            <MediaElement LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Uniform"
                           ScrubbingEnabled="True"
                           Name="mMediaElement" MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed"
                           Source="{Binding VideoSource}"

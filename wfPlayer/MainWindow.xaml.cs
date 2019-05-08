@@ -182,7 +182,11 @@ namespace wfPlayer
 
         private void OnHeaderClick(object sender, RoutedEventArgs e)
         {
-            var header = (GridViewColumnHeader)e.OriginalSource;
+            var header = e.OriginalSource as GridViewColumnHeader;
+            if(null==header)
+            {
+                return;
+            }
             WfSortKey key = WfSortKey.NONE;
             switch(header.Content.ToString())
             {

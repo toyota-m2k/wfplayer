@@ -303,52 +303,82 @@ namespace wfPlayer
 
         private async Task InitSource()
         {
-            if(null==mSources)
+            await SourceChange(async () =>
             {
-                return;
+                if (null != mSources)
+                {
+                    var rec = mSources.Current ?? mSources.Head;
+                    if (null != rec)
+                    {
+                        await SetVideoSource(rec);
+                        VideoSourcesChanged();
+                    }
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        private delegate Task<bool> SourceChangeTask();
+        private bool mSourceChanging = false;
+
+        private async Task<bool> SourceChange(SourceChangeTask task)
+        {
+            if(mSourceChanging)
+            {
+                return true;
             }
-            var rec = mSources.Current ?? mSources.Head;
-            if(null!=rec)
+            mSourceChanging = true;
+            try
             {
-                await SetVideoSource(rec);
-                VideoSourcesChanged();
+                return await task();
+            }
+            finally
+            {
+                mSourceChanging = false;
             }
         }
 
         private async Task<bool> Next()
         {
-            var rec = mSources?.Next;
-            if(null!=rec)
+            return await SourceChange(async () =>
             {
-                bool playing = Playing;
-                Stop();
-                await SetVideoSource(rec);
-                if (playing)
+                var rec = mSources?.Next;
+                if (null != rec)
                 {
-                    Play();
+                    bool playing = Playing;
+                    Stop();
+                    await SetVideoSource(rec);
+                    if (playing)
+                    {
+                        Play();
+                    }
+                    VideoSourcesChanged();
+                    return true;
                 }
-                VideoSourcesChanged();
-                return true;
-            }
-            return false;
+                return false;
+            });
         }
 
         private async Task<bool> Prev()
         {
-            var rec = mSources?.Prev;
-            if (null!=rec)
+            return await SourceChange(async () =>
             {
-                bool playing = Playing;
-                Stop();
-                await SetVideoSource(rec);
-                if (playing)
+                var rec = mSources?.Prev;
+                if (null != rec)
                 {
-                    Play();
+                    bool playing = Playing;
+                    Stop();
+                    await SetVideoSource(rec);
+                    if (playing)
+                    {
+                        Play();
+                    }
+                    VideoSourcesChanged();
+                    return true;
                 }
-                VideoSourcesChanged();
-                return true;
-            }
-            return false;
+                return false;
+            });
         }
 
         #endregion
