@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace wfPlayer
 {
@@ -98,6 +99,16 @@ namespace wfPlayer
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             OpenDB(WfGlobalParams.Instance.FilePath);
+
+            LayoutUpdated += OnLayoutUpdated;
+
+
+        }
+
+        private void OnLayoutUpdated(object sender, EventArgs e)
+        {
+            //UpdateColumnHeaderOnSort(WfGlobalParams.Instance.SortInfo);
+            LayoutUpdated -= OnLayoutUpdated;
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -179,6 +190,38 @@ namespace wfPlayer
         {
             Play();
         }
+        private WfSortKey HeaderName2SortKey(string name)
+        {
+            switch(name)
+            {
+                case "Size": return WfSortKey.SIZE;
+                case "Name": return WfSortKey.NAME;
+                case "Type": return WfSortKey.TYPE;
+                case "Date": return WfSortKey.DATE;
+                case "Last Play": return WfSortKey.LAST_PLAY;
+                case "Count": return WfSortKey.PLAY_COUNT;
+                case "Trimming": return WfSortKey.TRIMMING;
+                case "Rating": return WfSortKey.RATING;
+                case "Path": return WfSortKey.PATH;
+                default: return WfSortKey.NONE;
+            }
+        }
+        private string SortKey2HeaderName(WfSortKey key)
+        {
+            switch (key)
+            {
+                case WfSortKey.SIZE: return "Size";
+                case WfSortKey.NAME: return "Name";
+                case WfSortKey.TYPE: return "Type";
+                case WfSortKey.DATE: return "Date";
+                case WfSortKey.LAST_PLAY: return "Last Play";
+                case WfSortKey.PLAY_COUNT: return "Count";
+                case WfSortKey.TRIMMING: return "Trimming";
+                case WfSortKey.RATING: return "Rating";
+                case WfSortKey.PATH: return "Path";
+                default: return "";
+            }
+        }
 
         private void OnHeaderClick(object sender, RoutedEventArgs e)
         {
@@ -187,20 +230,10 @@ namespace wfPlayer
             {
                 return;
             }
-            WfSortKey key = WfSortKey.NONE;
-            switch(header.Content.ToString())
+            WfSortKey key = HeaderName2SortKey(header.Content.ToString());
+            if(key == WfSortKey.NONE)
             {
-                case "Size": key = WfSortKey.SIZE; break;
-                case "Name": key = WfSortKey.NAME; break;
-                case "Type": key = WfSortKey.TYPE; break;
-                case "Date": key = WfSortKey.DATE; break;
-                case "Last Play": key = WfSortKey.LAST_PLAY; break;
-                case "Count": key = WfSortKey.PLAY_COUNT; break;
-                case "Trimming": key = WfSortKey.TRIMMING; break;
-                case "Rating": key = WfSortKey.RATING; break;
-                case "Path": key = WfSortKey.PATH; break;
-                default:
-                    return;
+                return;
             }
             var prev = WfGlobalParams.Instance.SortInfo;
             var next = new WfSortInfo();
@@ -210,6 +243,47 @@ namespace wfPlayer
                 next.Order = prev.Order == WfSortOrder.ASCENDING ? WfSortOrder.DESCENDING : WfSortOrder.ASCENDING;
             }
             ExecSort(next);
+            UpdateColumnHeaderOnSort(next);
+        }
+
+        private static IEnumerable<T> FindVisualChildren<T>(DependencyObject depObj) where T : DependencyObject
+        {
+            if (depObj != null)
+            {
+                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
+                {
+                    DependencyObject child = VisualTreeHelper.GetChild(depObj, i);
+                    if (child != null && child is T)
+                    {
+                        yield return (T)child;
+                    }
+
+                    foreach (T childOfChild in FindVisualChildren<T>(child))
+                    {
+                        yield return childOfChild;
+                    }
+                }
+            }
+        }
+        private void UpdateColumnHeaderOnSort(WfSortInfo info)
+        {
+            var gridView = mFileListView.View as GridView;
+            if(null!=gridView)
+            {
+                string keyName = SortKey2HeaderName(info.Key);
+                foreach(var header in FindVisualChildren<GridViewColumn>(mFileListView))
+                {
+                    Debug.WriteLine(header.ToString());
+                    //if(Convert.ToString(header.Column.Header)==keyName)
+                    //{
+                    //    header.Tag = info.Order == WfSortOrder.ASCENDING ? "asc" : "desc";
+                    //}
+                    //else
+                    //{
+                    //    header.Tag = null;
+                    //}
+                }
+            }
         }
 
         #region Operation / Function

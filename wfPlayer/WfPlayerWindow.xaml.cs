@@ -6,11 +6,23 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace wfPlayer
 {
+    public enum WfStretchMode
+    {
+        UniformToFill,
+        Uniform,
+        Fill,
+        CUSTOM125,
+        CUSTOM133,
+        CUSTOM150,
+        CUSTOM177,
+    }
+
     /// <summary>
     /// WfPlayerWindow.xaml の相互作用ロジック
     /// </summary>
@@ -24,30 +36,34 @@ namespace wfPlayer
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
-        private bool setProp<T>(string name, ref T field, T value)
+        private bool setProp<T>(string name, ref T field, T value, params string[] familyProperties)
         {
             if (!field.Equals(value))
             {
                 field = value;
                 notify(name);
-                return true;
-            }
-            return false;
-        }
-
-        private bool setProp<T>(string[] names, ref T field, T value)
-        {
-            if (!field.Equals(value))
-            {
-                field = value;
-                foreach (var name in names)
+                foreach (var p in familyProperties)
                 {
-                    notify(name);
+                    notify(p);
                 }
                 return true;
             }
             return false;
         }
+
+        //private bool setProp<T>(string[] names, ref T field, T value)
+        //{
+        //    if (!field.Equals(value))
+        //    {
+        //        field = value;
+        //        foreach (var name in names)
+        //        {
+        //            notify(name);
+        //        }
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
         public void NotifyPropertyChanged(string propName)
         {
@@ -175,14 +191,27 @@ namespace wfPlayer
          */
         public bool Playing => Started && !Pausing;
 
-        private UtObservableProperty<bool> mMouseInPanel;
+        /**
+         * パネルの開閉用
+         */
+        private bool mMouseInPanel = false;
         public bool MouseInPanel
         {
-            get => mMouseInPanel.Value;
-            set => mMouseInPanel.Value = value;
+            get => mMouseInPanel;
+            set => setProp("MouseInPanel", ref mMouseInPanel, value, "ShowPanel");
+        }
+        /**
+         * ストレッチモードパネル開閉用
+         */
+        private bool mMouseInStretchModePanel = false;
+        public bool MouseInStretchModePanel
+        {
+            get => mMouseInStretchModePanel;
+            set => setProp("MouseInStretchModePanel", ref mMouseInStretchModePanel, value, "ShowStretchModePanel");
         }
 
         public bool ShowPanel => MouseInPanel || !Playing;
+        public bool ShowStretchModePanel => MouseInStretchModePanel || !Playing;
 
 
         public bool HasNext => mSources?.HasNext ?? false;
@@ -247,6 +276,22 @@ namespace wfPlayer
             }
         }
         public RatingBindable Rating { get; }
+
+        private WfStretchMode mStretchMode = WfStretchMode.UniformToFill;
+        public WfStretchMode StretchMode
+        {
+            get => mStretchMode;
+            set => setProp("StretchMode", ref mStretchMode, value, "IsCustomStretchMode");
+        }
+
+        private bool mStretchMaximum = false;
+        public bool StretchMaximum
+        {
+            get => mStretchMaximum;
+            set => setProp("StretchMaximum", ref mStretchMaximum, value);
+        }
+
+        public bool IsCustomStretchMode => (long)StretchMode > (long)WfStretchMode.Fill;
 
         #endregion
 
@@ -440,9 +485,8 @@ namespace wfPlayer
             Duration = 1.0;
             Rating = new RatingBindable(this);
             mSources = null;
-            mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel");
-            mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel");
-            mMouseInPanel = new UtObservableProperty<bool>("MouseInPanel", false, this, "ShowPanel");
+            mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel", "ShowStretchModePanel");
+            mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel", "ShowStretchModePanel");
 
             this.DataContext = this;
             InitializeComponent();
@@ -595,9 +639,17 @@ namespace wfPlayer
 
         private void OnBindingPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "Playing")
+            switch (e.PropertyName)
             {
-                OnPlayingStateChanged(Playing);
+                case "Playing":
+                    OnPlayingStateChanged(Playing);
+                    break;
+                case "StretchMode":
+                case "StretchMaximum":
+                    OnStretchModeChanged();
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -613,8 +665,10 @@ namespace wfPlayer
                         if (!mDragging)
                         {
                             var current = mMediaElement.Position.TotalMilliseconds;
-                            if(Duration - current < Current.Trimming.Epilogue)
+                            var remains = Duration - current;
+                            if (remains>0 && remains < Current.Trimming.Epilogue)
                             {
+                                Stop();
                                 mPositionTimer.Stop();
                                 mPositionTimer = null;
                                 OnMediaEnded(null, null);
@@ -639,16 +693,87 @@ namespace wfPlayer
             }
         }
 
+        public void OnStretchModeChanged()
+        {
+            switch(StretchMode)
+            {
+                case WfStretchMode.UniformToFill:
+                    mMediaElement.Width = mMediaElement.Height = Double.NaN;
+                    mMediaElement.Stretch = Stretch.UniformToFill;
+                    break;
+                case WfStretchMode.Uniform:
+                    mMediaElement.Width = mMediaElement.Height = Double.NaN;
+                    mMediaElement.Stretch = Stretch.Uniform;
+                    break;
+                case WfStretchMode.Fill:
+                    mMediaElement.Width = mMediaElement.Height = Double.NaN;
+                    mMediaElement.Stretch = Stretch.Fill;
+                    break;
+                case WfStretchMode.CUSTOM125:
+                    CustomStretch(1.25);
+                    break;
+                case WfStretchMode.CUSTOM133:
+                    CustomStretch(4.0/3.0);
+                    break;
+                case WfStretchMode.CUSTOM150:
+                    CustomStretch(1.5);
+                    break;
+                case WfStretchMode.CUSTOM177:
+                    CustomStretch(16.0/9.0);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void CustomStretch(double ratio)
+        {
+            double w = this.ActualWidth, h = this.ActualHeight;
+            double cw= h * ratio, ch = w / ratio;
+            double vw, vh;
+
+            if (StretchMaximum)
+            {
+                (vw, vh) = (w < cw) ? (cw, h) : (w, ch);
+            }
+            else
+            {
+                (vw, vh) = (w > cw) ? (cw, h) : (w, ch);
+            }
+            mMediaElement.Stretch = Stretch.Fill;
+            mMediaElement.Width = vw;
+            mMediaElement.Height = vh;
+        }
+
         #endregion
+
+        private void HandleMouseOnPanel(Panel panel, bool enter)
+        {
+            if (null == panel)
+            {
+                return;
+            }
+            switch (panel.Name)
+            {
+                case "mPanelBase":
+                    MouseInPanel = enter;
+                    break;
+                case "mStretchModePanel":
+                    MouseInStretchModePanel = enter;
+                    break;
+                default:
+                    break;
+            }
+        }
 
         private void OnMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            mMouseInPanel.Value = true;
+            HandleMouseOnPanel(sender as Panel, true);
         }
 
         private void OnMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            mMouseInPanel.Value = false;
+            HandleMouseOnPanel(sender as Panel, false);
         }
 
         private async void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -718,5 +843,12 @@ namespace wfPlayer
             notify("TrimmingEnabled");
         }
 
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if(IsCustomStretchMode)
+            {
+                OnStretchModeChanged();
+            }
+        }
     }
 }
