@@ -99,16 +99,7 @@ namespace wfPlayer
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             OpenDB(WfGlobalParams.Instance.FilePath);
-
-            LayoutUpdated += OnLayoutUpdated;
-
-
-        }
-
-        private void OnLayoutUpdated(object sender, EventArgs e)
-        {
-            //UpdateColumnHeaderOnSort(WfGlobalParams.Instance.SortInfo);
-            LayoutUpdated -= OnLayoutUpdated;
+            UpdateColumnHeaderOnSort(WfGlobalParams.Instance.SortInfo);
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -265,23 +256,42 @@ namespace wfPlayer
                 }
             }
         }
-        private void UpdateColumnHeaderOnSort(WfSortInfo info)
+
+        private Dictionary<WfSortKey, GridViewColumnHeader> mHeaderColumnDic = null;
+
+        private void InitHeaderColumnDic()
         {
-            var gridView = mFileListView.View as GridView;
-            if(null!=gridView)
+            if(null==mHeaderColumnDic)
             {
-                string keyName = SortKey2HeaderName(info.Key);
-                foreach(var header in FindVisualChildren<GridViewColumn>(mFileListView))
+                mHeaderColumnDic = new Dictionary<WfSortKey, GridViewColumnHeader>(10);
+                foreach (var header in FindVisualChildren<GridViewColumnHeader>(mFileListView))
                 {
                     Debug.WriteLine(header.ToString());
-                    //if(Convert.ToString(header.Column.Header)==keyName)
-                    //{
-                    //    header.Tag = info.Order == WfSortOrder.ASCENDING ? "asc" : "desc";
-                    //}
-                    //else
-                    //{
-                    //    header.Tag = null;
-                    //}
+                    var textBox = FindVisualChildren<TextBlock>(header).FirstOrDefault();
+                    if (null != textBox)
+                    {
+                        var key = HeaderName2SortKey(textBox.Text);
+                        if (key != WfSortKey.NONE)
+                        {
+                            mHeaderColumnDic[key] = header;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void UpdateColumnHeaderOnSort(WfSortInfo info)
+        {
+            InitHeaderColumnDic();
+            foreach (var v in mHeaderColumnDic)
+            {
+                if(v.Key == info.Key)
+                {
+                    v.Value.Tag = info.Order == WfSortOrder.ASCENDING ? "asc" : "desc";
+                }
+                else
+                {
+                    v.Value.Tag = null;
                 }
             }
         }
