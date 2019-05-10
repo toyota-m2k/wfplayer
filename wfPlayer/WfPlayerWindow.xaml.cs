@@ -324,48 +324,6 @@ namespace wfPlayer
             this.Title = $"WfPlayer - {name}";
         }
 
-
-
-        public class WfPlayingSource
-        {
-            private IWfSourceList mSources;
-            private IWfSource mCurrent;
-            private Queue<Action> mRequestQueue;
-            private WeakReference<WfPlayerWindow> mOwner;
-            private WfPlayerWindow Owner
-            {
-                get
-                {
-
-                    return 
-                }            
-            }
-
-            public enum Status
-            {
-                NONE,
-                LOADING,
-                OPENED,
-                ENDED,
-                ERROR,
-            }
-
-            public delegate void StateChangedProc(Status status);
-            public event StateChangedProc StatusChanged;
-
-            private void begin()
-            {
-                mCurrent = mSources.Current;
-
-            }
-
-            public void Begin()
-            {
-               
-            }
-
-        }
-
         private IWfSourceList mSources;
         private IWfSource Current => mSources?.Current;
 
@@ -712,7 +670,7 @@ namespace wfPlayer
                             if (remains>0 && remains < Current.Trimming.Epilogue)
                             {
                                 Stop();
-                                mPositionTimer.Stop();
+                                mPositionTimer?.Stop();
                                 mPositionTimer = null;
                                 OnMediaEnded(null, null);
                                 return;
@@ -728,11 +686,8 @@ namespace wfPlayer
             }
             else
             {
-                if (null != mPositionTimer)
-                {
-                    mPositionTimer.Stop();
-                    mPositionTimer = null;
-                }
+                mPositionTimer?.Stop();
+                mPositionTimer = null;
             }
         }
 
