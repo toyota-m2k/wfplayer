@@ -324,9 +324,49 @@ namespace wfPlayer
             this.Title = $"WfPlayer - {name}";
         }
 
-        //private List<string> mSources;
-        private IWfSourceList mSources;
 
+
+        public class WfPlayingSource
+        {
+            private IWfSourceList mSources;
+            private IWfSource mCurrent;
+            private Queue<Action> mRequestQueue;
+            private WeakReference<WfPlayerWindow> mOwner;
+            private WfPlayerWindow Owner
+            {
+                get
+                {
+
+                    return 
+                }            
+            }
+
+            public enum Status
+            {
+                NONE,
+                LOADING,
+                OPENED,
+                ENDED,
+                ERROR,
+            }
+
+            public delegate void StateChangedProc(Status status);
+            public event StateChangedProc StatusChanged;
+
+            private void begin()
+            {
+                mCurrent = mSources.Current;
+
+            }
+
+            public void Begin()
+            {
+               
+            }
+
+        }
+
+        private IWfSourceList mSources;
         private IWfSource Current => mSources?.Current;
 
         private void VideoSourcesChanged()
@@ -512,6 +552,7 @@ namespace wfPlayer
 
         private void OnMediaOpened(object sender, RoutedEventArgs e)
         {
+            Debug.WriteLine("MediaOpened");
             Duration = mMediaElement.NaturalDuration.TimeSpan.TotalMilliseconds;
             mMediaElement.SpeedRatio = calcSpeedRatio(Speed);
             updateTimelinePosition(Current.Trimming.Prologue, true, true);
@@ -520,7 +561,8 @@ namespace wfPlayer
 
         private async void OnMediaEnded(object sender, RoutedEventArgs e)
         {
-            if(!await Next())
+            Debug.WriteLine("MediaEnded");
+            if (!await Next())
             {
                 Stop();
                 Close();
@@ -529,6 +571,7 @@ namespace wfPlayer
 
         private async void OnMediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
+            Debug.WriteLine("MediaFailed");
             mVideoLoadingTaskSource?.TrySetResult(false);
             if (!Playing)
             {
