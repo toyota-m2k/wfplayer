@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -331,14 +332,24 @@ namespace wfPlayer
          */
         private void RegisterFolder()
         {
-            using (var fbd = new FolderBrowserDialog())
+            using (var dlg = new CommonOpenFileDialog("Select Folder"))
             {
-                DialogResult result = fbd.ShowDialog();
-                if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                dlg.IsFolderPicker = true;
+                dlg.Multiselect = false;
+                if(dlg.ShowDialog()== CommonFileDialogResult.Ok)
                 {
-                    RegisterFilesInPath(fbd.SelectedPath);
+                    RegisterFilesInPath(dlg.FileName);
                 }
             }
+
+            //using (var fbd = new FolderBrowserDialog())
+            //{
+            //    DialogResult result = fbd.ShowDialog();
+            //    if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+            //    {
+            //        RegisterFilesInPath(fbd.SelectedPath);
+            //    }
+            //}
         }
 
         /**

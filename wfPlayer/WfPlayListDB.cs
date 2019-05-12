@@ -75,7 +75,7 @@ namespace wfPlayer
                 {
                     long lastPlay = f.LastPlayDate == DateTime.MinValue ? 0 : f.LastPlayDate.ToFileTimeUtc();
                     mCmd.CommandText = $"INSERT INTO t_playlist (path,date,size,mark,rating,lastPlay,playCount,trimming,aspect) "
-                                     + $"VALUES('{f.FullPath}','{f.Date.ToFileTimeUtc()}','{f.Size}','{f.Mark}','{(int)f.Rating}','{lastPlay}','{f.PlayCount}','{f.Trimming.Id}', '{(long)f.Aspect})";
+                                     + $"VALUES('{f.FullPath}','{f.Date.ToFileTimeUtc()}','{f.Size}','{f.Mark}','{(int)f.Rating}','{lastPlay}','{f.PlayCount}','{f.Trimming.Id}', '{(long)f.Aspect}')";
                     return 1 == mCmd.ExecuteNonQuery();
                 }
                 catch (SQLiteException)

@@ -279,7 +279,7 @@ namespace wfPlayer
         }
         public RatingBindable Rating { get; }
 
-        private WfStretchMode mPrevStretchMode = WfStretchMode.UniformToFill;
+        private WfStretchMode mPrevStrechMode = WfStretchMode.UniformToFill;
         private WfStretchMode mStretchMode = WfStretchMode.UniformToFill;
         public WfStretchMode StretchMode
         {
@@ -350,7 +350,6 @@ namespace wfPlayer
         private bool mAutoStart = false;
         private IWfSourceList mSources;
         private IWfSource Current => mSources?.Current;
-        private WfStretchMode mPrevStrechMode = WfStretchMode.UniformToFill;
         private void VideoSourcesChanged()
         {
             notify("HasNext");
@@ -1096,8 +1095,12 @@ namespace wfPlayer
                 { Key.OemComma, ()=>{ var _=Prev(); } },
                 { Key.Home, ()=> { var _=Prev(); } },
                 { Key.End,  ()=>{ var _=Next(); } },
+                { Key.Down, ()=>{ var _=Next(); } },
+                { Key.Up, ()=>{ var _=Prev(); } },
                 { Key.Left, ()=>SeekBackward(false) },
                 { Key.Right, ()=>SeekForward(false) },
+                //{ Key.Left, ()=>SeekBackward(false) },
+                //{ Key.Right, ()=>SeekForward(false) },
                 { Key.PageUp, ()=>SeekBackward(true) },
                 { Key.PageDown, ()=>SeekForward(true) },
                 { Key.D1, ()=> {CurrentRating=Ratings.GOOD; } },
