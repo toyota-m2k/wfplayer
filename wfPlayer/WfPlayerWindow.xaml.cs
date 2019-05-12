@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -232,7 +233,8 @@ namespace wfPlayer
                 if (item.Rating != value)
                 {
                     item.Rating = value;
-                    WfPlayListDB.Instance.UpdatePlaylistItem((WfFileItem)item, (long)WfPlayListDB.FieldFlag.RATING);
+                    //WfPlayListDB.Instance.UpdatePlaylistItem((WfFileItem)item, (long)WfPlayListDB.FieldFlag.RATING);
+                    item.SaveModified();
                     notify("Rating");
                 }
             }
@@ -277,27 +279,39 @@ namespace wfPlayer
         }
         public RatingBindable Rating { get; }
 
+        private WfStretchMode mPrevStretchMode = WfStretchMode.UniformToFill;
         private WfStretchMode mStretchMode = WfStretchMode.UniformToFill;
         public WfStretchMode StretchMode
         {
             get => mStretchMode;
-            set => setProp("StretchMode", ref mStretchMode, value, "IsCustomStretchMode");
+            set
+            {
+                if(!IsCustomStretchMode(mStretchMode))
+                {
+                    mPrevStrechMode = mStretchMode;
+                }
+                setProp("StretchMode", ref mStretchMode, value, "CustomStretchMode");
+            }
         }
 
-        private bool mStretchMaximum = false;
+        private bool mStretchMaximum = true;
         public bool StretchMaximum
         {
             get => mStretchMaximum;
             set => setProp("StretchMaximum", ref mStretchMaximum, value);
         }
 
-        public bool IsCustomStretchMode => (long)StretchMode > (long)WfStretchMode.Fill;
+        private static bool IsCustomStretchMode(WfStretchMode mode)
+        {
+            return (long)mode > (long)WfStretchMode.Fill;
+        }
+        public bool CustomStretchMode => IsCustomStretchMode(StretchMode);
 
         #endregion
 
         #region ビデオソース
         private TaskCompletionSource<bool> mVideoLoadingTaskSource = null;
-        private async Task<bool> SetVideoSource(IWfSource rec)
+        private async Task<bool> SetVideoSource(IWfSource rec, bool startNow)
         {
             if(null!=mVideoLoadingTaskSource)
             {
@@ -308,11 +322,20 @@ namespace wfPlayer
 
             mVideoLoadingTaskSource = new TaskCompletionSource<bool>();
             notify("Ready");
+            mMediaElement.Stop();
+            mMediaElement.Close();
             mMediaElement.Source = rec.Uri;
             mMediaElement.Position = TimeSpan.FromMilliseconds(rec.Trimming.Prologue);
             mMediaElement.Play();
             var r = await mVideoLoadingTaskSource.Task;
-            mMediaElement.Pause();
+            if (!startNow)
+            {
+                mMediaElement.Pause();
+            }
+            else
+            {
+                rec.Touch();
+            }
             mVideoLoadingTaskSource = null;
             notify("Ready");
             return r;
@@ -324,27 +347,49 @@ namespace wfPlayer
             this.Title = $"WfPlayer - {name}";
         }
 
+        private bool mAutoStart = false;
         private IWfSourceList mSources;
         private IWfSource Current => mSources?.Current;
-
+        private WfStretchMode mPrevStrechMode = WfStretchMode.UniformToFill;
         private void VideoSourcesChanged()
         {
             notify("HasNext");
             notify("HasPrev");
             notify("TrimmingEnabled");
-        }
 
-        public async void SetSources(IWfSourceList sources)
-        {
-            Stop();
-            mSources = sources;
-            if (mLoaded)
+            switch (Current.Aspect)
             {
-                await InitSource();
+                case WfAspect.AUTO:
+                default:
+                    StretchMode = mPrevStrechMode;
+                    break;
+                case WfAspect.CUSTOM125:
+                    StretchMode = WfStretchMode.CUSTOM125;
+                    break;
+                case WfAspect.CUSTOM133:
+                    StretchMode = WfStretchMode.CUSTOM133;
+                    break;
+                case WfAspect.CUSTOM150:
+                    StretchMode = WfStretchMode.CUSTOM150;
+                    break;
+                case WfAspect.CUSTOM177:
+                    StretchMode = WfStretchMode.CUSTOM177;
+                    break;
             }
         }
 
-        private async Task InitSource()
+        public async void SetSources(IWfSourceList sources, bool startNow)
+        {
+            Stop();
+            mSources = sources;
+            mAutoStart = startNow;
+            if (mLoaded)
+            {
+                await InitSource(startNow);
+            }
+        }
+
+        private async Task InitSource(bool startNow)
         {
             await SourceChange(async () =>
             {
@@ -353,7 +398,9 @@ namespace wfPlayer
                     var rec = mSources.Current ?? mSources.Head;
                     if (null != rec)
                     {
-                        await SetVideoSource(rec);
+                        await SetVideoSource(rec, startNow);
+                        Started = startNow;
+                        Pausing = false;
                         VideoSourcesChanged();
                     }
                     return true;
@@ -389,13 +436,7 @@ namespace wfPlayer
                 var rec = mSources?.Next;
                 if (null != rec)
                 {
-                    bool playing = Playing;
-                    Stop();
-                    await SetVideoSource(rec);
-                    if (playing)
-                    {
-                        Play();
-                    }
+                    await SetVideoSource(rec, Playing);
                     VideoSourcesChanged();
                     return true;
                 }
@@ -410,13 +451,7 @@ namespace wfPlayer
                 var rec = mSources?.Prev;
                 if (null != rec)
                 {
-                    bool playing = Playing;
-                    Stop();
-                    await SetVideoSource(rec);
-                    if (playing)
-                    {
-                        Play();
-                    }
+                    await SetVideoSource(rec, Playing);
                     VideoSourcesChanged();
                     return true;
                 }
@@ -428,8 +463,9 @@ namespace wfPlayer
 
         #region 再生操作
 
-        void Play()
+        void Play(double speed=0.5)
         {
+            Speed = speed;
             if (Pausing)
             {
                 Pause();
@@ -438,7 +474,7 @@ namespace wfPlayer
             {
                 mMediaElement.Play();
                 Started = true;
-                mSources.Current.OnPlayStarted();
+                Current?.Touch();
             }
         }
 
@@ -458,6 +494,7 @@ namespace wfPlayer
             {
                 mMediaElement.Play();
                 Pausing = false;
+                Current?.Touch();
             }
         }
 
@@ -485,6 +522,8 @@ namespace wfPlayer
             mSources = null;
             mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel", "ShowStretchModePanel");
             mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel", "ShowStretchModePanel");
+            mCursorManager = new HidingCursor(this);
+            InitKeyMap();
 
             this.DataContext = this;
             InitializeComponent();
@@ -496,7 +535,7 @@ namespace wfPlayer
             PropertyChanged += OnBindingPropertyChanged;
             if(mSources!=null)
             {
-                await InitSource();
+                await InitSource(mAutoStart);
             }
         }
 
@@ -506,7 +545,7 @@ namespace wfPlayer
         }
         #endregion
 
-        #region Event Handlers
+        #region MediaElement Event Handlers
 
         private void OnMediaOpened(object sender, RoutedEventArgs e)
         {
@@ -541,15 +580,18 @@ namespace wfPlayer
             }
         }
 
+        #endregion
+
+        #region Command Handler
+
         private void OnPlay(object sender, RoutedEventArgs e)
         {
-            Play();
+            Play(0.5);
         }
 
         private void OnPlayFast(object sender, RoutedEventArgs e)
         {
-            Speed = 1;
-            Play();
+            Play(1);
         }
 
         private void OnPause(object sender, RoutedEventArgs e)
@@ -578,6 +620,66 @@ namespace wfPlayer
             Speed = 0.5;
         }
 
+        #endregion
+
+        #region Event Handlers
+
+        private void OnMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (!HandleMouseOnPanel(sender as Panel, true))
+            {
+                mCursorManager.Update(e.GetPosition(this));
+            }
+
+        }
+
+        private void OnMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (!HandleMouseOnPanel(sender as Panel, false))
+            {
+                mCursorManager.Reset();
+            }
+        }
+
+        private void OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (sender is Window)
+            {
+                mCursorManager.Update(e.GetPosition(this));
+            }
+        }
+
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (CustomStretchMode)
+            {
+                OnStretchModeChanged();
+            }
+        }
+
+        private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            Debug.WriteLine($"KEY:{e.Key} - {e.SystemKey} - {e.KeyStates} - Rep={e.IsRepeat} - D/U/T={e.IsDown}/{e.IsUp}/{e.IsToggled}");
+            if (mKeyMap.TryGetValue(e.Key, out var action))
+            {
+                action?.Invoke();
+            }
+
+            //switch (e.Key)
+            //{
+            //    case System.Windows.Input.Key.Escape:
+            //        Close();
+            //        break;
+            //    case System.Windows.Input.Key.NumPad2:
+            //        await Next();
+            //        break;
+            //    case System.Windows.Input.Key.NumPad8:
+            //        await Prev();
+            //        break;
+            //    default:
+            //        break;
+            //}
+        }
         #endregion
 
         #region タイムラインスライダー操作
@@ -654,9 +756,10 @@ namespace wfPlayer
             }
         }
 
-        private void OnPlayingStateChanged(bool newValue)
+        private void OnPlayingStateChanged(bool playing)
         {
-            if (newValue)
+            mCursorManager.Enabled = mCursorManager.Enabled = !MouseInPanel && !MouseInStretchModePanel && playing;
+            if (playing)
             {
                 if (null == mPositionTimer)
                 {
@@ -669,9 +772,8 @@ namespace wfPlayer
                             var remains = Duration - current;
                             if (remains>0 && remains < Current.Trimming.Epilogue)
                             {
-                                Stop();
-                                mPositionTimer?.Stop();
-                                mPositionTimer = null;
+                                //mPositionTimer?.Stop();
+                                //mPositionTimer = null;
                                 OnMediaEnded(null, null);
                                 return;
                             }
@@ -691,9 +793,34 @@ namespace wfPlayer
             }
         }
 
+        void SeekForward(bool large)
+        {
+            if(!Ready)
+            {
+                return;
+            }
+            var v = mPositionSlider.Value;
+            v += (large) ? LargePositionChange : SmallPositionChange;
+            updateTimelinePosition(Math.Min(v, mPositionSlider.Maximum-Current.Trimming.Epilogue), true, true);
+        }
+        void SeekBackward(bool large)
+        {
+            if (!Ready)
+            {
+                return;
+            }
+            var v = mPositionSlider.Value;
+            v -= (large) ? LargePositionChange : SmallPositionChange;
+            updateTimelinePosition(Math.Max(v, Current.Trimming.Prologue), true, true);
+        }
+
+        #endregion
+
+        #region Stretch Mode
+
         public void OnStretchModeChanged()
         {
-            switch(StretchMode)
+            switch (StretchMode)
             {
                 case WfStretchMode.UniformToFill:
                     mMediaElement.Width = mMediaElement.Height = Double.NaN;
@@ -711,13 +838,13 @@ namespace wfPlayer
                     CustomStretch(1.25);
                     break;
                 case WfStretchMode.CUSTOM133:
-                    CustomStretch(4.0/3.0);
+                    CustomStretch(4.0 / 3.0);
                     break;
                 case WfStretchMode.CUSTOM150:
                     CustomStretch(1.5);
                     break;
                 case WfStretchMode.CUSTOM177:
-                    CustomStretch(16.0/9.0);
+                    CustomStretch(16.0 / 9.0);
                     break;
                 default:
                     break;
@@ -727,7 +854,7 @@ namespace wfPlayer
         private void CustomStretch(double ratio)
         {
             double w = this.ActualWidth, h = this.ActualHeight;
-            double cw= h * ratio, ch = w / ratio;
+            double cw = h * ratio, ch = w / ratio;
             double vw, vh;
 
             if (StretchMaximum)
@@ -743,13 +870,44 @@ namespace wfPlayer
             mMediaElement.Height = vh;
         }
 
+        private void OnSaveAspect(object sender, RoutedEventArgs e)
+        {
+            WfAspect aspect;
+            switch (StretchMode)
+            {
+                case WfStretchMode.UniformToFill:
+                case WfStretchMode.Uniform:
+                case WfStretchMode.Fill:
+                default:
+                    aspect = WfAspect.AUTO;
+                    break;
+                case WfStretchMode.CUSTOM125:
+                    aspect = WfAspect.CUSTOM125;
+                    break;
+                case WfStretchMode.CUSTOM133:
+                    aspect = WfAspect.CUSTOM133;
+                    break;
+                case WfStretchMode.CUSTOM150:
+                    aspect = WfAspect.CUSTOM150;
+                    break;
+                case WfStretchMode.CUSTOM177:
+                    aspect = WfAspect.CUSTOM177;
+                    break;
+            }
+            Current.Aspect = aspect;
+            Current.SaveModified();
+            return;
+        }
+
         #endregion
 
-        private void HandleMouseOnPanel(Panel panel, bool enter)
+        #region Control Panels
+
+        private bool HandleMouseOnPanel(Panel panel, bool enter)
         {
             if (null == panel)
             {
-                return;
+                return false;
             }
             switch (panel.Name)
             {
@@ -760,38 +918,114 @@ namespace wfPlayer
                     MouseInStretchModePanel = enter;
                     break;
                 default:
-                    break;
+                    return false;
             }
+            mCursorManager.Enabled = !MouseInPanel && !MouseInStretchModePanel && Playing;
+            return true;
         }
+        #endregion
 
-        private void OnMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            HandleMouseOnPanel(sender as Panel, true);
-        }
+        #region Hide/Show Cursor
 
-        private void OnMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        class HidingCursor
         {
-            HandleMouseOnPanel(sender as Panel, false);
-        }
+            private static long WAIT_TIME = 2000;   //3ms
+            private Point mPosition;
+            private long mCheck = 0;
+            private DispatcherTimer mTimer = null;
+            private WeakReference<Window> mWin;
+            private bool mEnabled = false;
 
-        private async void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            Debug.WriteLine($"KEY:{e.Key} - {e.SystemKey} - {e.KeyStates} - Rep={e.IsRepeat} - D/U/T={e.IsDown}/{e.IsUp}/{e.IsToggled}");
-            switch (e.Key)
+            public HidingCursor(Window owner)
             {
-                case System.Windows.Input.Key.Escape:
-                    Close();
-                    break;
-                case System.Windows.Input.Key.NumPad2:
-                    await Next();
-                    break;
-                case System.Windows.Input.Key.NumPad8:
-                    await Prev();
-                    break;
-                default:
-                    break;
+                mWin = new WeakReference<Window>(owner);
+                mPosition = new Point();
+            }
+
+            private Cursor CursorOnWin
+            {
+                get => mWin?.GetValue().Cursor;
+                set
+                {
+                    var win = mWin?.GetValue();
+                    if (null != win)
+                    {
+                        win.Cursor = value;
+                    }
+                }
+            }
+
+            public bool Enabled
+            {
+                get => mEnabled;
+                set
+                {
+                    if (value != mEnabled)
+                    {
+                        mEnabled = value;
+                        if (value)
+                        {
+                            //Update();
+                        }
+                        else
+                        {
+                            Reset();
+                        }
+                    }
+                }
+            }
+
+            public void Reset()
+            {
+                if (mTimer != null)
+                {
+                    mTimer.Stop();
+                    mTimer = null;
+                }
+                CursorOnWin = Cursors.Arrow;
+            }
+
+            public void Update(Point pos)
+            {
+                if (!Enabled)
+                {
+                    return;
+                }
+
+                if (mPosition != pos)
+                {
+                    mPosition = pos;
+                    mCheck = System.Environment.TickCount;
+                    CursorOnWin = Cursors.Arrow;
+                    if (null == mTimer)
+                    {
+                        mTimer = new DispatcherTimer();
+                        mTimer.Tick += OnTimer;
+                        mTimer.Interval = TimeSpan.FromMilliseconds(WAIT_TIME / 3);
+                        mTimer.Start();
+                    }
+                }
+            }
+
+            private void OnTimer(object sender, EventArgs e)
+            {
+                if (null == mTimer)
+                {
+                    return;
+                }
+                if (System.Environment.TickCount - mCheck > WAIT_TIME)
+                {
+                    mTimer.Stop();
+                    mTimer = null;
+                    CursorOnWin = Cursors.None;
+                }
             }
         }
+        private HidingCursor mCursorManager = null;
+
+        #endregion
+
+        #region Trimming
 
         private void EditTrimming(object sender, RoutedEventArgs e)
         {
@@ -800,11 +1034,12 @@ namespace wfPlayer
             {
                 return;
             }
-            var tp = new WfTrimmingPlayer(item.Trimming, item.FullPath);
+            var tp = new WfTrimmingPlayer(item.Trimming, WfTrimmingPlayer.GetRefPath(item.Trimming, item.FullPath, false));
             WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
             {
                 item.Trimming = tp.Result;
-                db.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+                //db.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+                item.SaveModified();
                 notify("TrimmingEnabled");
             };
             tp.OnResult += onNewTrimming;
@@ -824,7 +1059,8 @@ namespace wfPlayer
             if (null != dlg.Result)
             {
                 item.Trimming = dlg.Result;
-                WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+                // WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+                item.SaveModified();
                 notify("TrimmingEnabled");
             }
         }
@@ -837,16 +1073,44 @@ namespace wfPlayer
                 return;
             }
             item.Trimming = WfFileItem.Trim.NoTrim;
-            WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+            //WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+            item.SaveModified();
             notify("TrimmingEnabled");
         }
 
-        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        #endregion
+
+        #region Key Mapping
+        private Dictionary<System.Windows.Input.Key, Action> mKeyMap = null;
+        private void InitKeyMap()
         {
-            if(IsCustomStretchMode)
+            mKeyMap = new Dictionary<Key, Action>()
             {
-                OnStretchModeChanged();
-            }
+                { Key.G, ()=>Play(0.5) },
+                { Key.P, Pause },
+                { Key.S, Stop },
+                { Key.F, ()=>Play(1.0) },
+                { Key.M, ()=>{ Mute=!Mute; } },
+                { Key.Escape, Close },
+                { Key.OemPeriod, ()=>{ var _=Next(); } },
+                { Key.OemComma, ()=>{ var _=Prev(); } },
+                { Key.Home, ()=> { var _=Prev(); } },
+                { Key.End,  ()=>{ var _=Next(); } },
+                { Key.Left, ()=>SeekBackward(false) },
+                { Key.Right, ()=>SeekForward(false) },
+                { Key.PageUp, ()=>SeekBackward(true) },
+                { Key.PageDown, ()=>SeekForward(true) },
+                { Key.D1, ()=> {CurrentRating=Ratings.GOOD; } },
+                { Key.D2, ()=> {CurrentRating=Ratings.NORMAL; } },
+                { Key.D3, ()=> {CurrentRating=Ratings.BAD; } },
+                { Key.D4, ()=> {CurrentRating=Ratings.DREADFUL; } },
+                { Key.NumPad1, ()=> {CurrentRating=Ratings.GOOD; } },
+                { Key.NumPad0, ()=> {CurrentRating=Ratings.NORMAL; } },
+                { Key.NumPad2, ()=> {CurrentRating=Ratings.BAD; } },
+                { Key.NumPad3, ()=> {CurrentRating=Ratings.DREADFUL; } },
+            };
         }
+        #endregion
+
     }
 }

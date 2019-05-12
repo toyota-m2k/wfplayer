@@ -31,7 +31,6 @@
             LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Uniform"
             ScrubbingEnabled="True"
             Name="mMediaElement" MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed"
-            Source="{Binding VideoSource}"
             Volume="{Binding Volume, Mode=OneWay}"
             IsMuted="{Binding Mute, Mode=OneWay}"
             />
@@ -66,6 +65,7 @@
                     <RotateTransform CenterX="0.5" CenterY="0.5" Angle="180"/>
                 </Button.LayoutTransform>
             </Button>
+            <Button Click="SeekToPrologue" IsEnabled="{Binding Path=IsChecked, ElementName=mStartCheck}" Content="{StaticResource PathSeekTo1}" Style="{StaticResource SmallPushButtonStyle}"/>
         </StackPanel>
         <TextBlock Grid.Row="3" Grid.Column="1" Text="Epilogue" Margin="8" Foreground="White" FontWeight="Bold"/>
         <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="8,0,8,8">
@@ -76,6 +76,7 @@
                     <RotateTransform CenterX="0.5" CenterY="0.5" Angle="180"/>
                 </Button.LayoutTransform>
             </Button>
+            <Button Click="SeekToEpilogue" IsEnabled="{Binding Path=IsChecked, ElementName=mEndCheck}" Content="{StaticResource PathSeekTo2}" Style="{StaticResource SmallPushButtonStyle}"/>
         </StackPanel>
         <StackPanel Grid.Row="5" Grid.Column="0"  Orientation="Horizontal" Margin="8">
             <TextBlock Text="Trimming Name" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>

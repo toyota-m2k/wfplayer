@@ -51,7 +51,12 @@ namespace wfPlayer
                 return;
             }
             var item = mList[index];
-            var dlg = new WfTrimmingPlayer(item);
+            var path = WfTrimmingPlayer.GetRefPath(item, null, false);
+            if(null==path)
+            {
+                return;
+            }
+            var dlg = new WfTrimmingPlayer(item, path);
             dlg.ShowDialog();
             if(dlg.Result!=null)
             {

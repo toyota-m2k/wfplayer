@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -152,9 +153,31 @@ namespace wfPlayer
         public delegate void ResultEventProc(ITrim result, WfPlayListDB dbWithTransaction);
         public event ResultEventProc OnResult;
 
-        public WfTrimmingPlayer(ITrim trim, string videoPath=null)
+        private static string getPathIfExists(string path)
         {
-            mVideoPath = videoPath ?? trim.RefPath;
+            if(null!=path)
+            {
+                var fi = new FileInfo(path);
+                return fi.Exists ? path : null;
+            }
+            return null;
+        }
+        public static string GetRefPath(ITrim trim, string videoPath, bool preferRefreshPath)
+        {
+            if(preferRefreshPath)
+            {
+                return getPathIfExists(videoPath) ?? getPathIfExists(trim?.RefPath);
+            }
+            else
+            {
+                return getPathIfExists(trim?.RefPath) ?? getPathIfExists(videoPath);
+            }
+        }
+
+        public WfTrimmingPlayer(ITrim trim, string videoPath)
+        {
+            mVideoPath = videoPath;
+
             if (null != trim) {
                 mEditingTrim = trim;
                 mTrimmingName = trim.Name;
@@ -178,16 +201,19 @@ namespace wfPlayer
             PropertyChanged += OnBindingPropertyChanged;
             Started = false;
             Pausing = false;
-            mVideoLoadingTask = new TaskCompletionSource<bool>();
-            mMediaElement.Source = new Uri(mVideoPath);
-            mMediaElement.Position = TimeSpan.FromMilliseconds(0);
-            mMediaElement.Play();
-            if(await mVideoLoadingTask.Task)
+            if (null != mVideoPath)
             {
-                mMediaElement.Pause();
-                IsReady = true;
+                mVideoLoadingTask = new TaskCompletionSource<bool>();
+                mMediaElement.Source = new Uri(mVideoPath);
+                mMediaElement.Position = TimeSpan.FromMilliseconds(0);
+                mMediaElement.Play();
+                if (await mVideoLoadingTask.Task)
+                {
+                    mMediaElement.Pause();
+                    IsReady = true;
+                }
+                mVideoLoadingTask = null;
             }
-            mVideoLoadingTask = null;
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -412,7 +438,7 @@ namespace wfPlayer
             }
             using (var txn = WfPlayListDB.Instance.Transaction())
             {
-                Result = WfPlayListDB.Instance.TP.Register(mEditingTrim?.Id ?? 0, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mEditingTrim?.RefPath ?? mVideoPath);
+                Result = WfPlayListDB.Instance.TP.Register(mEditingTrim?.Id ?? 0, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mVideoPath );
                 OnResult?.Invoke(Result, WfPlayListDB.Instance);
             }
             Close();
@@ -424,5 +450,14 @@ namespace wfPlayer
             Close();
         }
 
+        private void SeekToEpilogue(object sender, RoutedEventArgs e)
+        {
+            SeekTo(mPositionSlider.Maximum - TrimEnd, true, true);
+        }
+
+        private void SeekToPrologue(object sender, RoutedEventArgs e)
+        {
+            SeekTo(TrimStart, true, true);
+        }
     }
 }

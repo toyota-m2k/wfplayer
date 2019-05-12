@@ -58,7 +58,7 @@ namespace wfPlayer
             Date = info.CreationTimeUtc;
             mRating = Ratings.NORMAL;
         }
-        public WfFileItem(string path, long size, DateTime date, string mark, Ratings rating, bool exists, DateTime lastPlay, int playCount, Trim trimming)
+        public WfFileItem(string path, long size, DateTime date, string mark, Ratings rating, bool exists, DateTime lastPlay, int playCount, Trim trimming, WfAspect aspect)
         {
             FullPath = path;
             Size = size;
@@ -70,6 +70,8 @@ namespace wfPlayer
             LastPlayDate = lastPlay;
             PlayCount = playCount;
             Trimming = trimming;
+            Aspect = aspect;
+            mDirty = 0;
         }
 
         #region RO Properties
@@ -119,6 +121,13 @@ namespace wfPlayer
         {
             get => mRating;
             set { if (setProp("Rating", ref mRating, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.RATING; } }
+        }
+
+        private WfAspect mAspect = WfAspect.AUTO;
+        public WfAspect Aspect
+        {
+            get => mAspect;
+            set { if(setProp("Aspect", ref mAspect, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.ASPECT; } }
         }
 
         public class Trim : ITrim
@@ -173,7 +182,7 @@ namespace wfPlayer
         }
 
         bool mPlayCountModified = false;
-        public void OnPlayStarted()
+        public void Touch()
         {
             if(!mPlayCountModified)
             {

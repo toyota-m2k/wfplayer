@@ -146,7 +146,7 @@ namespace wfPlayer
 
         private void OnPlayAll(object sender, RoutedEventArgs e)
         {
-            Play();
+            Play(true);
         }
 
         private void OnCreateTrimming(object sender, RoutedEventArgs e)
@@ -179,7 +179,7 @@ namespace wfPlayer
 
         private void OnListItemDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Play();
+            Play(false);
         }
         private WfSortKey HeaderName2SortKey(string name)
         {
@@ -344,14 +344,14 @@ namespace wfPlayer
         /**
          * 現在選択されているファイルから再生を開始する
          */
-        private void Play()
+        private void Play(bool start)
         {
             if (mFileList.Count > 0)
             {
-                var page = new WfPlayerWindow();
+                var player = new WfPlayerWindow();
                 mFileList.CurrentIndex = mFileListView.SelectedIndex;
-                page.SetSources(mFileList);
-                page.ShowDialog();
+                player.SetSources(mFileList, start);
+                player.ShowDialog();
             }
         }
 
@@ -380,7 +380,7 @@ namespace wfPlayer
             {
                 return;
             }
-            var tp = new WfTrimmingPlayer(item.Trimming, item.FullPath);
+            var tp = new WfTrimmingPlayer(item.Trimming, WfTrimmingPlayer.GetRefPath(null, item.FullPath, true));
             WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
             {
                 if (null != tp.Result)

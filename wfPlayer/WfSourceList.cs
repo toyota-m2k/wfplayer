@@ -14,6 +14,15 @@ namespace wfPlayer
         DREADFUL,       // 削除予定
     }
 
+    public enum WfAspect
+    {
+        AUTO = 0,
+        CUSTOM125,      // 5:4
+        CUSTOM133,      // 4:3
+        CUSTOM150,      // 3:2
+        CUSTOM177,      // 16:9
+    }
+
     public interface ITrim
     {
         long Id { get; }
@@ -31,7 +40,8 @@ namespace wfPlayer
         string Mark { get; set; }
         Ratings Rating { get; set; }
         ITrim Trimming { get; set; }
-        void OnPlayStarted();
+        WfAspect Aspect { get; set; }
+        void Touch();
         void SaveModified();
     }
 

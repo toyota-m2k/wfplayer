@@ -210,7 +210,7 @@ namespace wfPlayer
             {
                 if (!DateTime.MinValue.Equals(value))
                 {
-                    return ((DateTime)value).ToString();
+                    return ((DateTime)value).ToLocalTime().ToString();
                 }
             }
             return "";
@@ -227,6 +227,31 @@ namespace wfPlayer
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return String.Format("{0:#,0}", value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class AspectStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            switch(System.Convert.ToInt32(value))
+            {
+                case (int)WfAspect.CUSTOM125:
+                    return "5:4";
+                case (int)WfAspect.CUSTOM133:
+                    return "4:3";
+                case (int)WfAspect.CUSTOM150:
+                    return "3:2";
+                case (int)WfAspect.CUSTOM177:
+                    return "16:9";
+                default:
+                    return "";
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -171,6 +171,14 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
+                    <GridViewColumn Header="Aspect" Width="40" HeaderTemplate="{StaticResource SortHeaderTemplate}">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Aspect, Converter={StaticResource AspectStringConverter}}" TextAlignment="Center"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
                     <!--<GridViewColumn Header="Mark" Width="50" DisplayMemberBinding="{Binding Mark}"/>-->
                     <GridViewColumn Header="Path" Width="Auto" DisplayMemberBinding="{Binding FullPath}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
                 </GridView>

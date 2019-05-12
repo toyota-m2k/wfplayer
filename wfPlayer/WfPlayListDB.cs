@@ -19,6 +19,7 @@ namespace wfPlayer
             PLAY_COUNT = 0x04,
             RATING = 0x08,
             TRIMMING = 0x10,
+            ASPECT = 0x20,
         }
 
         public class Txn : IDisposable
@@ -73,11 +74,11 @@ namespace wfPlayer
                 try
                 {
                     long lastPlay = f.LastPlayDate == DateTime.MinValue ? 0 : f.LastPlayDate.ToFileTimeUtc();
-                    mCmd.CommandText = $"INSERT INTO t_playlist (path,date,size,mark,rating,lastPlay,playCount,trimming) "
-                                     + $"VALUES('{f.FullPath}','{f.Date.ToFileTimeUtc()}','{f.Size}','{f.Mark}','{(int)f.Rating}','{lastPlay}','{f.PlayCount}','{f.Trimming.Id}')";
+                    mCmd.CommandText = $"INSERT INTO t_playlist (path,date,size,mark,rating,lastPlay,playCount,trimming,aspect) "
+                                     + $"VALUES('{f.FullPath}','{f.Date.ToFileTimeUtc()}','{f.Size}','{f.Mark}','{(int)f.Rating}','{lastPlay}','{f.PlayCount}','{f.Trimming.Id}', '{(long)f.Aspect})";
                     return 1 == mCmd.ExecuteNonQuery();
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException)
                 {
                     return false;
                 }
@@ -129,7 +130,7 @@ namespace wfPlayer
                                     Convert.ToInt64(mReader["epilogue"]),
                                     refPath:"");
                             }
-                            catch (SQLiteException e)
+                            catch (SQLiteException)
                             {
                                 trim = WfFileItem.Trim.NoTrim;
                             }
@@ -141,10 +142,12 @@ namespace wfPlayer
                                     Convert.ToInt64(mReader["size"]),
                                     DateTime.FromFileTimeUtc(Convert.ToInt64(mReader["date"])),
                                     Convert.ToString(mReader["mark"]),
-                                    (Ratings)Convert.ToInt32(mReader["rating"]), exists,
+                                    (Ratings)Convert.ToInt32(mReader["rating"]),
+                                    exists,
                                     lastPlayDate,
                                     Convert.ToInt32(mReader["playCount"]),
-                                    trim
+                                    trim,
+                                    (WfAspect)Convert.ToInt32(mReader["aspect"])
                                     );
                 }
             }
@@ -225,7 +228,8 @@ namespace wfPlayer
                     lastPlay INTEGER NOT NULL,
                     playCount INTEGER NOT NULL,
                     trimming INTEGER NOT NULL,
-                    flag INTEGER DEFAULT 0
+                    flag INTEGER DEFAULT '0',
+                    aspect INTEGER NOT NULL DEFAULT '0'
                 )",
                 @"CREATE INDEX IF NOT EXISTS idx_path ON t_playlist(path)",
                 @"CREATE INDEX IF NOT EXISTS idx_status ON t_playlist(rating)",
@@ -331,7 +335,7 @@ namespace wfPlayer
                     cmd.CommandText = $"INSERT INTO t_target_folders (path) VALUES('{folderPath}')";
                     cmd.ExecuteNonQuery();
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException)
                 {
 
                 }
@@ -345,7 +349,7 @@ namespace wfPlayer
                         cmd.CommandText = $"DELETE FROM t_target_folders WHERE path='{path}'";
                         cmd.ExecuteNonQuery();
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException)
                     {
 
                     }
@@ -397,6 +401,11 @@ namespace wfPlayer
                     if (prev) sql.Append(", ");
                     sql.Append($"trimming='{item.Trimming.Id}' "); prev = true;
                 }
+                if (0 != (flags & (long)FieldFlag.ASPECT))
+                {
+                    if (prev) sql.Append(", ");
+                    sql.Append($"aspect='{(long)item.Aspect}' "); prev = true;
+                }
                 sql.Append($" WHERE path='{item.FullPath}'");
                 executeSql(sql.ToString());
             }
@@ -408,17 +417,17 @@ namespace wfPlayer
             {
                 try
                 {
-                    cmd.CommandText = $"INSERT INTO t_key_value (key,value) VALUES('{key}','{value}')";
+                    cmd.CommandText = $"UPDATE t_key_value SET value='{value}' WHERE key='{key}'";
                     if (1 == cmd.ExecuteNonQuery())
                     {
                         return true;
                     }
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException)
                 {
 
                 }
-                cmd.CommandText = $"UPDATE t_key_value SET value='{value}' WHERE key='{key}'";
+                cmd.CommandText = $"INSERT INTO t_key_value (key,value) VALUES('{key}','{value}')";
                 return 1 == cmd.ExecuteNonQuery();
             }
         }
@@ -502,14 +511,14 @@ namespace wfPlayer
                         else
                         {
                             // update
-                            cmd.CommandText = $"UPDATE t_trim_patterns SET (trim_name,prologue,epilogue,ref_path) VALUES('{name}','{(long)prologue}','{(long)epilogue}','{refPath}' ) WHERE trim_id='{id}'";
+                            cmd.CommandText = $"UPDATE t_trim_patterns SET trim_name = '{name}', prologue='{(long)prologue}', epilogue = '{(long)epilogue}', ref_path='{refPath}' WHERE trim_id='{id}'";
                         }
                         if(1 == cmd.ExecuteNonQuery())
                         {
                             return Get(name);
                         }
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException)
                     {
                     }
                     return null;
@@ -527,7 +536,7 @@ namespace wfPlayer
                         cmd.CommandText = $"DELETE FROM t_trim_patterns WHERE trim_name='{name}'";
                         return 1 == cmd.ExecuteNonQuery();
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         return false;
                     }
@@ -554,7 +563,7 @@ namespace wfPlayer
                             }
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                     }
                     return null;
@@ -581,7 +590,7 @@ namespace wfPlayer
                             return list.Count;
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                     }
                     return -1;
