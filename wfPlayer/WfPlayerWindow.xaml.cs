@@ -75,16 +75,6 @@ namespace wfPlayer
 
         #region Binding Properties
 
-        ///**
-        // * VideoSource --> MediaElement.Source
-        // */
-        //public static readonly DependencyProperty VideoSourceProperty = DependencyProperty.Register("VideoSource", typeof(Uri), typeof(WfPlayerWindow));
-        //public Uri VideoSource
-        //{
-        //    get => GetValue(VideoSourceProperty) as Uri;
-        //    set =>SetValue(VideoSourceProperty, value);
-        //}
-
         /**
          * Duration --> mPositionSlider.Value
          */
@@ -99,11 +89,6 @@ namespace wfPlayer
                 notify("SmallPositionChange");
             }
         }
-        /**
-         * mPositionSlider.LargeChange/SmallChange
-         */
-        public double LargePositionChange => Duration / 10;
-        public double SmallPositionChange => 1000;
 
         /**
          * Volume <--> Volume Slider.Value / MediaElement.Volume
@@ -193,6 +178,12 @@ namespace wfPlayer
         public bool Playing => Started && !Pausing;
 
         /**
+         * mPositionSlider.LargeChange/SmallChange
+         */
+        public double LargePositionChange => Duration / 10;
+        public double SmallPositionChange => 1000;
+
+        /**
          * パネルの開閉用
          */
         private bool mMouseInPanel = false;
@@ -220,6 +211,9 @@ namespace wfPlayer
 
         public bool TrimmingEnabled => Current?.Trimming?.HasValue ?? false;
 
+        /**
+         * Ratings
+         */
         public Ratings CurrentRating
         {
             get => Current?.Rating ?? Ratings.NORMAL;
@@ -279,18 +273,24 @@ namespace wfPlayer
         }
         public RatingBindable Rating { get; }
 
-        private WfStretchMode mPrevStrechMode = WfStretchMode.UniformToFill;
+        /**
+         * Stretch Mode
+         */
+        private WfStretchMode mStandardStretchMode = WfStretchMode.UniformToFill;
         private WfStretchMode mStretchMode = WfStretchMode.UniformToFill;
         public WfStretchMode StretchMode
         {
             get => mStretchMode;
             set
             {
-                if(!IsCustomStretchMode(mStretchMode))
+                if(!IsCustomStretchMode(value))
                 {
-                    mPrevStrechMode = mStretchMode;
+                    mStandardStretchMode = value;
                 }
-                setProp("StretchMode", ref mStretchMode, value, "CustomStretchMode");
+                if(setProp("StretchMode", ref mStretchMode, value, "CustomStretchMode") && SaveAspectAuto)
+                {
+                    SaveAspect();
+                }
             }
         }
 
@@ -306,6 +306,19 @@ namespace wfPlayer
             return (long)mode > (long)WfStretchMode.Fill;
         }
         public bool CustomStretchMode => IsCustomStretchMode(StretchMode);
+
+        private bool mSaveAspectAuto = false;
+        public bool SaveAspectAuto
+        {
+            get => mSaveAspectAuto;
+            set
+            {
+                if (setProp("SaveAspectAuto", ref mSaveAspectAuto, value) && value)
+                {
+                    SaveAspect();
+                }
+            }
+        }
 
         #endregion
 
@@ -360,7 +373,7 @@ namespace wfPlayer
             {
                 case WfAspect.AUTO:
                 default:
-                    StretchMode = mPrevStrechMode;
+                    StretchMode = mStandardStretchMode;
                     break;
                 case WfAspect.CUSTOM125:
                     StretchMode = WfStretchMode.CUSTOM125;
@@ -524,6 +537,10 @@ namespace wfPlayer
             mCursorManager = new HidingCursor(this);
             InitKeyMap();
 
+            mStandardStretchMode = mStretchMode = (WfStretchMode)(Convert.ToInt32(WfPlayListDB.Instance.GetValueAt("StretchMode") ?? "0"));
+            mStretchMaximum = (Convert.ToInt32(WfPlayListDB.Instance.GetValueAt("StretchMaximum") ?? "0"))!=0;
+
+
             this.DataContext = this;
             InitializeComponent();
         }
@@ -541,6 +558,10 @@ namespace wfPlayer
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             PropertyChanged -= OnBindingPropertyChanged;
+            Current?.SaveModified();
+
+            WfPlayListDB.Instance.SetValueAt("StretchMode", $"{(long)mStandardStretchMode}");
+            WfPlayListDB.Instance.SetValueAt("StretchMaximum", mStretchMaximum ? "1" : "0");
         }
         #endregion
 
@@ -659,10 +680,7 @@ namespace wfPlayer
         private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             Debug.WriteLine($"KEY:{e.Key} - {e.SystemKey} - {e.KeyStates} - Rep={e.IsRepeat} - D/U/T={e.IsDown}/{e.IsUp}/{e.IsToggled}");
-            if (mKeyMap.TryGetValue(e.Key, out var action))
-            {
-                action?.Invoke();
-            }
+            InvokeKeyCommand(e.Key);
 
             //switch (e.Key)
             //{
@@ -869,7 +887,7 @@ namespace wfPlayer
             mMediaElement.Height = vh;
         }
 
-        private void OnSaveAspect(object sender, RoutedEventArgs e)
+        private void SaveAspect()
         {
             WfAspect aspect;
             switch (StretchMode)
@@ -894,8 +912,66 @@ namespace wfPlayer
                     break;
             }
             Current.Aspect = aspect;
+            return;
+        }
+
+        private void OnSaveAspect(object sender, RoutedEventArgs e)
+        {
+            SaveAspect();
             Current.SaveModified();
             return;
+        }
+
+        private void ToggleStandardStretchMode()
+        {
+            if(CustomStretchMode)
+            {
+                StretchMode = mStandardStretchMode;
+            }
+            else
+            {
+                int v = 1+(int)StretchMode;
+                if(v>=(int)WfStretchMode.Fill)
+                {
+                    v = (int)WfStretchMode.UniformToFill;
+                }
+                StretchMode = (WfStretchMode)v;
+            }
+        }
+
+        private void ToggleCustomStretchMode(bool plus)
+        {
+            if(CustomStretchMode)
+            {
+                int v = (int)StretchMode;
+                if(plus)
+                {
+                    v++;
+                    if(v>(int)WfStretchMode.CUSTOM177)
+                    {
+                        v = (int)WfStretchMode.CUSTOM125;
+                    }
+                }
+                else
+                {
+                    v--;
+                    if (v < (int)WfStretchMode.CUSTOM125)
+                    {
+                        v = (int)WfStretchMode.CUSTOM177;
+                    }
+                }
+            }
+            else
+            {
+                if (plus)
+                {
+                    StretchMode = WfStretchMode.CUSTOM125;
+                }
+                else
+                {
+                    StretchMode = WfStretchMode.CUSTOM177;
+                }
+            }
         }
 
         #endregion
@@ -1080,39 +1156,110 @@ namespace wfPlayer
         #endregion
 
         #region Key Mapping
-        private Dictionary<System.Windows.Input.Key, Action> mKeyMap = null;
+
+        static class Commands
+        {
+            public const string PLAY = "play";
+            public const string PAUSE = "pause";
+            public const string STOP = "stop";
+            public const string FAST_PLAY = "fast";
+            public const string MUTE = "mute";
+            public const string CLOSE = "close";
+            public const string NEXT = "next";
+            public const string PREV = "prev";
+            public const string SEEK_FWD= "fwd";
+            public const string SEEK_BACK = "back";
+            public const string SEEK_FWD_L= "fwdL";
+            public const string SEEK_BACK_L = "backL";
+            public const string RATING_GOOD = "good";
+            public const string RATING_NORMAL = "normal";
+            public const string RATING_BAD = "bad";
+            public const string RATING_DREADFUL = "dreadful";
+            public const string NEXT_STD_STRETCH = "std";
+            public const string NEXT_CST_STRETCH = "custNext";
+            public const string PREV_CST_STRETCH = "custPrev";
+        }
+
+        private Dictionary<System.Windows.Input.Key, string> mKeyCommandMap = null;
+        private Dictionary<string, Action> mCommandMap = null;
         private void InitKeyMap()
         {
-            mKeyMap = new Dictionary<Key, Action>()
+            mCommandMap = new Dictionary<string, Action>()
             {
-                { Key.G, ()=>Play(0.5) },
-                { Key.P, Pause },
-                { Key.S, Stop },
-                { Key.F, ()=>Play(1.0) },
-                { Key.M, ()=>{ Mute=!Mute; } },
-                { Key.Escape, Close },
-                { Key.OemPeriod, ()=>{ var _=Next(); } },
-                { Key.OemComma, ()=>{ var _=Prev(); } },
-                { Key.Home, ()=> { var _=Prev(); } },
-                { Key.End,  ()=>{ var _=Next(); } },
-                { Key.Down, ()=>{ var _=Next(); } },
-                { Key.Up, ()=>{ var _=Prev(); } },
-                { Key.Left, ()=>SeekBackward(false) },
-                { Key.Right, ()=>SeekForward(false) },
-                //{ Key.Left, ()=>SeekBackward(false) },
-                //{ Key.Right, ()=>SeekForward(false) },
-                { Key.PageUp, ()=>SeekBackward(true) },
-                { Key.PageDown, ()=>SeekForward(true) },
-                { Key.D1, ()=> {CurrentRating=Ratings.GOOD; } },
-                { Key.D2, ()=> {CurrentRating=Ratings.NORMAL; } },
-                { Key.D3, ()=> {CurrentRating=Ratings.BAD; } },
-                { Key.D4, ()=> {CurrentRating=Ratings.DREADFUL; } },
-                { Key.NumPad1, ()=> {CurrentRating=Ratings.GOOD; } },
-                { Key.NumPad0, ()=> {CurrentRating=Ratings.NORMAL; } },
-                { Key.NumPad2, ()=> {CurrentRating=Ratings.BAD; } },
-                { Key.NumPad3, ()=> {CurrentRating=Ratings.DREADFUL; } },
+                { Commands.PLAY, ()=>Play(0.5) },
+                { Commands.PAUSE, Pause },
+                { Commands.STOP, Stop },
+                { Commands.FAST_PLAY, ()=>Play(1.0) },
+                { Commands.MUTE, ()=>{ Mute=!Mute; } },
+                { Commands.CLOSE, Close },
+                { Commands.NEXT, ()=>{ var _=Next(); } },
+                { Commands.PREV, ()=>{ var _=Prev(); } },
+                { Commands.SEEK_BACK, ()=>SeekBackward(false) },
+                { Commands.SEEK_FWD, ()=>SeekForward(false) },
+                { Commands.SEEK_BACK_L, ()=>SeekBackward(true) },
+                { Commands.SEEK_FWD_L, ()=>SeekForward(true) },
+                { Commands.RATING_GOOD, ()=> {CurrentRating=Ratings.GOOD; } },
+                { Commands.RATING_NORMAL, ()=> {CurrentRating=Ratings.NORMAL; } },
+                { Commands.RATING_BAD, ()=> {CurrentRating=Ratings.BAD; } },
+                { Commands.RATING_DREADFUL, ()=> {CurrentRating=Ratings.DREADFUL; } },
+
+                { Commands.NEXT_STD_STRETCH, ToggleStandardStretchMode },
+                { Commands.NEXT_CST_STRETCH, ()=> ToggleCustomStretchMode(true) },
+                { Commands.PREV_CST_STRETCH, ()=> ToggleCustomStretchMode(false) }
+            };
+
+            mKeyCommandMap = new Dictionary<Key, string>()
+            {
+                { Key.G, Commands.PLAY },
+                { Key.P, Commands.PAUSE },
+                { Key.S, Commands.STOP },
+                { Key.F, Commands.FAST_PLAY },
+                { Key.M, Commands.MUTE },
+                { Key.Escape, Commands.CLOSE },
+                { Key.OemPeriod, Commands.NEXT },
+                { Key.OemComma, Commands.PREV },
+                { Key.Home, Commands.PREV },
+                { Key.End,  Commands.NEXT },
+                { Key.Up, Commands.PREV },
+                { Key.Down, Commands.NEXT },
+                { Key.Left, Commands.SEEK_BACK },
+                { Key.Right, Commands.SEEK_FWD },
+                { Key.PageUp, Commands.SEEK_BACK_L },
+                { Key.PageDown, Commands.SEEK_FWD_L },
+                { Key.D1, Commands.RATING_GOOD },
+                { Key.D2, Commands.RATING_NORMAL },
+                { Key.D3, Commands.RATING_BAD },
+                { Key.D4, Commands.RATING_DREADFUL },
+                { Key.NumPad1, Commands.RATING_GOOD },
+                { Key.NumPad0, Commands.RATING_NORMAL },
+                { Key.NumPad2, Commands.RATING_BAD },
+                { Key.NumPad3, Commands.RATING_DREADFUL },
+
+                { Key.NumPad4, Commands.NEXT_STD_STRETCH },
+                { Key.NumPad5, Commands.NEXT_CST_STRETCH },
+                { Key.NumPad6, Commands.PREV_CST_STRETCH },
             };
         }
+
+        private void InvokeKeyCommand(Key key)
+        {
+            if(mKeyCommandMap.TryGetValue(key, out var cmd))
+            {
+                InvokeCommand(cmd);
+            }
+        }
+
+        private void InvokeCommand(string cmd)
+        {
+            if (cmd != null)
+            {
+                if (mCommandMap.TryGetValue(cmd, out var action))
+                {
+                    action?.Invoke();
+                }
+            }
+        }
+
         #endregion
 
     }
