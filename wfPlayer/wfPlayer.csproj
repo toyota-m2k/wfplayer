@@ -78,6 +78,7 @@
     </ApplicationDefinition>
     <Compile Include="CheckButton.cs" />
     <Compile Include="NumericTextBox.cs" />
+    <Compile Include="server\WfServer.cs" />
     <Compile Include="TimelineSlider.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="UtObservableProperty.cs" />
