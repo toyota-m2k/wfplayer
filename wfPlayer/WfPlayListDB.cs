@@ -420,13 +420,13 @@ namespace wfPlayer
                     {
                         return true;
                     }
+                    cmd.CommandText = $"INSERT INTO t_key_value (key,value) VALUES('{key}','{value}')";
+                    return 1 == cmd.ExecuteNonQuery();
                 }
                 catch (SQLiteException)
                 {
-
+                    return false;
                 }
-                cmd.CommandText = $"INSERT INTO t_key_value (key,value) VALUES('{key}','{value}')";
-                return 1 == cmd.ExecuteNonQuery();
             }
         }
 

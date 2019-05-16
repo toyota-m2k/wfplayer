@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using wfPlayer.server;
 
 namespace wfPlayer
 {
@@ -524,6 +525,7 @@ namespace wfPlayer
 
         #region 初期化/解放
         private bool mLoaded = false;
+        private WfServer mServer;
 
         public WfPlayerWindow()
         {
@@ -546,6 +548,7 @@ namespace wfPlayer
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             mLoaded = true;
+            mServer = WfServer.CreateInstance(InvokeFromRemote);
             PropertyChanged += OnBindingPropertyChanged;
             if(mSources!=null)
             {
@@ -557,6 +560,8 @@ namespace wfPlayer
         {
             PropertyChanged -= OnBindingPropertyChanged;
             Current?.SaveModified();
+            mServer?.Stop();
+            mServer = null;
 
             WfPlayListDB.Instance.SetValueAt("StretchMode", $"{(long)mStandardStretchMode}");
             WfPlayListDB.Instance.SetValueAt("StretchMaximum", mStretchMaximum ? "1" : "0");
@@ -1247,15 +1252,22 @@ namespace wfPlayer
             }
         }
 
-        private void InvokeCommand(string cmd)
+        private bool InvokeCommand(string cmd)
         {
             if (cmd != null)
             {
                 if (mCommandMap.TryGetValue(cmd, out var action))
                 {
                     action?.Invoke();
+                    return true;
                 }
             }
+            return false;
+        }
+
+        private bool InvokeFromRemote(string cmd)
+        {
+            return Dispatcher.Invoke<bool>(()=> { return InvokeCommand(cmd); });
         }
 
         #endregion
