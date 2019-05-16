@@ -65,6 +65,8 @@
                 
                 <ToggleButton IsChecked="{Binding StretchMaximum, Mode=TwoWay}" Content="{StaticResource PathMaximize}" Style="{StaticResource ToggleButtonStyle}" Margin="4.0" IsEnabled="{Binding CustomStretchMode}"/>
                 <ToggleButton IsChecked="{Binding SaveAspectAuto, Mode=TwoWay}" Content="{StaticResource PathSave}" Style="{StaticResource ToggleButtonStyle}" Margin="4.0"/>
+
+                <ToggleButton IsChecked="{Binding AllowRemoteControl, Mode=TwoWay}" Content="{StaticResource PathRemote}" Style="{StaticResource ToggleButtonStyle}" Margin="8.0"/>
             </StackPanel>
         </Grid>
         <Grid Grid.Column="2" Grid.Row="2" Name="mPanelBase" Background="{StaticResource ControlPanelBG}" Opacity="1" MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave">

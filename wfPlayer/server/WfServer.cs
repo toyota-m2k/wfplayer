@@ -28,7 +28,6 @@ namespace wfPlayer.server
         {
             mInvoker = invoker;
             mPort = port;
-            Start();
         }
 
         public void Stop()
@@ -41,7 +40,7 @@ namespace wfPlayer.server
             mListener?.Close();
         }
 
-        private void Start()
+        public void Start()
         {
             mListener = new HttpListener();
             mListener.Prefixes.Add($"http://*/");

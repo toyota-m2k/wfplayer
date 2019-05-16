@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:og="http://ogp.me/ns#">
+    <head>
+        <meta charset="UTF-8" />
+        <title>wfPlayer Controller</title>
+        <script>
+            function ajaxSend(cmd) {
+                var req = new XMLHttpRequest();
+                req.open('GET', 'http://localhost/wfplayer/cmd/'+cmd, true);
+                req.send(null);
+            }
+        </script>
+    </head>
+    <body>
+        <form>
+            <input type="button" value="Play" onclick="ajaxSend('play')" />
+            <input type="button" value="Next" onclick="ajaxSend('next')" />
+        </form>
+    </body>
+</html>
+

@@ -319,6 +319,32 @@ namespace wfPlayer
             }
         }
 
+        private WfServer mServer;
+        public bool AllowRemoteControl
+        {
+            get => mServer != null;
+            set
+            {
+                if (value)
+                {
+                    if (null == mServer)
+                    {
+                        mServer = WfServer.CreateInstance(InvokeFromRemote);
+                        mServer.Start();
+                    }
+                }
+                else
+                {
+                    if (null != mServer)
+                    {
+                        mServer.Stop();
+                        mServer = null;
+                    }
+                }
+            }
+
+        }
+
         #endregion
 
         #region ビデオソース
@@ -525,7 +551,6 @@ namespace wfPlayer
 
         #region 初期化/解放
         private bool mLoaded = false;
-        private WfServer mServer;
 
         public WfPlayerWindow()
         {
@@ -548,7 +573,6 @@ namespace wfPlayer
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             mLoaded = true;
-            mServer = WfServer.CreateInstance(InvokeFromRemote);
             PropertyChanged += OnBindingPropertyChanged;
             if(mSources!=null)
             {
