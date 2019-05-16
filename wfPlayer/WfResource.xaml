@@ -151,6 +151,8 @@
         </Style.Triggers>
     </Style>
 
+    <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonStyle}" x:Key="IconRadioButton">
+    </Style>
 
     <!-- Icon Check Button -->
     <ControlTemplate x:Key="IconCheckButtonTemplate"  TargetType="local:CheckButton">
