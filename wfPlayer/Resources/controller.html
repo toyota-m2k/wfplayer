@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:og="http://ogp.me/ns#">
     <head>
         <meta charset="UTF-8" />
@@ -6,7 +6,7 @@
         <script>
             function ajaxSend(cmd) {
                 var req = new XMLHttpRequest();
-                req.open('GET', 'http://localhost/wfplayer/cmd/'+cmd, true);
+                req.open('GET', 'wfplayer/cmd/'+cmd, true);
                 req.send(null);
             }
         </script>
@@ -14,7 +14,17 @@
     <body>
         <form>
             <input type="button" value="Play" onclick="ajaxSend('play')" />
+            <input type="button" value="Pause" onclick="ajaxSend('pause')" />
+            <input type="button" value="Prev" onclick="ajaxSend('prev')" />
             <input type="button" value="Next" onclick="ajaxSend('next')" />
+            <input type="button" value="Good" onclick="ajaxSend('good')" />
+            <input type="button" value="Normal" onclick="ajaxSend('normal')" />
+            <input type="button" value="Bad" onclick="ajaxSend('bad')" />
+            <input type="button" value="Dreadful" onclick="ajaxSend('dreadful')" />
+            <input type="button" value="Auto Size" onclick="ajaxSend('std')" />
+            <input type="button" value="Aspect+" onclick="ajaxSend('custNext')" />
+            <input type="button" value="Aspect-" onclick="ajaxSend('custPrev')" />
+
         </form>
     </body>
 </html>

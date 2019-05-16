@@ -127,10 +127,10 @@
                     <ToggleButton Grid.Column="2" Grid.Row="0" IsChecked="{Binding Mute}" Content="{StaticResource PathMute}" Style="{StaticResource ToggleButtonStyle}"/>
                     <Button Grid.Column="2" Grid.Row="1" Click="OnResetSpeed" Content="{StaticResource PathResetSpeed}" Style="{StaticResource PushButtonStyle}"/>
                     <StackPanel Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Orientation="Horizontal">
-                        <RadioButton IsChecked="{Binding Rating.Good}"  Content="{StaticResource PathGood}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
-                        <RadioButton IsChecked="{Binding Rating.Normal}"  Content="{StaticResource PathNormal}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
-                        <RadioButton IsChecked="{Binding Rating.Bad}"  Content="{StaticResource PathBad}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
-                        <RadioButton IsChecked="{Binding Rating.Dreadful}"  Content="{StaticResource PathDreadful}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
+                        <RadioButton IsChecked="{Binding Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=GOOD, Mode=TwoWay}"  Content="{StaticResource PathGood}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
+                        <RadioButton IsChecked="{Binding Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=NORMAL, Mode=TwoWay}"  Content="{StaticResource PathNormal}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
+                        <RadioButton IsChecked="{Binding Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=BAD, Mode=TwoWay}"  Content="{StaticResource PathBad}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
+                        <RadioButton IsChecked="{Binding Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=DREADFUL, Mode=TwoWay}"  Content="{StaticResource PathDreadful}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
                     </StackPanel>
                 </Grid>
             </StackPanel>

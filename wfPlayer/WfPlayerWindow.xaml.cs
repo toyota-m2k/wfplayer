@@ -213,7 +213,7 @@ namespace wfPlayer
         /**
          * Ratings
          */
-        public Ratings CurrentRating
+        public Ratings Rating
         {
             get => Current?.Rating ?? Ratings.NORMAL;
             set
@@ -233,44 +233,44 @@ namespace wfPlayer
             }
         }
 
-        public class RatingBindable
-        {
-            public RatingBindable(WfPlayerWindow parent)
-            {
-                mParent = new WeakReference<WfPlayerWindow>(parent);
-            }
-            private WeakReference<WfPlayerWindow> mParent;
-            private WfPlayerWindow Parent
-            {
-                get
-                {
-                    WfPlayerWindow v = null;
-                    return (mParent.TryGetTarget(out v)) ? v : null;
-                }
-            }
+        //public class RatingBindable
+        //{
+        //    public RatingBindable(WfPlayerWindow parent)
+        //    {
+        //        mParent = new WeakReference<WfPlayerWindow>(parent);
+        //    }
+        //    private WeakReference<WfPlayerWindow> mParent;
+        //    private WfPlayerWindow Parent
+        //    {
+        //        get
+        //        {
+        //            WfPlayerWindow v = null;
+        //            return (mParent.TryGetTarget(out v)) ? v : null;
+        //        }
+        //    }
 
-            public bool Normal
-            {
-                get => Parent.CurrentRating == Ratings.NORMAL;
-                set => Parent.CurrentRating = Ratings.NORMAL;
-            }
-            public bool Good
-            {
-                get => Parent.CurrentRating == Ratings.GOOD;
-                set => Parent.CurrentRating = Ratings.GOOD;
-            }
-            public bool Bad
-            {
-                get => Parent.CurrentRating == Ratings.BAD;
-                set => Parent.CurrentRating = Ratings.BAD;
-            }
-            public bool Dreadful
-            {
-                get => Parent.CurrentRating == Ratings.DREADFUL;
-                set => Parent.CurrentRating = Ratings.DREADFUL;
-            }
-        }
-        public RatingBindable Rating { get; }
+        //    public bool Normal
+        //    {
+        //        get => Parent.CurrentRating == Ratings.NORMAL;
+        //        set => Parent.CurrentRating = Ratings.NORMAL;
+        //    }
+        //    public bool Good
+        //    {
+        //        get => Parent.CurrentRating == Ratings.GOOD;
+        //        set => Parent.CurrentRating = Ratings.GOOD;
+        //    }
+        //    public bool Bad
+        //    {
+        //        get => Parent.CurrentRating == Ratings.BAD;
+        //        set => Parent.CurrentRating = Ratings.BAD;
+        //    }
+        //    public bool Dreadful
+        //    {
+        //        get => Parent.CurrentRating == Ratings.DREADFUL;
+        //        set => Parent.CurrentRating = Ratings.DREADFUL;
+        //    }
+        //}
+        //public RatingBindable Rating { get; }
 
         /**
          * Stretch Mode
@@ -555,7 +555,7 @@ namespace wfPlayer
         public WfPlayerWindow()
         {
             Duration = 1.0;
-            Rating = new RatingBindable(this);
+            //Rating = new RatingBindable(this);
             mSources = null;
             mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel", "ShowStretchModePanel");
             mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel", "ShowStretchModePanel");
@@ -987,6 +987,7 @@ namespace wfPlayer
                         v = (int)WfStretchMode.CUSTOM177;
                     }
                 }
+                StretchMode = (WfStretchMode)v;
             }
             else
             {
@@ -1225,10 +1226,10 @@ namespace wfPlayer
                 { Commands.SEEK_FWD, ()=>SeekForward(false) },
                 { Commands.SEEK_BACK_L, ()=>SeekBackward(true) },
                 { Commands.SEEK_FWD_L, ()=>SeekForward(true) },
-                { Commands.RATING_GOOD, ()=> {CurrentRating=Ratings.GOOD; } },
-                { Commands.RATING_NORMAL, ()=> {CurrentRating=Ratings.NORMAL; } },
-                { Commands.RATING_BAD, ()=> {CurrentRating=Ratings.BAD; } },
-                { Commands.RATING_DREADFUL, ()=> {CurrentRating=Ratings.DREADFUL; } },
+                { Commands.RATING_GOOD, ()=> {Rating=Ratings.GOOD; } },
+                { Commands.RATING_NORMAL, ()=> {Rating=Ratings.NORMAL; } },
+                { Commands.RATING_BAD, ()=> {Rating=Ratings.BAD; } },
+                { Commands.RATING_DREADFUL, ()=> {Rating=Ratings.DREADFUL; } },
 
                 { Commands.NEXT_STD_STRETCH, ToggleStandardStretchMode },
                 { Commands.NEXT_CST_STRETCH, ()=> ToggleCustomStretchMode(true) },

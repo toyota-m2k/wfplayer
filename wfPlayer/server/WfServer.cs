@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -60,15 +61,33 @@ namespace wfPlayer.server
                     var ctx = await mListener.GetContextAsync();
                     var req = ctx.Request;
                     var uri = req.RawUrl;
-                    var match = mRegex.Match(uri.ToString());
-                    if(match.Success)
+                    if (uri.ToString() == "/wfplayer/")
                     {
-                        var cmd = match.Groups["cmd"].Value;
-                        bool result = mInvoker?.Invoke(cmd) ?? false;
-                        var buff = Encoding.UTF8.GetBytes($"{{'cmd'='{cmd}','result'='{result}'}}");
+                        using (var res = ctx.Response)
+                        using (var stream = new StreamReader(@"Resources\controller.html"))
+                        {
+                            var html = await stream.ReadToEndAsync();
+                            var buff = Encoding.UTF8.GetBytes(html);
+                            await res.OutputStream.WriteAsync(buff, 0, buff.Length);
+                        }
+                    }
+                    else
+                    {
                         using (var res = ctx.Response)
                         {
-                            await res.OutputStream.WriteAsync(buff, 0, buff.Length);
+                            var match = mRegex.Match(uri.ToString());
+                            if (match.Success)
+                            {
+                                var cmd = match.Groups["cmd"].Value;
+                                bool result = mInvoker?.Invoke(cmd) ?? false;
+                                var buff = Encoding.UTF8.GetBytes($"{{'cmd'='{cmd}','result'='{result}'}}");
+                                await res.OutputStream.WriteAsync(buff, 0, buff.Length);
+                            }
+                            else
+                            {
+                                var buff = Encoding.UTF8.GetBytes("{'result'='false'}");
+                                await res.OutputStream.WriteAsync(buff, 0, buff.Length);
+                            }
                         }
                     }
                 }
