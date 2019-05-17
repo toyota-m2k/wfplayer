@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">RemoCon</string>
+    <string name="play_movie">Play</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next">Next</string>
+    <string name="prev">Prev</string>
+    <string name="rating_select">Rating</string>
+    <string name="rating_good">Good</string>
+    <string name="normal">Not so bad</string>
+    <string name="bad">Bad</string>
+    <string name="dreadful">Dreadful</string>
+    <string name="sizing_aspect">Sizing</string>
+    <string name="play_fast">Play Fast</string>
+    <string name="auto_aspect">Fill or Fit</string>
+    <string name="aspect_next">Aspect++</string>
+    <string name="aspect_prev">Aspect--</string>
+    <string name="skip_movie">Skip</string>
+    <string name="action_settings">Preferences</string>
+</resources>

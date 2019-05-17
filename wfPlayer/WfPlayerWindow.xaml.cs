@@ -1229,7 +1229,7 @@ namespace wfPlayer
                 { Commands.RATING_GOOD, ()=> {Rating=Ratings.GOOD; } },
                 { Commands.RATING_NORMAL, ()=> {Rating=Ratings.NORMAL; } },
                 { Commands.RATING_BAD, ()=> {Rating=Ratings.BAD; } },
-                { Commands.RATING_DREADFUL, ()=> {Rating=Ratings.DREADFUL; } },
+                { Commands.RATING_DREADFUL, ()=> {Rating=Ratings.DREADFUL; var _=Next(); } },
 
                 { Commands.NEXT_STD_STRETCH, ToggleStandardStretchMode },
                 { Commands.NEXT_CST_STRETCH, ()=> ToggleCustomStretchMode(true) },
