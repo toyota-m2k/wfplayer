@@ -44,6 +44,9 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAPICodePack-Core.1.1.0.0\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
@@ -81,7 +84,15 @@
     </ApplicationDefinition>
     <Compile Include="CheckButton.cs" />
     <Compile Include="NumericTextBox.cs" />
+    <Compile Include="server\lib\HttpBuilder.cs" />
+    <Compile Include="server\lib\HttpProcessor.cs" />
+    <Compile Include="server\lib\HttpServer.cs" />
+    <Compile Include="server\lib\model\HttpRequest.cs" />
+    <Compile Include="server\lib\model\HttpResponse.cs" />
+    <Compile Include="server\lib\model\Route.cs" />
+    <Compile Include="server\lib\routeHandlers\FileSystemRouteHandler.cs" />
     <Compile Include="server\WfServer.cs" />
+    <Compile Include="server\WfServerEx.cs" />
     <Compile Include="TimelineSlider.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="UtObservableProperty.cs" />

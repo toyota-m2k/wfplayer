@@ -319,28 +319,29 @@ namespace wfPlayer
             }
         }
 
-        private WfServer mServer;
+        private WfServerEx mServer;
         public bool AllowRemoteControl
         {
-            get => mServer != null;
+            get => mServer?.IsListening ?? false;
             set
             {
                 if (value)
                 {
                     if (null == mServer)
                     {
-                        mServer = WfServer.CreateInstance(InvokeFromRemote);
-                        mServer.Start();
+                        mServer = WfServerEx.CreateInstance(InvokeFromRemote);
                     }
+                    mServer.Start();
                 }
                 else
                 {
                     if (null != mServer)
                     {
                         mServer.Stop();
-                        mServer = null;
+                        //mServer = null;
                     }
                 }
+                notify("AllowRemoteControl");
             }
 
         }
@@ -578,13 +579,14 @@ namespace wfPlayer
             {
                 await InitSource(mAutoStart);
             }
+            AllowRemoteControl = true;
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             PropertyChanged -= OnBindingPropertyChanged;
             Current?.SaveModified();
-            mServer?.Stop();
+            mServer?.Dispose();
             mServer = null;
 
             WfPlayListDB.Instance.SetValueAt("StretchMode", $"{(long)mStandardStretchMode}");

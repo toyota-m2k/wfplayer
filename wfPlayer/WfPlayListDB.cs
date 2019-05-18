@@ -239,7 +239,7 @@ namespace wfPlayer
                 @"CREATE INDEX IF NOT EXISTS idx_folder_path ON t_target_folders(path)",
                 @"CREATE TABLE IF NOT EXISTS t_key_value (
                 key TEXT NOT NULL PRIMARY KEY,
-                value TEXT NOT NULL UNIQUE
+                value TEXT NOT NULL
                 )"
                 );
             TP = new TrimmingPattern(mDB);
