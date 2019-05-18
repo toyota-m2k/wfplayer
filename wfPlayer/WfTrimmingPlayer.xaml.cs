@@ -155,7 +155,7 @@ namespace wfPlayer
 
         private static string getPathIfExists(string path)
         {
-            if(null!=path)
+            if(!string.IsNullOrEmpty(path))
             {
                 var fi = new FileInfo(path);
                 return fi.Exists ? path : null;

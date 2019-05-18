@@ -2,9 +2,9 @@
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
   <assemblyIdentity version="1.0.0.0" name="MyApplication.app"/>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
-    <security>
+    <!--<security>
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
-        <!-- UAC マニフェスト オプション
+        --><!-- UAC マニフェスト オプション
              Windows のユーザー アカウント制御のレベルを変更するには、
              requestedExecutionLevel ノードを以下のいずれかで置換します。
 
@@ -15,10 +15,9 @@
             requestedExecutionLevel 要素を指定すると、ファイルおよびレジストリの仮想化が無効にされます。
             アプリケーションが下位互換性を保つためにこの仮想化を要求する場合、この要素を
             削除します。
-        -->
-        <requestedExecutionLevel  level="requireAdministrator" uiAccess="false" />
+        --><!--
       </requestedPrivileges>
-    </security>
+    </security>-->
   </trustInfo>
 
   <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
