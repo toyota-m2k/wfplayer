@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:wfPlayer"
         Loaded="OnLoaded"
         Unloaded="OnUnloaded"
+        Closing="OnClosing"
         PreviewKeyDown="OnKeyDown"
         SizeChanged="OnSizeChanged"
         MouseMove="OnMouseMove"
@@ -103,9 +104,9 @@
                         <Button IsEnabled="{Binding HasNext}" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
-                        <Button IsEnabled="{Binding Ready}" Click="EditTrimming"  Content="{StaticResource PathCut}" Style="{StaticResource PushButtonStyle}"/>
-                        <Button IsEnabled="{Binding Ready}" Click="SelectTrimming"  Content="{StaticResource PathList}" Style="{StaticResource PushButtonStyle}"/>
-                        <Button IsEnabled="{Binding TrimmingEnabled}" Click="ResetTrimming"  Content="{StaticResource PathRemove}" Style="{StaticResource PushButtonStyle}"/>
+                        <Button IsEnabled="{Binding Ready}" Click="OnEditTrimming"  Content="{StaticResource PathCut}" Style="{StaticResource PushButtonStyle}"/>
+                        <Button IsEnabled="{Binding Ready}" Click="OnSelectTrimming"  Content="{StaticResource PathList}" Style="{StaticResource PushButtonStyle}"/>
+                        <Button IsEnabled="{Binding TrimmingEnabled}" Click="OnResetTrimming"  Content="{StaticResource PathRemove}" Style="{StaticResource PushButtonStyle}"/>
                     </StackPanel>
                 </Grid>
                 <Grid Margin="0,16,0,0">

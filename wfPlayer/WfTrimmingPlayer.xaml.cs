@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace wfPlayer
@@ -140,6 +141,8 @@ namespace wfPlayer
 
         public bool IsValid => (TrimEndEnabled && TrimEnd > 0) || (TrimStartEnabled && TrimStart > 0);
 
+        public bool HasTarget => (mEditingTrim?.Id ?? 0) > 0;
+
         #endregion
 
         #region Private Fields
@@ -221,6 +224,17 @@ namespace wfPlayer
             PropertyChanged -= OnBindingPropertyChanged;
             mVideoLoadingTask?.TrySetResult(false);
             mVideoLoadingTask = null;
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            WfGlobalParams.Instance.TrimmingPlayerPlacement.ApplyPlacementTo(this);
+        }
+
+        private void OnClosing(object sender, CancelEventArgs e)
+        {
+            WfGlobalParams.Instance.TrimmingPlayerPlacement.GetPlacementFrom(this);
         }
 
         private void OnMediaOpened(object sender, RoutedEventArgs e)
@@ -444,6 +458,43 @@ namespace wfPlayer
             Close();
         }
 
+        private void OnRegister(object sender, RoutedEventArgs e)
+        {
+            if (!IsValid)
+            {
+                return;
+            }
+            using (var txn = WfPlayListDB.Instance.Transaction())
+            {
+                Result = WfPlayListDB.Instance.TP.Register(0, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mVideoPath);
+                OnResult?.Invoke(Result, WfPlayListDB.Instance);
+                if (Result == null)
+                {
+                    return;
+                }
+            }
+            Close();
+        }
+
+        private void OnUpdate(object sender, RoutedEventArgs e)
+        {
+            if (!IsValid || !HasTarget)
+            {
+                return;
+            }
+            using (var txn = WfPlayListDB.Instance.Transaction())
+            {
+                Result = WfPlayListDB.Instance.TP.Register(mEditingTrim.Id, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mVideoPath);
+                if(Result==null)
+                {
+                    return;
+                }
+                OnResult?.Invoke(Result, WfPlayListDB.Instance);
+            }
+            Close();
+        }
+
+
         private void OnCancel(object sender, RoutedEventArgs e)
         {
             Result = null;
@@ -459,5 +510,21 @@ namespace wfPlayer
         {
             SeekTo(TrimStart, true, true);
         }
+
+        private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                //case Key.Return:
+                //    EditTrimming(mList.IndexOf(CurrentItem));
+                //    break;
+                case Key.Escape:
+                    Close();
+                    break;
+                default:
+                    break;
+            }
+        }
+
     }
 }

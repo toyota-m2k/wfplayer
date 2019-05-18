@@ -103,9 +103,6 @@
     </Compile>
     <Compile Include="WfGlobalParams.cs" />
     <Compile Include="WfpConverter.cs" />
-    <Compile Include="wfPlayerPage.xaml.cs">
-      <DependentUpon>wfPlayerPage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="WfPlayerWindow.xaml.cs">
       <DependentUpon>WfPlayerWindow.xaml</DependentUpon>
     </Compile>
@@ -136,10 +133,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="WfFilterSetting.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="wfPlayerPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

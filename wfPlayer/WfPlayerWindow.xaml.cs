@@ -592,6 +592,18 @@ namespace wfPlayer
             WfPlayListDB.Instance.SetValueAt("StretchMode", $"{(long)mStandardStretchMode}");
             WfPlayListDB.Instance.SetValueAt("StretchMaximum", mStretchMaximum ? "1" : "0");
         }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            WfGlobalParams.Instance.PlayerPlacement.ApplyPlacementTo(this);
+        }
+
+        private void OnClosing(object sender, CancelEventArgs e)
+        {
+            WfGlobalParams.Instance.Placement.GetPlacementFrom(this);
+        }
+
         #endregion
 
         #region MediaElement Event Handlers
@@ -1132,9 +1144,8 @@ namespace wfPlayer
 
         #region Trimming
 
-        private void EditTrimming(object sender, RoutedEventArgs e)
+        private void EditTrimming(WfFileItem item)
         {
-            var item = Current as WfFileItem;
             if (null == item)
             {
                 return;
@@ -1152,10 +1163,14 @@ namespace wfPlayer
             tp.OnResult -= onNewTrimming;
         }
 
-        private void SelectTrimming(object sender, RoutedEventArgs e)
+        private void OnEditTrimming(object sender, RoutedEventArgs e)
         {
-            var item = Current as WfFileItem;
-            if(null==item)
+            EditTrimming( Current as WfFileItem );
+        }
+
+        private void SelectTrimming(WfFileItem item)
+        {
+            if (null == item)
             {
                 return;
             }
@@ -1170,10 +1185,14 @@ namespace wfPlayer
             }
         }
 
-        private void ResetTrimming(object sender, RoutedEventArgs e)
+        private void OnSelectTrimming(object sender, RoutedEventArgs e)
         {
-            var item = Current as WfFileItem;
-            if (null == item||!item.Trimming.HasValue)
+            SelectTrimming(Current as WfFileItem);
+        }
+
+        private void ResetTrimming(WfFileItem item)
+        {
+            if (null == item || !item.Trimming.HasValue)
             {
                 return;
             }
@@ -1181,6 +1200,11 @@ namespace wfPlayer
             //WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
             item.SaveModified();
             notify("TrimmingEnabled");
+        }
+
+        private void OnResetTrimming(object sender, RoutedEventArgs e)
+        {
+            ResetTrimming(Current as WfFileItem);
         }
 
         #endregion
@@ -1208,6 +1232,10 @@ namespace wfPlayer
             public const string NEXT_STD_STRETCH = "std";
             public const string NEXT_CST_STRETCH = "custNext";
             public const string PREV_CST_STRETCH = "custPrev";
+
+            public const string TRIM_EDIT = "trimEdit";
+            public const string TRIM_SELECT = "trimSelect";
+            public const string TRIM_RESET = "trimReset";
         }
 
         private Dictionary<System.Windows.Input.Key, string> mKeyCommandMap = null;
@@ -1235,7 +1263,11 @@ namespace wfPlayer
 
                 { Commands.NEXT_STD_STRETCH, ToggleStandardStretchMode },
                 { Commands.NEXT_CST_STRETCH, ()=> ToggleCustomStretchMode(true) },
-                { Commands.PREV_CST_STRETCH, ()=> ToggleCustomStretchMode(false) }
+                { Commands.PREV_CST_STRETCH, ()=> ToggleCustomStretchMode(false) },
+
+                { Commands.TRIM_EDIT, ()=>EditTrimming(Current as WfFileItem) },
+                { Commands.TRIM_SELECT, ()=>SelectTrimming(Current as WfFileItem) },
+                { Commands.TRIM_RESET, ()=>ResetTrimming(Current as WfFileItem) },
             };
 
             mKeyCommandMap = new Dictionary<Key, string>()
@@ -1245,6 +1277,9 @@ namespace wfPlayer
                 { Key.S, Commands.STOP },
                 { Key.F, Commands.FAST_PLAY },
                 { Key.M, Commands.MUTE },
+                { Key.J, Commands.TRIM_EDIT },
+                { Key.K, Commands.TRIM_SELECT },
+                { Key.L, Commands.TRIM_RESET },
                 { Key.Escape, Commands.CLOSE },
                 { Key.OemPeriod, Commands.NEXT },
                 { Key.OemComma, Commands.PREV },
