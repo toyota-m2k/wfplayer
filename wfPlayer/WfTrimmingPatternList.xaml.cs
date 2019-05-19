@@ -71,15 +71,20 @@ namespace wfPlayer
                 if(v.Name == name)
                 {
                     mTPListView.SelectedItem = v;
+                    break;
                 }
             }
         }
 
+        private void OnContentRendered(object sender, EventArgs e)
+        {
+            mTPListView.Focus();
+            var item = mTPListView.ItemContainerGenerator.ContainerFromIndex(mTPListView.SelectedIndex) as System.Windows.Controls.ListViewItem;
+            item?.Focus();
+        }
+
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            if (null != CurrentItem) {
-                WfGlobalParams.Instance.LastSelectTrimmingName = CurrentItem.Name;
-            }
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -179,6 +184,10 @@ namespace wfPlayer
         private void OnSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             CurrentItem = mTPListView.SelectedItem as WfFileItem.Trim;
+            if (CurrentItem != null)
+            {
+                WfGlobalParams.Instance.LastSelectTrimmingName = CurrentItem.Name;
+            }
             notify("CurrentItem");
         }
 
@@ -187,12 +196,16 @@ namespace wfPlayer
             switch(e.Key)
             {
                 case Key.Return:
-                    EditTrimming(mList.IndexOf(CurrentItem));
+                    OnDone(CurrentItem);
                     break;
                 case Key.Escape:
                     Close();
                     break;
+                default:
+                    return;
             }
+            e.Handled = true;
         }
+
     }
 }

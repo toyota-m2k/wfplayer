@@ -574,7 +574,7 @@ namespace wfPlayer
                 {
                     try
                     {
-                        cmd.CommandText = $"SELECT * FROM t_trim_patterns";
+                        cmd.CommandText = $"SELECT * FROM t_trim_patterns ORDER BY trim_name";
                         using (var reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())

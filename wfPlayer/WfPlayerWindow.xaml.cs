@@ -580,6 +580,7 @@ namespace wfPlayer
                 await InitSource(mAutoStart);
             }
             AllowRemoteControl = true;
+            OnStretchModeChanged();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -721,7 +722,10 @@ namespace wfPlayer
         private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             Debug.WriteLine($"KEY:{e.Key} - {e.SystemKey} - {e.KeyStates} - Rep={e.IsRepeat} - D/U/T={e.IsDown}/{e.IsUp}/{e.IsToggled}");
-            InvokeKeyCommand(e.Key);
+            if(InvokeKeyCommand(e.Key))
+            {
+                e.Handled = true;
+            }
 
             //switch (e.Key)
             //{
@@ -1150,7 +1154,7 @@ namespace wfPlayer
             {
                 return;
             }
-            var tp = new WfTrimmingPlayer(item.Trimming, WfTrimmingPlayer.GetRefPath(item.Trimming, item.FullPath, false));
+            var tp = new WfTrimmingPlayer(item.Trimming, WfTrimmingPlayer.GetRefPath(item.Trimming, item.FullPath, true));
             WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
             {
                 item.Trimming = tp.Result;
@@ -1277,9 +1281,9 @@ namespace wfPlayer
                 { Key.S, Commands.STOP },
                 { Key.F, Commands.FAST_PLAY },
                 { Key.M, Commands.MUTE },
-                { Key.J, Commands.TRIM_EDIT },
-                { Key.K, Commands.TRIM_SELECT },
-                { Key.L, Commands.TRIM_RESET },
+                { Key.K, Commands.TRIM_EDIT },
+                { Key.L, Commands.TRIM_SELECT },
+                //{ Key.L, Commands.TRIM_RESET },
                 { Key.Escape, Commands.CLOSE },
                 { Key.OemPeriod, Commands.NEXT },
                 { Key.OemComma, Commands.PREV },
@@ -1306,12 +1310,13 @@ namespace wfPlayer
             };
         }
 
-        private void InvokeKeyCommand(Key key)
+        private bool InvokeKeyCommand(Key key)
         {
             if(mKeyCommandMap.TryGetValue(key, out var cmd))
             {
-                InvokeCommand(cmd);
+                return InvokeCommand(cmd);
             }
+            return false;
         }
 
         private bool InvokeCommand(string cmd)

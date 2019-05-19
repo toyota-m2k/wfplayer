@@ -102,6 +102,13 @@ namespace wfPlayer
             UpdateColumnHeaderOnSort(WfGlobalParams.Instance.SortInfo);
         }
 
+        private void OnContentRendered(object sender, EventArgs e)
+        {
+            mFileListView.Focus();
+            var item = mFileListView.ItemContainerGenerator.ContainerFromIndex(mFileListView.SelectedIndex) as System.Windows.Controls.ListViewItem;
+            item?.Focus();
+        }
+
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             mFileList.CurrentChanged -= PlayingItemChanged;
@@ -358,10 +365,15 @@ namespace wfPlayer
         {
             if (mFileList.Count > 0)
             {
-                var player = new WfPlayerWindow();
-                mFileList.CurrentIndex = mFileListView.SelectedIndex;
-                player.SetSources(mFileList, start);
-                player.ShowDialog();
+                Dispatcher.InvokeAsync(() =>
+                {
+                    var player = new WfPlayerWindow();
+                    mFileList.CurrentIndex = mFileListView.SelectedIndex;
+                    player.SetSources(mFileList, start);
+                    player.ShowDialog();
+                    var item = mFileListView.ItemContainerGenerator.ContainerFromIndex(mFileListView.SelectedIndex) as System.Windows.Controls.ListViewItem;
+                    item?.Focus();
+                });
             }
         }
 
@@ -717,5 +729,19 @@ namespace wfPlayer
             mSorter.Instraction(mFileList, sortInfo.Order, comparator, false);
             return mSorter;
         }
+
+        private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Return:
+                    Play(false);
+                    break;
+                default:
+                    return;
+            }
+            e.Handled = true;
+        }
+
     }
 }
