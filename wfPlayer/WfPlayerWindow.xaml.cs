@@ -319,28 +319,29 @@ namespace wfPlayer
             }
         }
 
-        private WfServer mServer;
+        private WfServerEx mServer;
         public bool AllowRemoteControl
         {
-            get => mServer != null;
+            get => mServer?.IsListening ?? false;
             set
             {
                 if (value)
                 {
                     if (null == mServer)
                     {
-                        mServer = WfServer.CreateInstance(InvokeFromRemote);
-                        mServer.Start();
+                        mServer = WfServerEx.CreateInstance(InvokeFromRemote);
                     }
+                    mServer.Start();
                 }
                 else
                 {
                     if (null != mServer)
                     {
                         mServer.Stop();
-                        mServer = null;
+                        //mServer = null;
                     }
                 }
+                notify("AllowRemoteControl");
             }
 
         }
@@ -578,18 +579,32 @@ namespace wfPlayer
             {
                 await InitSource(mAutoStart);
             }
+            AllowRemoteControl = true;
+            OnStretchModeChanged();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             PropertyChanged -= OnBindingPropertyChanged;
             Current?.SaveModified();
-            mServer?.Stop();
+            mServer?.Dispose();
             mServer = null;
 
             WfPlayListDB.Instance.SetValueAt("StretchMode", $"{(long)mStandardStretchMode}");
             WfPlayListDB.Instance.SetValueAt("StretchMaximum", mStretchMaximum ? "1" : "0");
         }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            WfGlobalParams.Instance.PlayerPlacement.ApplyPlacementTo(this);
+        }
+
+        private void OnClosing(object sender, CancelEventArgs e)
+        {
+            WfGlobalParams.Instance.Placement.GetPlacementFrom(this);
+        }
+
         #endregion
 
         #region MediaElement Event Handlers
@@ -707,7 +722,10 @@ namespace wfPlayer
         private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             Debug.WriteLine($"KEY:{e.Key} - {e.SystemKey} - {e.KeyStates} - Rep={e.IsRepeat} - D/U/T={e.IsDown}/{e.IsUp}/{e.IsToggled}");
-            InvokeKeyCommand(e.Key);
+            if(InvokeKeyCommand(e.Key))
+            {
+                e.Handled = true;
+            }
 
             //switch (e.Key)
             //{
@@ -1130,14 +1148,13 @@ namespace wfPlayer
 
         #region Trimming
 
-        private void EditTrimming(object sender, RoutedEventArgs e)
+        private void EditTrimming(WfFileItem item)
         {
-            var item = Current as WfFileItem;
             if (null == item)
             {
                 return;
             }
-            var tp = new WfTrimmingPlayer(item.Trimming, WfTrimmingPlayer.GetRefPath(item.Trimming, item.FullPath, false));
+            var tp = new WfTrimmingPlayer(item.Trimming, WfTrimmingPlayer.GetRefPath(item.Trimming, item.FullPath, true));
             WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
             {
                 item.Trimming = tp.Result;
@@ -1150,10 +1167,14 @@ namespace wfPlayer
             tp.OnResult -= onNewTrimming;
         }
 
-        private void SelectTrimming(object sender, RoutedEventArgs e)
+        private void OnEditTrimming(object sender, RoutedEventArgs e)
         {
-            var item = Current as WfFileItem;
-            if(null==item)
+            EditTrimming( Current as WfFileItem );
+        }
+
+        private void SelectTrimming(WfFileItem item)
+        {
+            if (null == item)
             {
                 return;
             }
@@ -1168,10 +1189,14 @@ namespace wfPlayer
             }
         }
 
-        private void ResetTrimming(object sender, RoutedEventArgs e)
+        private void OnSelectTrimming(object sender, RoutedEventArgs e)
         {
-            var item = Current as WfFileItem;
-            if (null == item||!item.Trimming.HasValue)
+            SelectTrimming(Current as WfFileItem);
+        }
+
+        private void ResetTrimming(WfFileItem item)
+        {
+            if (null == item || !item.Trimming.HasValue)
             {
                 return;
             }
@@ -1179,6 +1204,11 @@ namespace wfPlayer
             //WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
             item.SaveModified();
             notify("TrimmingEnabled");
+        }
+
+        private void OnResetTrimming(object sender, RoutedEventArgs e)
+        {
+            ResetTrimming(Current as WfFileItem);
         }
 
         #endregion
@@ -1206,6 +1236,10 @@ namespace wfPlayer
             public const string NEXT_STD_STRETCH = "std";
             public const string NEXT_CST_STRETCH = "custNext";
             public const string PREV_CST_STRETCH = "custPrev";
+
+            public const string TRIM_EDIT = "trimEdit";
+            public const string TRIM_SELECT = "trimSelect";
+            public const string TRIM_RESET = "trimReset";
         }
 
         private Dictionary<System.Windows.Input.Key, string> mKeyCommandMap = null;
@@ -1229,11 +1263,15 @@ namespace wfPlayer
                 { Commands.RATING_GOOD, ()=> {Rating=Ratings.GOOD; } },
                 { Commands.RATING_NORMAL, ()=> {Rating=Ratings.NORMAL; } },
                 { Commands.RATING_BAD, ()=> {Rating=Ratings.BAD; } },
-                { Commands.RATING_DREADFUL, ()=> {Rating=Ratings.DREADFUL; } },
+                { Commands.RATING_DREADFUL, ()=> {Rating=Ratings.DREADFUL; var _=Next(); } },
 
                 { Commands.NEXT_STD_STRETCH, ToggleStandardStretchMode },
                 { Commands.NEXT_CST_STRETCH, ()=> ToggleCustomStretchMode(true) },
-                { Commands.PREV_CST_STRETCH, ()=> ToggleCustomStretchMode(false) }
+                { Commands.PREV_CST_STRETCH, ()=> ToggleCustomStretchMode(false) },
+
+                { Commands.TRIM_EDIT, ()=>EditTrimming(Current as WfFileItem) },
+                { Commands.TRIM_SELECT, ()=>SelectTrimming(Current as WfFileItem) },
+                { Commands.TRIM_RESET, ()=>ResetTrimming(Current as WfFileItem) },
             };
 
             mKeyCommandMap = new Dictionary<Key, string>()
@@ -1243,6 +1281,9 @@ namespace wfPlayer
                 { Key.S, Commands.STOP },
                 { Key.F, Commands.FAST_PLAY },
                 { Key.M, Commands.MUTE },
+                { Key.K, Commands.TRIM_EDIT },
+                { Key.L, Commands.TRIM_SELECT },
+                //{ Key.L, Commands.TRIM_RESET },
                 { Key.Escape, Commands.CLOSE },
                 { Key.OemPeriod, Commands.NEXT },
                 { Key.OemComma, Commands.PREV },
@@ -1269,12 +1310,13 @@ namespace wfPlayer
             };
         }
 
-        private void InvokeKeyCommand(Key key)
+        private bool InvokeKeyCommand(Key key)
         {
             if(mKeyCommandMap.TryGetValue(key, out var cmd))
             {
-                InvokeCommand(cmd);
+                return InvokeCommand(cmd);
             }
+            return false;
         }
 
         private bool InvokeCommand(string cmd)

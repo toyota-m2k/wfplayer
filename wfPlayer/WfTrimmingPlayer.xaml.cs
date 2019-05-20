@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace wfPlayer
@@ -20,25 +21,15 @@ namespace wfPlayer
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
-        private bool setProp<T>(string name, ref T field, T value)
+        private bool setProp<T>(string name, ref T field, T value, params string[] familyProperties)
         {
             if (!field.Equals(value))
             {
                 field = value;
                 notify(name);
-                return true;
-            }
-            return false;
-        }
-
-        private bool setProp<T>(string[] names, ref T field, T value)
-        {
-            if (!field.Equals(value))
-            {
-                field = value;
-                foreach (var name in names)
+                foreach (var p in familyProperties)
                 {
-                    notify(name);
+                    notify(p);
                 }
                 return true;
             }
@@ -76,32 +67,32 @@ namespace wfPlayer
         public double TrimStart
         {
             get => mTrimStart;
-            set => setProp(new string[] { "TrimStart", "IsValid" }, ref mTrimStart, value);
+            set => setProp("TrimStart", ref mTrimStart, value, "IsValid");
         }
         private double mTrimEnd = 0;
         public double TrimEnd
         {
             get => mTrimEnd;
-            set => setProp(new string[] { "TrimEnd", "IsValid" }, ref mTrimEnd, value);
+            set => setProp("TrimEnd", ref mTrimEnd, value, "IsValid");
         }
 
         private bool mTrimStartEnabled = false;
         public bool TrimStartEnabled
         {
             get => mTrimStartEnabled;
-            set => setProp(new string[] { "TrimStartEnabled", "IsValid" }, ref mTrimStartEnabled, value);
+            set => setProp("TrimStartEnabled", ref mTrimStartEnabled, value, "IsValid");
         }
         private bool mTrimEndEnabled = false;
         public bool TrimEndEnabled
         {
             get => mTrimEndEnabled;
-            set => setProp(new string[] { "TrimEndEnabled", "IsValid" }, ref mTrimEndEnabled, value);
+            set => setProp("TrimEndEnabled", ref mTrimEndEnabled, value, "IsValid");
         }
         private double mDuration = 0;
         public double Duration
         {
             get => mDuration;
-            set => setProp(new string[] { "Duration", "LargePositionChange" }, ref mDuration, value);
+            set => setProp("Duration", ref mDuration, value, "LargePositionChange");
         }
 
         private bool mIsModified = false;
@@ -122,13 +113,13 @@ namespace wfPlayer
         public bool Started
         {
             get => mStarted;
-            set => setProp(new string[] { "Started", "Playing" }, ref mStarted, value);
+            set => setProp("Started", ref mStarted, value, "Playing");
         }
         private bool mPausing = false;
         public bool Pausing
         {
             get => mPausing;
-            set => setProp(new string[] { "Pausing", "Playing" }, ref mPausing, value);
+            set => setProp("Pausing", ref mPausing, value, "Playing");
         }
         public bool Playing
         {
@@ -140,12 +131,20 @@ namespace wfPlayer
 
         public bool IsValid => (TrimEndEnabled && TrimEnd > 0) || (TrimStartEnabled && TrimStart > 0);
 
+        public bool HasTarget => (EditingTrim?.Id ?? 0) > 0;
+
+        private ITrim mEditingTrim = null;
+        public ITrim EditingTrim
+        {
+            get => mEditingTrim;
+            set => setProp("EditingTrim", ref mEditingTrim, value, "HasTarget");
+        }
+
         #endregion
 
         #region Private Fields
         private string mVideoPath = null;
         private TaskCompletionSource<bool> mVideoLoadingTask = null;
-        private ITrim mEditingTrim = null;
         #endregion
 
         public ITrim Result { get; private set; } = null;
@@ -155,7 +154,7 @@ namespace wfPlayer
 
         private static string getPathIfExists(string path)
         {
-            if(null!=path)
+            if(!string.IsNullOrEmpty(path))
             {
                 var fi = new FileInfo(path);
                 return fi.Exists ? path : null;
@@ -221,6 +220,17 @@ namespace wfPlayer
             PropertyChanged -= OnBindingPropertyChanged;
             mVideoLoadingTask?.TrySetResult(false);
             mVideoLoadingTask = null;
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            WfGlobalParams.Instance.TrimmingPlayerPlacement.ApplyPlacementTo(this);
+        }
+
+        private void OnClosing(object sender, CancelEventArgs e)
+        {
+            WfGlobalParams.Instance.TrimmingPlayerPlacement.GetPlacementFrom(this);
         }
 
         private void OnMediaOpened(object sender, RoutedEventArgs e)
@@ -438,11 +448,48 @@ namespace wfPlayer
             }
             using (var txn = WfPlayListDB.Instance.Transaction())
             {
-                Result = WfPlayListDB.Instance.TP.Register(mEditingTrim?.Id ?? 0, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mVideoPath );
+                Result = WfPlayListDB.Instance.TP.Register(EditingTrim?.Id ?? 0, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mVideoPath );
                 OnResult?.Invoke(Result, WfPlayListDB.Instance);
             }
             Close();
         }
+
+        private void OnRegister(object sender, RoutedEventArgs e)
+        {
+            if (!IsValid)
+            {
+                return;
+            }
+            using (var txn = WfPlayListDB.Instance.Transaction())
+            {
+                Result = WfPlayListDB.Instance.TP.Register(0, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mVideoPath);
+                OnResult?.Invoke(Result, WfPlayListDB.Instance);
+                if (Result == null)
+                {
+                    return;
+                }
+            }
+            Close();
+        }
+
+        private void OnUpdate(object sender, RoutedEventArgs e)
+        {
+            if (!IsValid || !HasTarget)
+            {
+                return;
+            }
+            using (var txn = WfPlayListDB.Instance.Transaction())
+            {
+                Result = WfPlayListDB.Instance.TP.Register(EditingTrim.Id, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mVideoPath);
+                if(Result==null)
+                {
+                    return;
+                }
+                OnResult?.Invoke(Result, WfPlayListDB.Instance);
+            }
+            Close();
+        }
+
 
         private void OnCancel(object sender, RoutedEventArgs e)
         {
@@ -459,5 +506,22 @@ namespace wfPlayer
         {
             SeekTo(TrimStart, true, true);
         }
+
+        private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                //case Key.Return:
+                //    EditTrimming(mList.IndexOf(CurrentItem));
+                //    break;
+                case Key.Escape:
+                    Close();
+                    break;
+                default:
+                    return;
+            }
+            e.Handled = true;
+        }
+
     }
 }

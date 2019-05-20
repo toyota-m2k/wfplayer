@@ -11,6 +11,14 @@ namespace wfPlayer
     {
         public WinPlacement Placement { get; set; } = new WinPlacement();
 
+        public WinPlacement TrimmingPlayerPlacement { get; set; } = new WinPlacement();
+
+        public WinPlacement TrimmingPatternListPlacement { get; set; } = new WinPlacement();
+
+        public WinPlacement PlayerPlacement { get; set; } = new WinPlacement();
+
+        public string LastSelectTrimmingName { get; set; } = "";
+
         public string FilePath { get; set; } = "default.wpd";
 
         public WfFilter Filter { get; set; } = new WfFilter();
