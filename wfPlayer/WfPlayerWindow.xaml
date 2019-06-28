@@ -59,6 +59,7 @@
                 <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=UniformToFill}"  Content="{StaticResource PathUniformFit}" Style="{StaticResource IconRadioButton}" GroupName="StretchMode"/>
                 <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Uniform}"  Content="{StaticResource PathUniform}" Style="{StaticResource IconRadioButton}" GroupName="StretchMode"/>
                 <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Fill}"  Content="{StaticResource PathFill}" Style="{StaticResource IconRadioButton}" Margin="4,0" GroupName="StretchMode"/>
+                
                 <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM125}"  Content="5:4" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>
                 <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM133}"  Content="4:3" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>
                 <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM150}"  Content="3:2" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>

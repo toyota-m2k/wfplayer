@@ -306,7 +306,7 @@ namespace wfPlayer
         }
         public bool CustomStretchMode => IsCustomStretchMode(StretchMode);
 
-        private bool mSaveAspectAuto = false;
+        private bool mSaveAspectAuto = true;
         public bool SaveAspectAuto
         {
             get => mSaveAspectAuto;
@@ -1144,6 +1144,11 @@ namespace wfPlayer
         }
         private HidingCursor mCursorManager = null;
 
+        private void KickOutMouse()
+        {
+            System.Windows.Forms.Cursor.Position = new System.Drawing.Point(0, 0);
+        }
+
         #endregion
 
         #region Trimming
@@ -1240,6 +1245,8 @@ namespace wfPlayer
             public const string TRIM_EDIT = "trimEdit";
             public const string TRIM_SELECT = "trimSelect";
             public const string TRIM_RESET = "trimReset";
+
+            public const string KICKOUT_MOUSE = "kickoutMouse";
         }
 
         private Dictionary<System.Windows.Input.Key, string> mKeyCommandMap = null;
@@ -1272,6 +1279,8 @@ namespace wfPlayer
                 { Commands.TRIM_EDIT, ()=>EditTrimming(Current as WfFileItem) },
                 { Commands.TRIM_SELECT, ()=>SelectTrimming(Current as WfFileItem) },
                 { Commands.TRIM_RESET, ()=>ResetTrimming(Current as WfFileItem) },
+
+                { Commands.KICKOUT_MOUSE, KickOutMouse },
             };
 
             mKeyCommandMap = new Dictionary<Key, string>()
