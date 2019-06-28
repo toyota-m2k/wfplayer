@@ -13,7 +13,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    val mClient = WfClient()
+    private val mClient = WfClient()
+    private var mLockSystemCommands = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +65,33 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.aspect_prev_button).setOnClickListener {
             mClient.postCommand("custPrev")
         }
+        findViewById<ImageButton>(R.id.ko_mouse_button).setOnClickListener {
+            mClient.postCommand("kickOutMouse")
+        }
+        findViewById<ImageButton>(R.id.shutdown_button).setOnClickListener {
+            mClient.postCommand("shutdown")
+        }
+        findViewById<ImageButton>(R.id.close_button).setOnClickListener {
+            mClient.postCommand("close")
+        }
+        findViewById<ImageButton>(R.id.lock_button).setOnClickListener {
+            mLockSystemCommands = !mLockSystemCommands
+            updateSystemCommands()
+        }
+        updateSystemCommands()
+    }
 
+    private fun updateSystemCommands() {
+        val a = if(mLockSystemCommands) 0.5f else 1.0f
+        findViewById<ImageButton>(R.id.close_button)?.apply {
+            isEnabled = mLockSystemCommands
+            //alpha = a
+            colorFilter=0xaa808080
+        }
+        findViewById<ImageButton>(R.id.shutdown_button)?.apply {
+            isEnabled = mLockSystemCommands
+            alpha = a
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
