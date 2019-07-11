@@ -855,24 +855,46 @@ namespace wfPlayer
             }
         }
 
-        void SeekForward(bool large)
+        enum SeekUnit {
+            LARGE,
+            SMALL,
+            SEEK10,
+            SEEK5,
+        }
+
+        double SeekSpan(SeekUnit unit) {
+            switch(unit) {
+                default:
+                case SeekUnit.SMALL:
+                    return SmallPositionChange;
+                case SeekUnit.LARGE:
+                    return LargePositionChange;
+                case SeekUnit.SEEK10:
+                    return 10 * 1000;
+                case SeekUnit.SEEK5:
+                    return 5 * 1000;
+            }
+        }
+
+        void SeekForward(SeekUnit unit)
         {
             if(!Ready)
             {
                 return;
             }
             var v = mPositionSlider.Value;
-            v += (large) ? LargePositionChange : SmallPositionChange;
+
+            v += SeekSpan(unit);
             updateTimelinePosition(Math.Min(v, mPositionSlider.Maximum-Current.Trimming.Epilogue), true, true);
         }
-        void SeekBackward(bool large)
+        void SeekBackward(SeekUnit unit)
         {
             if (!Ready)
             {
                 return;
             }
             var v = mPositionSlider.Value;
-            v -= (large) ? LargePositionChange : SmallPositionChange;
+            v -= SeekSpan(unit);
             updateTimelinePosition(Math.Max(v, Current.Trimming.Prologue), true, true);
         }
 
@@ -1240,6 +1262,10 @@ namespace wfPlayer
             public const string SEEK_BACK = "back";
             public const string SEEK_FWD_L= "fwdL";
             public const string SEEK_BACK_L = "backL";
+            public const string SEEK_FWD_10 = "fwd10";
+            public const string SEEK_BACK_10 = "back10";
+            public const string SEEK_FWD_5 = "fwd5";
+            public const string SEEK_BACK_5 = "back5";
             public const string RATING_GOOD = "good";
             public const string RATING_NORMAL = "normal";
             public const string RATING_BAD = "bad";
@@ -1270,10 +1296,16 @@ namespace wfPlayer
                 { Commands.CLOSE, Close },
                 { Commands.NEXT, ()=>{ var _=Next(); } },
                 { Commands.PREV, ()=>{ var _=Prev(); } },
-                { Commands.SEEK_BACK, ()=>SeekBackward(false) },
-                { Commands.SEEK_FWD, ()=>SeekForward(false) },
-                { Commands.SEEK_BACK_L, ()=>SeekBackward(true) },
-                { Commands.SEEK_FWD_L, ()=>SeekForward(true) },
+                { Commands.SEEK_BACK, ()=>SeekBackward(SeekUnit.SMALL) },
+                { Commands.SEEK_FWD, ()=>SeekForward(SeekUnit.SMALL) },
+                { Commands.SEEK_BACK_L, ()=>SeekBackward(SeekUnit.LARGE) },
+                { Commands.SEEK_FWD_L, ()=>SeekForward(SeekUnit.LARGE) },
+
+                { Commands.SEEK_BACK_10, ()=>SeekBackward(SeekUnit.SEEK10) },
+                { Commands.SEEK_FWD_10, ()=>SeekForward(SeekUnit.SEEK10) },
+                { Commands.SEEK_BACK_5, ()=>SeekBackward(SeekUnit.SEEK5) },
+                { Commands.SEEK_FWD_5, ()=>SeekForward(SeekUnit.SEEK5) },
+
                 { Commands.RATING_GOOD, ()=> {Rating=Ratings.GOOD; } },
                 { Commands.RATING_NORMAL, ()=> {Rating=Ratings.NORMAL; } },
                 { Commands.RATING_BAD, ()=> {Rating=Ratings.BAD; } },

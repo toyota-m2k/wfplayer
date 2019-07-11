@@ -41,6 +41,12 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.prev_button).setOnClickListener {
             mClient.postCommand("prev")
         }
+        findViewById<ImageButton>(R.id.seek_5).setOnClickListener {
+            mClient.postCommand("fwd10");
+        }
+        findViewById<ImageButton>(R.id.seek_10).setOnClickListener {
+            mClient.postCommand("fwdL");
+        }
         findViewById<ImageButton>(R.id.good_button).setOnClickListener {
             mClient.postCommand("good")
         }

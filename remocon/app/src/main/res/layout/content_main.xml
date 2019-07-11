@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/play_movie"
-            android:textSize="30sp"
+            android:textSize="26sp"
             android:background="@color/colorAccent"
             android:textColor="@color/white"
             android:gravity="center"
@@ -23,22 +23,22 @@
     <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
             android:layout_gravity="center_horizontal"
     >
         <ImageButton
                 android:id="@+id/play_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_play"
                 android:contentDescription="@string/play"
                 android:scaleType="fitCenter"
         />
         <ImageButton
                 android:id="@+id/play_fast_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_play_fast"
                 android:contentDescription="@string/play_fast"
                 android:scaleType="fitCenter"
@@ -46,8 +46,8 @@
 
         <ImageButton
                 android:id="@+id/pause_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_pause"
                 android:contentDescription="@string/pause"
                 android:scaleType="fitCenter"
@@ -55,17 +55,17 @@
 
         <ImageButton
                 android:id="@+id/prev_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:layout_marginStart="10dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:layout_marginStart="20dp"
                 android:src="@drawable/svg_prev"
                 android:contentDescription="@string/prev"
                 android:scaleType="fitCenter"
         />
         <ImageButton
                 android:id="@+id/next_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_next"
                 android:contentDescription="@string/next"
                 android:scaleType="fitCenter"
@@ -76,9 +76,9 @@
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/rating_select"
-            android:id="@+id/rating_label"
-            android:textSize="30sp"
+            android:text="@string/seek"
+            android:id="@+id/seek_label"
+            android:textSize="26sp"
             android:background="@color/colorAccent"
             android:textColor="@color/white"
             android:gravity="center_horizontal"
@@ -86,30 +86,66 @@
     <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:layout_gravity="center_horizontal"
+    >
+        <ImageButton
+                android:id="@+id/seek_5"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:src="@drawable/svg_seek_5"
+                android:contentDescription="@string/seek_5"
+                android:scaleType="fitCenter"
+        />
+        <ImageButton
+                android:id="@+id/seek_10"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:src="@drawable/svg_seek_10"
+                android:contentDescription="@string/seek_10"
+                android:scaleType="fitCenter"
+        />
+
+    </LinearLayout>
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/rating_select"
+            android:id="@+id/rating_label"
+            android:textSize="26sp"
+            android:background="@color/colorAccent"
+            android:textColor="@color/white"
+            android:gravity="center_horizontal"
+    />
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
             android:layout_gravity="center_horizontal"
     >
         <ImageButton
                 android:id="@+id/good_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_rating_good"
                 android:contentDescription="@string/rating_good"
                 android:scaleType="fitCenter"
         />
         <ImageButton
                 android:id="@+id/normal_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_rating_normal"
                 android:contentDescription="@string/normal"
                 android:scaleType="fitCenter"
         />
         <ImageButton
                 android:id="@+id/bad_button"
-                android:layout_height="70dp"
-                android:layout_width="70dp"
+                android:layout_height="65dp"
+                android:layout_width="65dp"
                 android:layout_marginStart="20dp"
                 android:src="@drawable/svg_rating_bad"
                 android:contentDescription="@string/bad"
@@ -117,8 +153,8 @@
         />
         <ImageButton
                 android:id="@+id/dreadful_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_rating_dreadful"
                 android:contentDescription="@string/dreadful"
                 android:scaleType="fitCenter"
@@ -131,7 +167,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/sizing_label"
-            android:textSize="30sp"
+            android:textSize="26sp"
             android:background="@color/colorAccent"
             android:textColor="@color/white"
             android:gravity="center"
@@ -140,22 +176,22 @@
     <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
             android:layout_gravity="center_horizontal"
     >
         <ImageButton
                 android:id="@+id/aspect_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_aspect"
                 android:contentDescription="@string/auto_aspect"
                 android:scaleType="fitCenter"
         />
         <ImageButton
                 android:id="@+id/aspect_next_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:layout_marginStart="20dp"
                 android:src="@drawable/svg_aspect_next"
                 android:contentDescription="@string/aspect_next"
@@ -163,8 +199,8 @@
         />
         <ImageButton
                 android:id="@+id/aspect_prev_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_aspect_prev"
                 android:contentDescription="@string/aspect_prev"
                 android:scaleType="fitCenter"
@@ -175,7 +211,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/system"
-            android:textSize="30sp"
+            android:textSize="26sp"
             android:background="@color/colorAccent"
             android:textColor="@color/white"
             android:gravity="center"
@@ -184,39 +220,39 @@
     <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
             android:layout_gravity="center_horizontal"
     >
         <ImageButton
                 android:id="@+id/ko_mouse_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_mouse_cursor"
                 android:contentDescription="@string/ko_mouse"
                 android:scaleType="fitCenter"
         />
         <ImageButton
                 android:id="@+id/lock_button"
-                android:layout_marginStart="10dp"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_marginStart="20dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_lock"
                 android:contentDescription="@string/lock"
                 android:scaleType="fitCenter"
         />
         <ImageButton
                 android:id="@+id/close_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_close"
                 android:contentDescription="@string/close"
                 android:scaleType="fitCenter"
         />
         <ImageButton
                 android:id="@+id/shutdown_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
                 android:src="@drawable/svg_shutdown"
                 android:contentDescription="@string/shutdown"
                 android:scaleType="fitCenter"

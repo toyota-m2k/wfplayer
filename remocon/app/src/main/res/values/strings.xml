@@ -22,4 +22,7 @@
     <string name="close">Close Player</string>
     <string name="lock">Lock!</string>
     <string name="shutdown">Shutdown PC</string>
+    <string name="seek">Seek</string>
+    <string name="seek_5">Seek 5 sec</string>
+    <string name="seek_10">Seek 10 sec</string>
 </resources>
