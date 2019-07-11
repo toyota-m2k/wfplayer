@@ -120,6 +120,7 @@
       <DependentUpon>WfTrimmingPlayer.xaml</DependentUpon>
     </Compile>
     <Compile Include="WinPlacement.cs" />
+    <Compile Include="WinShutdown.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

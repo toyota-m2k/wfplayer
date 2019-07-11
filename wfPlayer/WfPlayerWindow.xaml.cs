@@ -1152,6 +1152,7 @@ namespace wfPlayer
         private void ShutdownPC() {
             Close();
             Application.Current.Shutdown();
+            WinShutdown.Shutdown();
         }
 
         #endregion

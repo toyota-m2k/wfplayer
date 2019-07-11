@@ -1,13 +1,10 @@
 package com.michael.remocon
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageButton
-import androidx.appcompat.widget.Toolbar
-import com.michael.wfpremocon.WfClient
 
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -82,15 +79,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateSystemCommands() {
-        val a = if(mLockSystemCommands) 0.5f else 1.0f
         findViewById<ImageButton>(R.id.close_button)?.apply {
-            isEnabled = mLockSystemCommands
-            //alpha = a
-            colorFilter=0xaa808080
+            isEnabled = !mLockSystemCommands
         }
         findViewById<ImageButton>(R.id.shutdown_button)?.apply {
-            isEnabled = mLockSystemCommands
-            alpha = a
+            isEnabled = !mLockSystemCommands
         }
     }
 
