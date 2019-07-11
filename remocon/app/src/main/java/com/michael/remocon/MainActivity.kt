@@ -1,19 +1,17 @@
 package com.michael.remocon
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageButton
-import androidx.appcompat.widget.Toolbar
-import com.michael.wfpremocon.WfClient
 
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    val mClient = WfClient()
+    private val mClient = WfClient()
+    private var mLockSystemCommands = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +62,29 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.aspect_prev_button).setOnClickListener {
             mClient.postCommand("custPrev")
         }
+        findViewById<ImageButton>(R.id.ko_mouse_button).setOnClickListener {
+            mClient.postCommand("kickOutMouse")
+        }
+        findViewById<ImageButton>(R.id.shutdown_button).setOnClickListener {
+            mClient.postCommand("shutdown")
+        }
+        findViewById<ImageButton>(R.id.close_button).setOnClickListener {
+            mClient.postCommand("close")
+        }
+        findViewById<ImageButton>(R.id.lock_button).setOnClickListener {
+            mLockSystemCommands = !mLockSystemCommands
+            updateSystemCommands()
+        }
+        updateSystemCommands()
+    }
 
+    private fun updateSystemCommands() {
+        findViewById<ImageButton>(R.id.close_button)?.apply {
+            isEnabled = !mLockSystemCommands
+        }
+        findViewById<ImageButton>(R.id.shutdown_button)?.apply {
+            isEnabled = !mLockSystemCommands
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

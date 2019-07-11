@@ -52,30 +52,12 @@
                 android:contentDescription="@string/pause"
                 android:scaleType="fitCenter"
         />
-    </LinearLayout>
 
-    <TextView
-            android:id="@+id/skip_movie_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/skip_movie"
-            android:textSize="30sp"
-            android:background="@color/colorAccent"
-            android:textColor="@color/white"
-            android:gravity="center"
-    />
-
-    <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_gravity="center_horizontal"
-    >
         <ImageButton
                 android:id="@+id/prev_button"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
+                android:layout_marginStart="10dp"
                 android:src="@drawable/svg_prev"
                 android:contentDescription="@string/prev"
                 android:scaleType="fitCenter"
@@ -90,6 +72,7 @@
         />
 
     </LinearLayout>
+
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -187,4 +170,58 @@
                 android:scaleType="fitCenter"
         />
     </LinearLayout>
+    <TextView
+            android:id="@+id/skip_movie_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/system"
+            android:textSize="30sp"
+            android:background="@color/colorAccent"
+            android:textColor="@color/white"
+            android:gravity="center"
+    />
+
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_gravity="center_horizontal"
+    >
+        <ImageButton
+                android:id="@+id/ko_mouse_button"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/svg_mouse_cursor"
+                android:contentDescription="@string/ko_mouse"
+                android:scaleType="fitCenter"
+        />
+        <ImageButton
+                android:id="@+id/lock_button"
+                android:layout_marginStart="10dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/svg_lock"
+                android:contentDescription="@string/lock"
+                android:scaleType="fitCenter"
+        />
+        <ImageButton
+                android:id="@+id/close_button"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/svg_close"
+                android:contentDescription="@string/close"
+                android:scaleType="fitCenter"
+        />
+        <ImageButton
+                android:id="@+id/shutdown_button"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/svg_shutdown"
+                android:contentDescription="@string/shutdown"
+                android:scaleType="fitCenter"
+        />
+
+    </LinearLayout>
+
 </LinearLayout>

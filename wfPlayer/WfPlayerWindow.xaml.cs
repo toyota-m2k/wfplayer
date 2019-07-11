@@ -1149,6 +1149,12 @@ namespace wfPlayer
             System.Windows.Forms.Cursor.Position = new System.Drawing.Point(0, 0);
         }
 
+        private void ShutdownPC() {
+            Close();
+            Application.Current.Shutdown();
+            WinShutdown.Shutdown();
+        }
+
         #endregion
 
         #region Trimming
@@ -1246,7 +1252,8 @@ namespace wfPlayer
             public const string TRIM_SELECT = "trimSelect";
             public const string TRIM_RESET = "trimReset";
 
-            public const string KICKOUT_MOUSE = "kickoutMouse";
+            public const string KICKOUT_MOUSE = "kickOutMouse";
+            public const string SHUTDOWN = "shutdown";
         }
 
         private Dictionary<System.Windows.Input.Key, string> mKeyCommandMap = null;
@@ -1281,6 +1288,7 @@ namespace wfPlayer
                 { Commands.TRIM_RESET, ()=>ResetTrimming(Current as WfFileItem) },
 
                 { Commands.KICKOUT_MOUSE, KickOutMouse },
+                { Commands.SHUTDOWN, ShutdownPC }
             };
 
             mKeyCommandMap = new Dictionary<Key, string>()

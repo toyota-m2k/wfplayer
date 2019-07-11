@@ -1,4 +1,4 @@
-package com.michael.wfpremocon
+package com.michael.remocon
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,13 +10,13 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class WfClient {
-    val httpClient = OkHttpClient()
+    private val httpClient = OkHttpClient()
 
     /**
-     * Coroutineを利用し、スレッドをブロックしないで同期的な通信を可能にする拡張メソッド
+     * coroutineを利用し、スレッドをブロックしないで同期的な通信を可能にする拡張メソッド
      * OkHttpのnewCall().execute()を置き換えるだけで使える。
      */
-    suspend fun Call.executeAsync() : Response {
+    private suspend fun Call.executeAsync() : Response {
         return suspendCoroutine {cont ->
             try {
                 enqueue(object : Callback {
@@ -34,16 +34,16 @@ class WfClient {
         }
     }
 
-    suspend fun sendCommand(command:String) : Response? {
-        try {
+    private suspend fun sendCommand(command:String) : Response? {
+        return try {
             val req = Request.Builder()
-                .url("http://192.168.0.5/wfplayer/cmd/$command")
+                .url("http://192.168.0.6/wfplayer/cmd/$command")
                 .build()
             val res = httpClient.newCall(req)
                 .executeAsync()
-            return res
+            res
         } catch(e:Throwable) {
-            return null;
+            null
         }
     }
 

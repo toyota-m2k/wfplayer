@@ -17,4 +17,9 @@
     <string name="aspect_prev">Aspect--</string>
     <string name="skip_movie">Skip</string>
     <string name="action_settings">Preferences</string>
+    <string name="system">System</string>
+    <string name="ko_mouse">Kick out mouse!</string>
+    <string name="close">Close Player</string>
+    <string name="lock">Lock!</string>
+    <string name="shutdown">Shutdown PC</string>
 </resources>
