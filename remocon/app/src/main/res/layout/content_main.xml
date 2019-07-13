@@ -91,19 +91,44 @@
             android:layout_gravity="center_horizontal"
     >
         <ImageButton
-                android:id="@+id/seek_5"
+                android:id="@+id/step_back_5"
                 android:layout_width="65dp"
                 android:layout_height="65dp"
-                android:src="@drawable/svg_seek_5"
-                android:contentDescription="@string/seek_5"
+                android:src="@drawable/svg_step_back_5"
+                android:contentDescription="@string/step_back_5"
                 android:scaleType="fitCenter"
         />
         <ImageButton
-                android:id="@+id/seek_10"
+                android:id="@+id/step_back_10"
                 android:layout_width="65dp"
                 android:layout_height="65dp"
-                android:src="@drawable/svg_seek_10"
-                android:contentDescription="@string/seek_10"
+                android:src="@drawable/svg_step_back_10"
+                android:contentDescription="@string/step_back_10"
+                android:scaleType="fitCenter"
+        />
+        <ImageButton
+                android:id="@+id/step_fwd_5"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:src="@drawable/svg_step_fwd_5"
+                android:contentDescription="@string/seek_fwd_5"
+                android:scaleType="fitCenter"
+        />
+        <ImageButton
+                android:id="@+id/step_fwd_10"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:src="@drawable/svg_step_fwd_10"
+                android:contentDescription="@string/seek_fwd_10"
+                android:scaleType="fitCenter"
+        />
+        <ImageButton
+                android:id="@+id/super_fast"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/svg_play_super_fast"
+                android:contentDescription="@string/super_fast"
                 android:scaleType="fitCenter"
         />
 

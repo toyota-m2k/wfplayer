@@ -503,7 +503,11 @@ namespace wfPlayer
 
         void Play(double speed=0.5)
         {
-            Speed = speed;
+            if (Speed == speed) {
+                Speed = 0.5;
+            } else {
+                Speed = speed;
+            }
             if (Pausing)
             {
                 Pause();
@@ -546,6 +550,22 @@ namespace wfPlayer
             Started = false;
             Pausing = false;
             mPositionSlider.Value = mSources.Current.Trimming.Prologue;
+        }
+
+        private DispatcherTimer mSuperFastPlayTimer;
+        void SuperFastPlay() {
+            if(null!=mSuperFastPlayTimer) {
+                mSuperFastPlayTimer.Stop();
+                mSuperFastPlayTimer = null;
+            } else {
+                mSuperFastPlayTimer = new DispatcherTimer();
+                mSuperFastPlayTimer.Interval = TimeSpan.FromSeconds(1.5);
+                mSuperFastPlayTimer.Tick += (s, e) => {
+                    RelativeSeek(10*1000);
+                };
+                mSuperFastPlayTimer.Start();
+            }
+
         }
 
         #endregion
@@ -876,26 +896,25 @@ namespace wfPlayer
             }
         }
 
-        void SeekForward(SeekUnit unit)
-        {
-            if(!Ready)
-            {
-                return;
-            }
-            var v = mPositionSlider.Value;
+        void RelativeSeek(double seek) {
+            if (!Ready) return;
 
-            v += SeekSpan(unit);
-            updateTimelinePosition(Math.Min(v, mPositionSlider.Maximum-Current.Trimming.Epilogue), true, true);
+            var v = mPositionSlider.Value + seek;
+            updateTimelinePosition(Math.Min(Math.Max(v, Current.Trimming.Prologue), mPositionSlider.Maximum - Current.Trimming.Epilogue), true, true);
         }
-        void SeekBackward(SeekUnit unit)
-        {
-            if (!Ready)
-            {
+
+        void SeekForward(SeekUnit unit) {
+            if (!Ready) {
                 return;
             }
-            var v = mPositionSlider.Value;
-            v -= SeekSpan(unit);
-            updateTimelinePosition(Math.Max(v, Current.Trimming.Prologue), true, true);
+            RelativeSeek(SeekSpan(unit));
+        }
+
+        void SeekBackward(SeekUnit unit) {
+            if (!Ready) {
+                return;
+            }
+            RelativeSeek(-SeekSpan(unit));
         }
 
         #endregion
@@ -1266,6 +1285,7 @@ namespace wfPlayer
             public const string SEEK_BACK_10 = "back10";
             public const string SEEK_FWD_5 = "fwd5";
             public const string SEEK_BACK_5 = "back5";
+            public const string PLAY_SUPER_FAST = "superFast";
             public const string RATING_GOOD = "good";
             public const string RATING_NORMAL = "normal";
             public const string RATING_BAD = "bad";
@@ -1306,6 +1326,7 @@ namespace wfPlayer
                 { Commands.SEEK_BACK_5, ()=>SeekBackward(SeekUnit.SEEK5) },
                 { Commands.SEEK_FWD_5, ()=>SeekForward(SeekUnit.SEEK5) },
 
+                { Commands.PLAY_SUPER_FAST, ()=>SuperFastPlay() },
                 { Commands.RATING_GOOD, ()=> {Rating=Ratings.GOOD; } },
                 { Commands.RATING_NORMAL, ()=> {Rating=Ratings.NORMAL; } },
                 { Commands.RATING_BAD, ()=> {Rating=Ratings.BAD; } },

@@ -41,11 +41,20 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.prev_button).setOnClickListener {
             mClient.postCommand("prev")
         }
-        findViewById<ImageButton>(R.id.seek_5).setOnClickListener {
+        findViewById<ImageButton>(R.id.step_back_5).setOnClickListener {
+            mClient.postCommand("back10");
+        }
+        findViewById<ImageButton>(R.id.step_back_10).setOnClickListener {
+            mClient.postCommand("backL");
+        }
+        findViewById<ImageButton>(R.id.step_fwd_5).setOnClickListener {
             mClient.postCommand("fwd10");
         }
-        findViewById<ImageButton>(R.id.seek_10).setOnClickListener {
+        findViewById<ImageButton>(R.id.step_fwd_10).setOnClickListener {
             mClient.postCommand("fwdL");
+        }
+        findViewById<ImageButton>(R.id.super_fast).setOnClickListener {
+            mClient.postCommand("superFast");
         }
         findViewById<ImageButton>(R.id.good_button).setOnClickListener {
             mClient.postCommand("good")

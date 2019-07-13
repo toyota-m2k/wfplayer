@@ -25,4 +25,9 @@
     <string name="seek">Seek</string>
     <string name="seek_5">Seek 5 sec</string>
     <string name="seek_10">Seek 10 sec</string>
+    <string name="step_back_5">Step back small</string>
+    <string name="step_back_10">Step back large</string>
+    <string name="seek_fwd_5">Step forward small</string>
+    <string name="seek_fwd_10">Step forward large</string>
+    <string name="super_fast">Super fast</string>
 </resources>
