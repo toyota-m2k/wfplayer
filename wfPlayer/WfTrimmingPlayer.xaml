@@ -49,7 +49,10 @@
                 <Button Click="OnStepBack2"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepBack2}" Style="{StaticResource PushButtonStyle}"/>
                 <Button Click="OnStepBack"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepBack}" Style="{StaticResource PushButtonStyle}"/>
                 <Button Click="OnStepForward"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepForward}" Style="{StaticResource PushButtonStyle}"/>
-                <Button Click="OnStepForward2"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepForward2}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnStepForward2"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepForward2}" Style="{StaticResource PushButtonStyle}" Margin="0,0,8,0"/>
+
+                <Button Click="OnPrev" IsEnabled="{Binding HasPrev}" Visibility="{Binding EditMode, Converter={StaticResource NegBoolVisibilityConverter}}" Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnNext" IsEnabled="{Binding HasNext}" Visibility="{Binding EditMode, Converter={StaticResource NegBoolVisibilityConverter}}" Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
             </StackPanel>
             <ToggleButton Grid.Column="1" IsChecked="{Binding Mute}" Content="{StaticResource PathMute}" Style="{StaticResource ToggleButtonStyle}" HorizontalAlignment="Right"/>
         </Grid>
@@ -82,9 +85,11 @@
         </StackPanel>
         <StackPanel Grid.Row="5" Grid.Column="0"  Orientation="Horizontal" Margin="8">
             <TextBlock Text="Trimming Name" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
-            <TextBox Text="{Binding TrimmingName, Mode=TwoWay}" Width="200" Margin="0,0,16,0"/>
+            <TextBox Text="{Binding TrimmingName, Mode=TwoWay}" Width="200" Margin="0,0,8,0"/>
+            <Button Content="Select" Padding="8,1" Margin="0,0,16,0" Click="OnSelect" Visibility="{Binding EditMode, Converter={StaticResource NegBoolVisibilityConverter}}"/>
         </StackPanel>
         <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+            <Button Content="Apply" Padding="8,1" Margin="0,0,8,0" Click="OnApply" IsEnabled="{Binding Modified, Converter={StaticResource NegBoolConverter}}" Visibility="{Binding IsRegisteredTrim, Converter={StaticResource BoolVisibilityConverter}}"/>
             <Button Content="Update" Padding="8,1" Margin="0,0,8,0" Click="OnUpdate" IsEnabled="{Binding IsVaild}" Visibility="{Binding HasTarget, Converter={StaticResource BoolVisibilityConverter}}"/>
             <Button Content="Register" Padding="8,1" Margin="0,0,8,0" Click="OnRegister" IsEnabled="{Binding IsValid}"/>
             <Button Content="Cancel" Padding="8,1" Click="OnCancel"/>

@@ -250,6 +250,14 @@
             android:layout_gravity="center_horizontal"
     >
         <ImageButton
+                android:id="@+id/show_slider"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:src="@drawable/svg_show_slider"
+                android:contentDescription="@string/show_slider"
+                android:scaleType="fitCenter"
+        />
+        <ImageButton
                 android:id="@+id/ko_mouse_button"
                 android:layout_width="65dp"
                 android:layout_height="65dp"

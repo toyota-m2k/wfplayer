@@ -61,32 +61,52 @@ namespace wfPlayer
         public string TrimmingName
         {
             get => mTrimmingName;
-            set => setProp("TrimmingName", ref mTrimmingName, value);
+            set {
+                if (setProp("TrimmingName", ref mTrimmingName, value)) {
+                    IsRegisteredTrim = false;
+                }
+            }
         }
         private double mTrimStart = 0;
         public double TrimStart
         {
             get => mTrimStart;
-            set => setProp("TrimStart", ref mTrimStart, value, "IsValid");
+            set {
+                if (setProp("TrimStart", ref mTrimStart, value, "IsValid")) {
+                    IsRegisteredTrim = false;
+                }
+            }
         }
         private double mTrimEnd = 0;
         public double TrimEnd
         {
             get => mTrimEnd;
-            set => setProp("TrimEnd", ref mTrimEnd, value, "IsValid");
+            set {
+                if (setProp("TrimEnd", ref mTrimEnd, value, "IsValid")) {
+                    IsRegisteredTrim = false;
+                }
+            }
         }
 
         private bool mTrimStartEnabled = false;
         public bool TrimStartEnabled
         {
             get => mTrimStartEnabled;
-            set => setProp("TrimStartEnabled", ref mTrimStartEnabled, value, "IsValid");
+            set {
+                if (setProp("TrimStartEnabled", ref mTrimStartEnabled, value, "IsValid")) {
+                    IsRegisteredTrim = false;
+                }
+            }
         }
         private bool mTrimEndEnabled = false;
         public bool TrimEndEnabled
         {
             get => mTrimEndEnabled;
-            set => setProp("TrimEndEnabled", ref mTrimEndEnabled, value, "IsValid");
+            set {
+                if (setProp("TrimEndEnabled", ref mTrimEndEnabled, value, "IsValid")) {
+                    IsRegisteredTrim = false;
+                }
+            }
         }
         private double mDuration = 0;
         public double Duration
@@ -95,19 +115,28 @@ namespace wfPlayer
             set => setProp("Duration", ref mDuration, value, "LargePositionChange");
         }
 
-        private bool mIsModified = false;
-        public bool IsModified
-        {
-            get => mIsModified;
-            set => setProp("IsModified", ref mIsModified, value);
-        }
-
         private bool mIsReady = false;
         public bool IsReady
         {
             get => mIsReady;
             set => setProp("IsReady", ref mIsReady, value);
         }
+
+        private IWfSourceList mSourceList = null;
+        public IWfSourceList SourceList {
+            get => mSourceList;
+            set {
+                mSourceList = value;
+                notify("EditMode");
+            }
+        }
+
+        public bool EditMode {      // true:パターンリストの編集中 false:動画に対するトリミング設定
+            get => mSourceList == null;
+        }
+
+        public bool HasNext => mSourceList?.HasNext ?? false;
+        public bool HasPrev => mSourceList?.HasPrev?? false;
 
         private bool mStarted = false;
         public bool Started
@@ -130,6 +159,12 @@ namespace wfPlayer
         public double SmallPositionChange => 1000;
 
         public bool IsValid => (TrimEndEnabled && TrimEnd > 0) || (TrimStartEnabled && TrimStart > 0);
+
+        private bool mIsRegisteredTrim = false;
+        public bool IsRegisteredTrim {
+            get => mIsRegisteredTrim;
+            set => setProp("IsRegisteredTrim", ref mIsRegisteredTrim, value);
+        }
 
         public bool HasTarget => (EditingTrim?.Id ?? 0) > 0;
 
@@ -173,9 +208,10 @@ namespace wfPlayer
             }
         }
 
-        public WfTrimmingPlayer(ITrim trim, string videoPath)
+        private void init(ITrim trim, string videoPath, IWfSourceList sourceList)
         {
             mVideoPath = videoPath;
+            mSourceList = sourceList;
 
             if (null != trim) {
                 mEditingTrim = trim;
@@ -194,25 +230,39 @@ namespace wfPlayer
             DataContext = this;
             InitializeComponent();
         }
+        public WfTrimmingPlayer(ITrim trim, string videoPath) {
+            init(trim, videoPath, null);
+        }
 
-        private async void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            PropertyChanged += OnBindingPropertyChanged;
+        public WfTrimmingPlayer(IWfSourceList source) {
+            var item = source.Current;
+            var path = WfTrimmingPlayer.GetRefPath(item.Trimming, item.FullPath, true);
+            init(item.Trimming, path, source);
+        }
+
+        private async Task SetSourceToPlayer(string path=null) {
             Started = false;
             Pausing = false;
-            if (null != mVideoPath)
-            {
+            if(path!=null) {
+                mVideoPath = path;
+            }
+            if (null != mVideoPath) {
                 mVideoLoadingTask = new TaskCompletionSource<bool>();
                 mMediaElement.Source = new Uri(mVideoPath);
                 mMediaElement.Position = TimeSpan.FromMilliseconds(0);
                 mMediaElement.Play();
-                if (await mVideoLoadingTask.Task)
-                {
+                if (await mVideoLoadingTask.Task) {
                     mMediaElement.Pause();
                     IsReady = true;
                 }
                 mVideoLoadingTask = null;
             }
+        }
+
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            PropertyChanged += OnBindingPropertyChanged;
+            await SetSourceToPlayer();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -463,13 +513,19 @@ namespace wfPlayer
             using (var txn = WfPlayListDB.Instance.Transaction())
             {
                 Result = WfPlayListDB.Instance.TP.Register(0, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mVideoPath);
-                OnResult?.Invoke(Result, WfPlayListDB.Instance);
-                if (Result == null)
-                {
+                if (Result == null) {
                     return;
                 }
+                OnResult?.Invoke(Result, WfPlayListDB.Instance);
+                if (!EditMode) {
+                    var item = SourceList.Current;
+                    item.Trimming = Result;
+                    item.SaveModified();
+                }
             }
-            Close();
+            if (EditMode) {
+                Close();
+            }
         }
 
         private void OnUpdate(object sender, RoutedEventArgs e)
@@ -481,13 +537,31 @@ namespace wfPlayer
             using (var txn = WfPlayListDB.Instance.Transaction())
             {
                 Result = WfPlayListDB.Instance.TP.Register(EditingTrim.Id, TrimmingName, TrimStartEnabled ? TrimStart : 0, TrimEndEnabled ? TrimEnd : 0, mVideoPath);
-                if(Result==null)
-                {
+                if (Result == null) {
                     return;
                 }
                 OnResult?.Invoke(Result, WfPlayListDB.Instance);
+                if(!EditMode) {
+                    var item = SourceList.Current;
+                    item.Trimming = Result;
+                    item.SaveModified();
+                }
             }
-            Close();
+            if (EditMode) {
+                Close();
+            }
+        }
+
+        private void OnApply(object sender, RoutedEventArgs e) {
+            if (EditMode) {
+                return;
+            }
+            var trim = WfPlayListDB.Instance.TP.Get(TrimmingName);
+            if(trim!=null) {
+                var item = SourceList.Current;
+                item.Trimming = trim;
+                item.SaveModified();
+            }
         }
 
 
@@ -521,6 +595,55 @@ namespace wfPlayer
                     return;
             }
             e.Handled = true;
+        }
+
+        private void OnSelect(object sender, RoutedEventArgs e) {
+            var dlg = new WfTrimmingPatternList();
+            dlg.ShowDialog();
+            if (null != dlg.Result && dlg.Result.Name != TrimmingName) {
+                TrimmingName = dlg.Result.Name;
+                TrimStart = dlg.Result.Prologue;
+                TrimStartEnabled = TrimStart != 0;
+                TrimEnd = dlg.Result.Epilogue;
+                TrimEndEnabled = TrimEnd != 0;
+                IsRegisteredTrim = true;
+            }
+        }
+
+        private async Task setTargetVideo(IWfSource source) {
+            if(null==source) {
+                return;
+            }
+            var trim = source.Trimming;
+            var videoPath = WfTrimmingPlayer.GetRefPath(source.Trimming, source.FullPath, true);
+
+            await SetSourceToPlayer(videoPath);
+            if (null != trim) {
+                EditingTrim = trim;
+                TrimmingName = trim.Name;
+                TrimStart = trim.Prologue;
+                TrimStartEnabled = TrimStart > 0;
+                TrimEnd = trim.Epilogue;
+                TrimEndEnabled = TrimEnd>0;
+                IsRegisteredTrim = true;
+            } else {
+                IsRegisteredTrim = false;
+            }
+
+            notify("HasPrev");
+            notify("HasNext");
+        }
+
+        private async void OnPrev(object sender, RoutedEventArgs e) {
+            if(HasPrev) {
+                await setTargetVideo(SourceList.Prev);
+            }
+        }
+
+        private async void OnNext(object sender, RoutedEventArgs e) {
+            if (HasNext) {
+                await setTargetVideo(SourceList.Next);
+            }
         }
 
     }

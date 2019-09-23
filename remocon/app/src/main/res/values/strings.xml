@@ -30,4 +30,5 @@
     <string name="seek_fwd_5">Step forward small</string>
     <string name="seek_fwd_10">Step forward large</string>
     <string name="super_fast">Super fast</string>
+    <string name="show_slider">Show slider</string>
 </resources>

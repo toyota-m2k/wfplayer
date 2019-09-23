@@ -22,13 +22,14 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Grid.RowSpan="3">
+        <Grid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Grid.RowSpan="4">
             <MediaElement LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="UniformToFill"
                           VerticalAlignment="Center" HorizontalAlignment="Center"
                           ScrubbingEnabled="True"
@@ -37,7 +38,9 @@
                           IsMuted="{Binding Mute, Mode=OneWay}"
                           />
         </Grid>
-        <Grid Grid.Column="0" Grid.Row="0" Name="mStretchModePanel" Background="{StaticResource ControlPanelBG}" Opacity="1" MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave">
+        <Grid Grid.Column="0" Grid.Row="0" Name="mStretchModePanel" 
+              Background="{StaticResource ControlPanelBG}" Opacity="1" 
+              MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave">
             <Grid.Style>
                 <!-- Fade in/out effect -->
                 <Style TargetType="Grid">
@@ -71,7 +74,11 @@
                 <ToggleButton IsChecked="{Binding AllowRemoteControl, Mode=TwoWay}" Content="{StaticResource PathRemote}" Style="{StaticResource ToggleButtonStyle}" Margin="8.0"/>
             </StackPanel>
         </Grid>
-        <Grid Grid.Column="2" Grid.Row="2" Name="mPanelBase" Background="{StaticResource ControlPanelBG}" Opacity="1" MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave">
+        <Grid Grid.Column="2" Grid.Row="2" Name="mPanelBase" 
+              Background="{StaticResource ControlPanelBG}" 
+              MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave"
+              Opacity="0"
+              >
             <Grid.Style>
                 <!-- Fade in/out effect -->
                 <Style TargetType="Grid">
@@ -90,7 +97,6 @@
                 </Style>
             </Grid.Style>
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
-                <local:TimelineSlider x:Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}" ValueChanged="OnPositionChanged" LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}" DragStateChanged="OnSliderDragStateChanged"/>
                 <Grid Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -136,6 +142,62 @@
                     </StackPanel>
                 </Grid>
             </StackPanel>
+        </Grid>
+        <Grid Grid.Column="2" Grid.Row="3"
+              Background="{StaticResource ControlPanelBG}" Opacity="1"
+              x:Name="mSliderPanel"
+              MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave"
+              >
+            <Grid.Style>
+                <!-- Fade in/out effect -->
+                <Style TargetType="Grid">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShowSliderPanel}" Value="True">
+                            <DataTrigger.EnterActions>
+                                <StopStoryboard BeginStoryboardName="MouseLeaveStoryboard" />
+                                <BeginStoryboard Name="MouseOverStoryboard" Storyboard="{StaticResource MouseOverStoryboard}" />
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="MouseOverStoryboard" />
+                                <BeginStoryboard Name="MouseLeaveStoryboard" Storyboard="{StaticResource MouseLeaveStoryboard}" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <Grid
+              Margin="10,5,10,10"
+                  >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Foreground="White" Margin="0,-5,0,0">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0} / {1}">
+                            <Binding Path="SeekPositionText"/>
+                            <Binding Path="DurationText"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <local:TimelineSlider 
+                    Grid.Row="0" Grid.Column="0"
+                    VerticalAlignment="Center"
+                    x:Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}"
+                    ValueChanged="OnPositionChanged"
+                    LargeChange="{Binding LargePositionChange}" 
+                    SmallChange="{Binding SmallPositionChange}" 
+                    DragStateChanged="OnSliderDragStateChanged"/>
+                <ToggleButton 
+                    Grid.Row="0" Grid.Column="2"
+                    VerticalAlignment="Center"
+                    IsChecked="{Binding SliderPinned}" Content="{StaticResource PathPin}" Style="{StaticResource ToggleButtonStyle}"/>
+            </Grid>
         </Grid>
     </Grid>
 </Window>

@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using Application = System.Windows.Application;
 
 namespace wfPlayer
 {
@@ -373,6 +374,11 @@ namespace wfPlayer
                     player.ShowDialog();
                     var item = mFileListView.ItemContainerGenerator.ContainerFromIndex(mFileListView.SelectedIndex) as System.Windows.Controls.ListViewItem;
                     item?.Focus();
+
+                    if(player.RequestShutdown) {
+                        Application.Current.Shutdown();
+                        WinShutdown.Shutdown();
+                    }
                 });
             }
         }
@@ -402,6 +408,11 @@ namespace wfPlayer
             {
                 return;
             }
+#if true
+            mFileList.CurrentIndex = mFileListView.SelectedIndex;
+            var tp = new WfTrimmingPlayer(mFileList);
+            tp.ShowDialog();
+#else
             var tp = new WfTrimmingPlayer(item.Trimming, WfTrimmingPlayer.GetRefPath(null, item.FullPath, true));
             WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
             {
@@ -414,6 +425,7 @@ namespace wfPlayer
             tp.OnResult += onNewTrimming;
             tp.ShowDialog();
             tp.OnResult -= onNewTrimming;
+#endif
         }
 
         /**
@@ -585,9 +597,9 @@ namespace wfPlayer
                 mPlayListDB.SetValueAt("LastItem", sel.FullPath);
             }
         }
-        #endregion
+#endregion
 
-        #region Routed Commands
+#region Routed Commands
 
         public readonly static RoutedCommand CreateTrimming = new RoutedCommand("CreateTrimming", typeof(MainWindow));
         public readonly static RoutedCommand ApplyTrimming = new RoutedCommand("ApplyTrimming", typeof(MainWindow));
@@ -626,7 +638,7 @@ namespace wfPlayer
             e.CanExecute = mFileListView.SelectedIndex >= 0;
         }
 
-        #endregion
+#endregion
 
         private void OnFilter(object sender, RoutedEventArgs e)
         {

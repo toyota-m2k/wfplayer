@@ -77,16 +77,22 @@ namespace wfPlayer
         /**
          * Duration --> mPositionSlider.Value
          */
-        public static readonly DependencyProperty DurationProperty = DependencyProperty.Register("Duration", typeof(double), typeof(WfPlayerWindow));
-        public double Duration
-        {
-            get => (double)GetValue(DurationProperty);
-            set
-            {
-                SetValue(DurationProperty, value);
-                notify("LargePositionChange");
-                notify("SmallPositionChange");
-            }
+        //public static readonly DependencyProperty DurationProperty = DependencyProperty.Register("Duration", typeof(double), typeof(WfPlayerWindow));
+        //public double Duration
+        //{
+        //    get => (double)GetValue(DurationProperty);
+        //    set
+        //    {
+        //        SetValue(DurationProperty, value);
+        //        notify("LargePositionChange");
+        //        notify("SmallPositionChange");
+        //        notify("DurationText");
+        //    }
+        //}
+        private double mDuration = 0;
+        public double Duration {
+            get => mDuration;
+            set => setProp("Duration", ref mDuration, value, "DurationText", "LargePositionChange", "SmallPositionChange");
         }
 
         /**
@@ -186,22 +192,27 @@ namespace wfPlayer
          * パネルの開閉用
          */
         private bool mMouseInPanel = false;
-        public bool MouseInPanel
-        {
+        public bool MouseInPanel {
             get => mMouseInPanel;
-            set => setProp("MouseInPanel", ref mMouseInPanel, value, "ShowPanel");
+            set => setProp("MouseInPanel", ref mMouseInPanel, value, "ShowPanel", "ShowSliderPanel");
         }
         /**
          * ストレッチモードパネル開閉用
          */
         private bool mMouseInStretchModePanel = false;
-        public bool MouseInStretchModePanel
-        {
+        public bool MouseInStretchModePanel {
             get => mMouseInStretchModePanel;
             set => setProp("MouseInStretchModePanel", ref mMouseInStretchModePanel, value, "ShowStretchModePanel");
         }
 
-        public bool ShowPanel => MouseInPanel || !Playing;
+        private bool mMouseInSliderPanel = false;
+        public bool MouseInSliderPanel {
+            get => mMouseInSliderPanel;
+            set => setProp("MouseInSliderPanel", ref mMouseInSliderPanel, value, "ShowSliderPanel", "ShowPanel");
+        }
+
+        public bool ShowPanel => MouseInPanel || MouseInSliderPanel || !Playing;
+        public bool ShowSliderPanel => MouseInSliderPanel || MouseInPanel || !Playing || SliderPinned;
         public bool ShowStretchModePanel => MouseInStretchModePanel || !Playing;
 
 
@@ -346,6 +357,12 @@ namespace wfPlayer
 
         }
 
+        private bool mSliderPinned = true;
+        public bool SliderPinned {
+            get => mSliderPinned;
+            set => setProp("SliderPinned", ref mSliderPinned, value, "ShowSliderPanel");
+        }
+        
         #endregion
 
         #region ビデオソース
@@ -565,7 +582,13 @@ namespace wfPlayer
                 };
                 mSuperFastPlayTimer.Start();
             }
+        }
 
+        void ResetSuperFastPlay() {
+            if(mSuperFastPlayTimer!=null) {
+                mSuperFastPlayTimer.Stop();
+                mSuperFastPlayTimer = null;
+            }
         }
 
         #endregion
@@ -578,13 +601,14 @@ namespace wfPlayer
             Duration = 1.0;
             //Rating = new RatingBindable(this);
             mSources = null;
-            mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel", "ShowStretchModePanel");
-            mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel", "ShowStretchModePanel");
+            mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel", "ShowStretchModePanel", "ShowSliderPanel");
+            mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel", "ShowStretchModePanel", "ShowSliderPanel");
             mCursorManager = new HidingCursor(this);
             InitKeyMap();
 
             mStandardStretchMode = mStretchMode = (WfStretchMode)(Convert.ToInt32(WfPlayListDB.Instance.GetValueAt("StretchMode") ?? "0"));
             mStretchMaximum = (Convert.ToInt32(WfPlayListDB.Instance.GetValueAt("StretchMaximum") ?? "0"))!=0;
+            mSliderPinned = (Convert.ToInt32(WfPlayListDB.Instance.GetValueAt("SliderPinned") ?? "0")) != 0;
 
 
             this.DataContext = this;
@@ -605,6 +629,7 @@ namespace wfPlayer
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
+            ResetSuperFastPlay();
             PropertyChanged -= OnBindingPropertyChanged;
             Current?.SaveModified();
             mServer?.Dispose();
@@ -612,6 +637,7 @@ namespace wfPlayer
 
             WfPlayListDB.Instance.SetValueAt("StretchMode", $"{(long)mStandardStretchMode}");
             WfPlayListDB.Instance.SetValueAt("StretchMaximum", mStretchMaximum ? "1" : "0");
+            WfPlayListDB.Instance.SetValueAt("SliderPinned", mSliderPinned ? "1" : "0");
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -641,6 +667,8 @@ namespace wfPlayer
         private async void OnMediaEnded(object sender, RoutedEventArgs e)
         {
             Debug.WriteLine("MediaEnded");
+            //ResetSuperFastPlay();
+            //Speed = 0.5;
             if (!await Next())
             {
                 Stop();
@@ -798,7 +826,23 @@ namespace wfPlayer
             {
                 mPositionSlider.Value = position;
             }
+            SeekPositionText = $"{FormatDuration(position)}";
         }
+
+        private string FormatDuration(double duration) {
+            var t = TimeSpan.FromMilliseconds(duration);
+            return string.Format("{0}:{1:00}:{2:00}", t.Hours, t.Minutes, t.Seconds);
+                //$"{t.Hours}:{t.Minutes}.{t.Seconds}";
+
+        }
+
+        private string mSeekPositionText = "";
+        public string SeekPositionText {
+            get => mSeekPositionText;
+            set => setProp("SeekPositionText", ref mSeekPositionText, value);
+        }
+
+        public string DurationText => FormatDuration(Duration);
 
         private void OnSliderDragStateChanged(TimelineSlider.DragState state)
         {
@@ -840,7 +884,7 @@ namespace wfPlayer
 
         private void OnPlayingStateChanged(bool playing)
         {
-            mCursorManager.Enabled = mCursorManager.Enabled = !MouseInPanel && !MouseInStretchModePanel && playing;
+            mCursorManager.Enabled = mCursorManager.Enabled = !MouseInPanel && !MouseInSliderPanel && !MouseInStretchModePanel && playing;
             if (playing)
             {
                 if (null == mPositionTimer)
@@ -1079,6 +1123,9 @@ namespace wfPlayer
                 case "mStretchModePanel":
                     MouseInStretchModePanel = enter;
                     break;
+                case "mSliderPanel":
+                    MouseInSliderPanel = enter;
+                    break;
                 default:
                     return false;
             }
@@ -1190,10 +1237,12 @@ namespace wfPlayer
             System.Windows.Forms.Cursor.Position = new System.Drawing.Point(0, 0);
         }
 
+        public bool RequestShutdown { get; private set; } = false;
         private void ShutdownPC() {
+            RequestShutdown = true;
             Close();
-            Application.Current.Shutdown();
-            WinShutdown.Shutdown();
+            //Application.Current.Shutdown();
+            //WinShutdown.Shutdown();
         }
 
         #endregion
@@ -1298,8 +1347,14 @@ namespace wfPlayer
             public const string TRIM_SELECT = "trimSelect";
             public const string TRIM_RESET = "trimReset";
 
+            public const string PIN_SLIDER = "showSlider";
+
             public const string KICKOUT_MOUSE = "kickOutMouse";
             public const string SHUTDOWN = "shutdown";
+        }
+
+        private void ToggleSliderPanel() {
+            SliderPinned = !SliderPinned;
         }
 
         private Dictionary<System.Windows.Input.Key, string> mKeyCommandMap = null;
@@ -1339,6 +1394,8 @@ namespace wfPlayer
                 { Commands.TRIM_EDIT, ()=>EditTrimming(Current as WfFileItem) },
                 { Commands.TRIM_SELECT, ()=>SelectTrimming(Current as WfFileItem) },
                 { Commands.TRIM_RESET, ()=>ResetTrimming(Current as WfFileItem) },
+
+                { Commands.PIN_SLIDER, ToggleSliderPanel },
 
                 { Commands.KICKOUT_MOUSE, KickOutMouse },
                 { Commands.SHUTDOWN, ShutdownPC }

@@ -80,6 +80,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.ko_mouse_button).setOnClickListener {
             mClient.postCommand("kickOutMouse")
         }
+        findViewById<ImageButton>(R.id.show_slider).setOnClickListener {
+            mClient.postCommand("showSlider");
+        }
         findViewById<ImageButton>(R.id.shutdown_button).setOnClickListener {
             mClient.postCommand("shutdown")
         }
