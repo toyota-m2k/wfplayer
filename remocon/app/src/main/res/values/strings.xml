@@ -31,4 +31,6 @@
     <string name="seek_fwd_10">Step forward large</string>
     <string name="super_fast">Super fast</string>
     <string name="show_slider">Show slider</string>
+    <string name="id_server_address">Server Address</string>
+    <string name="key_server_address">server_address</string>
 </resources>

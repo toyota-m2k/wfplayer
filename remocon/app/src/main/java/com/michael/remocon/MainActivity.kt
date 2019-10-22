@@ -1,6 +1,8 @@
 package com.michael.remocon
 
+import android.content.Intent
 import android.os.Bundle
+import android.os.Debug
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
@@ -17,6 +19,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        mClient.context = this
 
 //        fab.setOnClickListener { view ->
 //            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -116,8 +119,13 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_settings -> showSettings()
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    fun showSettings() : Boolean {
+        startActivity(Intent(this, SettingsActivity::class.java))
+        return true
     }
 }

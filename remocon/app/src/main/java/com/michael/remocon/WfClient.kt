@@ -1,17 +1,26 @@
 package com.michael.remocon
 
+import android.content.Context
+import android.preference.PreferenceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.*
 import java.io.IOException
+import java.lang.ref.WeakReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class WfClient {
+class WfClient() {
     private val httpClient = OkHttpClient()
 
+    private var mContext: WeakReference<Context>? = null
+    var context : Context?
+        get() = mContext?.get()
+        set(value) {
+            mContext = if(null!=value) { WeakReference(value) } else { null }
+        }
     /**
      * coroutineを利用し、スレッドをブロックしないで同期的な通信を可能にする拡張メソッド
      * OkHttpのnewCall().execute()を置き換えるだけで使える。
@@ -34,16 +43,24 @@ class WfClient {
         }
     }
 
-    private suspend fun sendCommand(command:String) : Response? {
+    private val serverAddress:String
+        get() {
+            val key = context?.getString(R.string.key_server_address) ?: return ""
+            return PreferenceManager.getDefaultSharedPreferences(context).getString(key, null) ?: "192.168.0.5"
+        }
+
+
+    private suspend fun sendCommand(command:String) : Boolean {
         return try {
             val req = Request.Builder()
-                .url("http://192.168.0.6/wfplayer/cmd/$command")
+                .url("http://$serverAddress/wfplayer/cmd/$command")
                 .build()
-            val res = httpClient.newCall(req)
+            httpClient.newCall(req)
                 .executeAsync()
-            res
+                .close()
+            true
         } catch(e:Throwable) {
-            null
+            false
         }
     }
 

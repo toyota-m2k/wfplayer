@@ -8,8 +8,7 @@
         tools:context=".MainActivity"
         android:keepScreenOn="true"
         android:orientation="vertical"
-        android:layout_marginTop="?attr/actionBarSize"
->
+        android:layout_marginTop="?attr/actionBarSize">
     <TextView
             android:id="@+id/play_movie_label"
             android:layout_width="match_parent"
