@@ -19,6 +19,7 @@
         <CommandBinding Command="{x:Static local:MainWindow.CreateTrimming}" Executed="ExecCreateTrimming" CanExecute="CanCreateTrimming"/>
         <CommandBinding Command="{x:Static local:MainWindow.ApplyTrimming}" Executed="ExecApplyTrimming" CanExecute="CanApplyTrimming"/>
         <CommandBinding Command="{x:Static local:MainWindow.ResetCounter}" Executed="ExecResetCounter" CanExecute="CanResetCounter"/>
+        <CommandBinding Command="{x:Static local:MainWindow.DeleteFiles}" Executed="ExecDeleteFiles" CanExecute="CanDeleteFiles"/>
     </Window.CommandBindings>
     <Grid>
         <Grid.RowDefinitions>
@@ -49,24 +50,89 @@
         </Grid.Resources>
 
         <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="#404080">
-            <Button Click="OnOpenFile" Content="{StaticResource PathOpenFile}" Style="{StaticResource PushButtonStyle}"/>
+            <local:MenuButton Content="{StaticResource PathOpenFile}" Style="{StaticResource ToggleButtonStyle}" 
+                              x:Name="dbMenuButton">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Open DB"/>
+                </ToolTipService.ToolTip>
+            </local:MenuButton>
 
-            <Button Click="OnRegisterFolder" Content="{StaticResource PathAddFolder}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0"/>
-            <Button Click="OnPlayAll" Content="{StaticResource PathPlay}" Style="{StaticResource PushButtonStyle}"/>
+            <local:MenuButton Content="{StaticResource PathAddFolder}" Style="{StaticResource ToggleButtonStyle}" Margin="4,0,0,0">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Register Folder to DB"/>
+                </ToolTipService.ToolTip>
+                <local:MenuButton.DropDownMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Add Folders" Command="{Binding AddFolderCommand}"/>
+                        <MenuItem Header="Refresh All" Command="{Binding RefreshAllCommand}"/>
+                    </ContextMenu>
+                </local:MenuButton.DropDownMenu>
+            </local:MenuButton>
 
-            <Button Click="OnCreateTrimming"  Content="{StaticResource PathCut}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0"/>
-            <Button Click="OnSelectTrimming"  Content="{StaticResource PathList}" Style="{StaticResource PushButtonStyle}"/>
-            <Button Click="OnResetTrimming"  Content="{StaticResource PathRemove}" Style="{StaticResource PushButtonStyle}"/>
+            <Button Click="OnPlayAll" Content="{StaticResource PathPlay}" Style="{StaticResource PushButtonStyle}">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Play All"/>
+                </ToolTipService.ToolTip>
+            </Button>
 
-            <Button Click="OnResetCounter"  Content="{StaticResource PathCounter}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0"/>
+            <Button Click="OnCreateTrimming"  Content="{StaticResource PathCut}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="New Trimming"/>
+                </ToolTipService.ToolTip>
+            </Button>
 
-            <Button Click="OnSetRating" Tag="0" Content="{StaticResource PathGood}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0"/>
-            <Button Click="OnSetRating" Tag="1" Content="{StaticResource PathNormal}" Style="{StaticResource PushButtonStyle}"/>
-            <Button Click="OnSetRating" Tag="2" Content="{StaticResource PathBad}" Style="{StaticResource PushButtonStyle}"/>
-            <Button Click="OnSetRating" Tag="3" Content="{StaticResource PathDreadful}" Style="{StaticResource PushButtonStyle}"/>
+            <Button Click="OnSelectTrimming"  Content="{StaticResource PathList}" Style="{StaticResource PushButtonStyle}">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Apply Registered Trimming"/>
+                </ToolTipService.ToolTip>
+            </Button>
 
-            <Button Click="OnSort" Content="{StaticResource PathSort}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0"/>
-            <local:CheckButton Click="OnFilter" IsChecked="{Binding IsFiltered, Mode=OneWay}" Content="{StaticResource PathFilter}" Style="{StaticResource CheckButtonStyle}" Margin="0,0,0,0"/>
+            <Button Click="OnResetTrimming"  Content="{StaticResource PathRemove}" Style="{StaticResource PushButtonStyle}">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Reset Trimming"/>
+                </ToolTipService.ToolTip>
+            </Button>
+
+            <Button Click="OnResetCounter"  Content="{StaticResource PathCounter}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Reset Counter"/>
+                </ToolTipService.ToolTip>
+            </Button>
+
+            <Button Click="OnSetRating" Tag="0" Content="{StaticResource PathGood}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Rating: Good"/>
+                </ToolTipService.ToolTip>
+            </Button>
+
+            <Button Click="OnSetRating" Tag="1" Content="{StaticResource PathNormal}" Style="{StaticResource PushButtonStyle}">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Rating: OK"/>
+                </ToolTipService.ToolTip>
+            </Button>
+
+            <Button Click="OnSetRating" Tag="2" Content="{StaticResource PathBad}" Style="{StaticResource PushButtonStyle}">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Rating: Bad"/>
+                </ToolTipService.ToolTip>
+            </Button>
+
+            <Button Click="OnSetRating" Tag="3" Content="{StaticResource PathDreadful}" Style="{StaticResource PushButtonStyle}">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Rating: Dreadful"/>
+                </ToolTipService.ToolTip>
+            </Button>
+
+            <Button Click="OnSort" Content="{StaticResource PathSort}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Sort"/>
+                </ToolTipService.ToolTip>
+            </Button>
+            <local:CheckButton Click="OnFilter" IsChecked="{Binding IsFiltered, Mode=OneWay}" Content="{StaticResource PathFilter}" Style="{StaticResource CheckButtonStyle}" Margin="0,0,0,0">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Sort"/>
+                </ToolTipService.ToolTip>
+            </local:CheckButton>
         </StackPanel>
 
         
@@ -124,6 +190,7 @@
                                 <MenuItem Header="Edit or Create Trimming (_E)" InputGestureText="Ctrl+E" Command="{x:Static local:MainWindow.CreateTrimming}"/>
                                 <MenuItem Header="Apply Existing Trimming (_J)" InputGestureText="Ctrl+J" Command="{x:Static local:MainWindow.ApplyTrimming}"/>
                                 <MenuItem Header="Reset Play Counter (_N)" InputGestureText="Ctrl+N" Command="{x:Static local:MainWindow.ResetCounter}"/>
+                                <MenuItem Header="Delete Files (_D)" InputGestureText="Ctrl+D" Command="{x:Static local:MainWindow.DeleteFiles}"/>
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>

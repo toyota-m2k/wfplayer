@@ -49,6 +49,7 @@ namespace wfPlayer
             }
 
         }
+
         public class Appender : IDisposable
         {
             private SQLiteCommand mCmd;
@@ -93,100 +94,139 @@ namespace wfPlayer
             }
         }
 
-        public class Retriever : IDisposable, IEnumerator<WfFileItem>, IEnumerable<WfFileItem>
-        {
-            SQLiteDataReader mReader;
-            bool mHasValue;
-            WfFileItem mValue;
-            bool mUpdateExistsFlag;
+        public class Remover : IDisposable {
+            private SQLiteCommand mCmd;
+            private Txn mTxn;
+            internal Remover(SQLiteCommand cmd, Txn txn) {
+                mCmd = cmd;
+                mTxn = txn;
+            }
 
-            internal void ReadOne()
-            {
-                mHasValue = mReader.Read();
-                if(mHasValue)
-                {
-                    var path = Convert.ToString(mReader["path"]);
-                    bool exists = true;
-                    if(mUpdateExistsFlag)
-                    {
-                        exists = File.Exists(path);
-                    }
-                    long lastPlay = Convert.ToInt64(mReader["lastPlay"]);
-                    DateTime lastPlayDate = (lastPlay == 0) ? DateTime.MinValue : DateTime.FromFileTimeUtc(lastPlay);
+            public void Dispose() {
+                mCmd?.Dispose();
+                mTxn?.Dispose();
+                mCmd = null;
+                mTxn = null;
+            }
 
-                    WfFileItem.Trim trim = WfFileItem.Trim.NoTrim;
-                    var rawTrimId = mReader["trim_id"];
-                    if (!(rawTrimId is DBNull))
-                    {
-                        long trimId = Convert.ToInt64(rawTrimId);
-                        if (trimId > 0)
-                        {
-                            try
-                            {
-                                trim = new WfFileItem.Trim(trimId, Convert.ToString(mReader["trim_name"]),
-                                    Convert.ToInt64(mReader["prologue"]), 
-                                    Convert.ToInt64(mReader["epilogue"]),
-                                    refPath:"");
-                            }
-                            catch (SQLiteException)
-                            {
-                                trim = WfFileItem.Trim.NoTrim;
-                            }
-                        }
-                    }
-
-                    mValue = new WfFileItem(
-                                    path,
-                                    Convert.ToInt64(mReader["size"]),
-                                    DateTime.FromFileTimeUtc(Convert.ToInt64(mReader["date"])),
-                                    Convert.ToString(mReader["mark"]),
-                                    (Ratings)Convert.ToInt32(mReader["rating"]),
-                                    exists,
-                                    lastPlayDate,
-                                    Convert.ToInt32(mReader["playCount"]),
-                                    trim,
-                                    (WfAspect)Convert.ToInt32(mReader["aspect"])
-                                    );
+            public bool Remove(string path) {
+                try {
+                    mCmd.CommandText = $"DELETE FROM t_playlist WHERE path='{path}'";
+                    return 1 == mCmd.ExecuteNonQuery();
+                } catch (SQLiteException) {
+                    return false;
                 }
             }
 
-            internal Retriever(SQLiteDataReader reader, bool checkExists)
+            public void Rollback() {
+                mTxn.Rollback();
+                Dispose();
+            }
+
+            public void Commit() {
+                Dispose();
+            }
+        }
+
+        public class Retriever : IDisposable // , IEnumerator<WfFileItem>, IEnumerable<WfFileItem>
+        {
+            SQLiteCommand mCmd;
+            //SQLiteDataReader mReader;
+            //bool mHasValue = true;
+            //WfFileItem mValue;
+            bool mUpdateExistsFlag;
+
+            private bool ReadOne(SQLiteDataReader reader, out WfFileItem rec) {
+                rec = null;
+                if (!reader.Read()) {
+                    return false;
+                }
+                var path = Convert.ToString(reader["path"]);
+                bool exists = true;
+                if (mUpdateExistsFlag) {
+                    exists = File.Exists(path);
+                }
+                long lastPlay = Convert.ToInt64(reader["lastPlay"]);
+                DateTime lastPlayDate = (lastPlay == 0) ? DateTime.MinValue : DateTime.FromFileTimeUtc(lastPlay);
+
+                WfFileItem.Trim trim = WfFileItem.Trim.NoTrim;
+                var rawTrimId = reader["trim_id"];
+                if (!(rawTrimId is DBNull)) {
+                    long trimId = Convert.ToInt64(rawTrimId);
+                    if (trimId > 0) {
+                        try {
+                            trim = new WfFileItem.Trim(trimId, Convert.ToString(reader["trim_name"]),
+                                Convert.ToInt64(reader["prologue"]),
+                                Convert.ToInt64(reader["epilogue"]),
+                                refPath: "");
+                        } catch (SQLiteException) {
+                            trim = WfFileItem.Trim.NoTrim;
+                        }
+                    }
+                }
+
+                rec = new WfFileItem(
+                                path,
+                                Convert.ToInt64(reader["size"]),
+                                DateTime.FromFileTimeUtc(Convert.ToInt64(reader["date"])),
+                                Convert.ToString(reader["mark"]),
+                                (Ratings)Convert.ToInt32(reader["rating"]),
+                                exists,
+                                lastPlayDate,
+                                Convert.ToInt32(reader["playCount"]),
+                                trim,
+                                (WfAspect)Convert.ToInt32(reader["aspect"])
+                                );
+                return true;
+            }
+
+            internal Retriever(SQLiteCommand cmd, bool checkExists)
             {
+                mCmd = cmd;
                 mUpdateExistsFlag = checkExists;
-                mReader = reader;
-                ReadOne();
             }
             public void Dispose()
             {
-                mReader?.Close();
-                mReader = null;
+                mCmd.Dispose();
+                mCmd = null;
             }
 
-            public WfFileItem Current => mValue;
-
-            object IEnumerator.Current => mValue;
-
-
-            public bool MoveNext()
-            {
-                ReadOne();
-                return mHasValue;
+            public IEnumerable<WfFileItem> List {
+                get {
+                    using (var reader = mCmd.ExecuteReader()) {
+                        WfFileItem result;
+                        while (ReadOne(reader, out result)) {
+                            yield return result;
+                        }
+                    }
+                }
             }
 
-            public void Reset()
-            {
-                Debug.WriteLine("WfPlayerListDB.Retriever not supprot Reset()");
-            }
+            //public WfFileItem Current => mValue;
 
-            public IEnumerator<WfFileItem> GetEnumerator()
-            {
-                return this;
-            }
+            //object IEnumerator.Current => mValue;
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this;
-            }
+
+            //public bool MoveNext()
+            //{
+            //    ReadOne();
+            //    return mHasValue;
+            //}
+
+            //public void Reset()
+            //{
+            //    Debug.WriteLine("WfPlayerListDB.Retriever not supprot Reset()");
+            //}
+
+            //public IEnumerator<WfFileItem> GetEnumerator()
+            //{
+            //    return this;
+            //}
+
+            //IEnumerator IEnumerable.GetEnumerator()
+            //{
+            //    return this;
+            //}
         }
 
         public static WfPlayListDB Instance { get; private set; } = null;
@@ -357,11 +397,28 @@ namespace wfPlayer
             return new Appender(cmd, txn);
         }
 
+        public Remover BeginRemove() {
+            var txn = Transaction();
+            var cmd = mDB.CreateCommand();
+            return new Remover(cmd, txn);
+        }
+
         public Retriever QueryAll(bool updateExists, string filter="", string orderBy="")
         {
             var cmd = mDB.CreateCommand();
             cmd.CommandText = $"SELECT * FROM t_playlist LEFT OUTER JOIN t_trim_patterns on t_playlist.trimming=t_trim_patterns.trim_id {filter} {orderBy}";
-            return new Retriever(cmd.ExecuteReader(), updateExists);
+            return new Retriever(cmd, updateExists);
+        }
+
+        public IEnumerable<string> ListTargetFolders() {
+            using (var cmd = mDB.CreateCommand()) {
+                cmd.CommandText = $"SELECT * from t_target_folders";
+                using (SQLiteDataReader reader = cmd.ExecuteReader()) {
+                    while (reader.Read()) {
+                        yield return Convert.ToString(reader["path"]);
+                    }
+                }
+            }
         }
 
         public void UpdatePlaylistItem(WfFileItem item, long flags)
