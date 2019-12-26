@@ -674,7 +674,7 @@ namespace wfPlayer
                 Shuffle();
                 return;
             }
-            if (prev.Key == next.Key)
+            if (prev.Key == next.Key && !prev.Shuffle)
             {
                 if (prev.Order != next.Order)
                 {
