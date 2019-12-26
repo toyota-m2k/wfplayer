@@ -287,7 +287,7 @@ namespace wfPlayer
         private void UpdateColumnHeaderOnSort(WfSortInfo info) {
             InitHeaderColumnDic();
             foreach (var v in mHeaderColumnDic) {
-                if (v.Key == info.Key) {
+                if (v.Key == info.Key && !info.Shuffle) {
                     v.Value.Tag = info.Order == WfSortOrder.ASCENDING ? "asc" : "desc";
                 } else {
                     v.Value.Tag = null;
@@ -487,6 +487,7 @@ namespace wfPlayer
                 filter = WfGlobalParams.Instance.Filter.SQL;
             }
             var orderBy = WfGlobalParams.Instance.SortInfo.SQL;
+            var shuffle = WfGlobalParams.Instance.SortInfo.Shuffle;
 
             mFileList.Clear();
             InitSorter();
@@ -494,6 +495,9 @@ namespace wfPlayer
                 foreach (var item in retriever.List) {
                     mSorter.Add(item);
                 }
+            }
+            if(shuffle) {
+                Shuffle();
             }
             EnsureSelectItem();
         }
@@ -666,6 +670,10 @@ namespace wfPlayer
                 return;
             }
             WfGlobalParams.Instance.SortInfo = next;
+            if (next.Shuffle) {
+                Shuffle();
+                return;
+            }
             if (prev.Key == next.Key)
             {
                 if (prev.Order != next.Order)
@@ -685,6 +693,19 @@ namespace wfPlayer
                 {
                     LoadListFromDB();
                 }
+            }
+        }
+
+        private void Shuffle() {
+            //Fisher-Yatesアルゴリズムでシャッフルする
+            Random rnd = new Random();
+            int n = mFileList.Count;
+            while (n > 1) {
+                n--;
+                int k = rnd.Next(n + 1);
+                var tmp = mFileList[k];
+                mFileList[k] = mFileList[n];
+                mFileList[n] = tmp;
             }
         }
 

@@ -61,6 +61,7 @@ namespace wfPlayer
 
         private WfSortOrder mOrder = WfSortOrder.ASCENDING;
         private WfSortKey mKey = WfSortKey.NONE;
+        private bool mShuffle = false;
         public WfSortOrder Order
         {
             get => mOrder;
@@ -71,15 +72,20 @@ namespace wfPlayer
             get => mKey;
             set => setProp("Key", ref mKey, value);
         }
+        public bool Shuffle {
+            get => mShuffle;
+            set => setProp("Shuffle", ref mShuffle, value);
+        }
         
         public WfSortInfo()
         {
 
         }
-        public WfSortInfo(WfSortKey key, WfSortOrder order)
+        public WfSortInfo(WfSortKey key, WfSortOrder order, bool shuffle)
         {
             mKey = key;
             mOrder = order;
+            mShuffle = shuffle;
         }
 
         public WfSortInfo Clone()
@@ -87,6 +93,7 @@ namespace wfPlayer
             var r = new WfSortInfo();
             r.Order = this.Order;
             r.Key = this.Key;
+            r.Shuffle = this.Shuffle;
             return r;
         }
 
@@ -97,7 +104,7 @@ namespace wfPlayer
             {
                 return false;
             }
-            return s.Key == Key && s.Order == Order;
+            return s.Key == Key && s.Order == Order && s.Shuffle == Shuffle;
         }
 
         public override int GetHashCode()
@@ -105,6 +112,7 @@ namespace wfPlayer
             var hashCode = 740128291;
             hashCode = hashCode * -1521134295 + Order.GetHashCode();
             hashCode = hashCode * -1521134295 + Key.GetHashCode();
+            hashCode = hashCode * -1521134295 + Shuffle.GetHashCode();
             return hashCode;
         }
 

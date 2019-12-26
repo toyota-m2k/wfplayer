@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:wfPlayer"
         mc:Ignorable="d"
-        Title="Sort" Height="320" Width="328">
+        SizeToContent="WidthAndHeight"
+        Title="Sort">
     <Window.Resources>
         <ResourceDictionary Source="WfResource.xaml"/>
     </Window.Resources>
@@ -18,37 +19,38 @@
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Margin="10" Orientation="Horizontal">
-                    <RadioButton Content="Ascending" GroupName="Asc" IsChecked="{Binding Order, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=ASCENDING}" Foreground="White" Margin="0,0,20,0"/>
+                    <RadioButton Content="Ascending" GroupName="Asc" IsChecked="{Binding Order, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=ASCENDING}" Foreground="White" Margin="0,0,20,0" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="10" Orientation="Horizontal">
-                    <RadioButton Content="Descending" GroupName="Asc" IsChecked="{Binding Order, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=DESCENDING}" Foreground="White"/>
+                    <RadioButton Content="Descending" GroupName="Asc" IsChecked="{Binding Order, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=DESCENDING}" Foreground="White"  IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
                 </StackPanel>
             </Grid>
-            <TextBlock Text="KEY" Foreground="White" FontWeight="Bold" Margin="0,0,0,8"/>
+            <TextBlock Text="KEY" Foreground="White" FontWeight="Bold" Margin="0,8"/>
             <Grid Background="Gray">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Margin="10" Orientation="Vertical">
-                    <RadioButton Content="None (id)" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=NONE}" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Path" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=PATH}" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Name" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=NAME}" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Type" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=TYPE}" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Rating" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=RATING}" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="None (id)" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=NONE}" Foreground="White" Margin="0,0,0,8" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
+                    <RadioButton Content="Path" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=PATH}" Foreground="White" Margin="0,0,0,8" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
+                    <RadioButton Content="Name" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=NAME}" Foreground="White" Margin="0,0,0,8" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
+                    <RadioButton Content="Type" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=TYPE}" Foreground="White" Margin="0,0,0,8" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
+                    <RadioButton Content="Rating" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=RATING}" Foreground="White" Margin="0,0,0,8" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="10" Orientation="Vertical">
-                    <RadioButton Content="Play Count" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=PLAY_COUNT}" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Last Play" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=LAST_PLAY}" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="File Date" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=DATE}" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Size" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=SIZE}" Foreground="White" Margin="0,0,0,8"/>
-                    <RadioButton Content="Trimming" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=TRIMMING}" Foreground="White" Margin="0,0,0,8"/>
+                    <RadioButton Content="Play Count" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=PLAY_COUNT}" Foreground="White" Margin="0,0,0,8" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
+                    <RadioButton Content="Last Play" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=LAST_PLAY}" Foreground="White" Margin="0,0,0,8" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
+                    <RadioButton Content="File Date" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=DATE}" Foreground="White" Margin="0,0,0,8" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
+                    <RadioButton Content="Size" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=SIZE}" Foreground="White" Margin="0,0,0,8" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
+                    <RadioButton Content="Trimming" GroupName="Key" IsChecked="{Binding Key, Converter={StaticResource EnumBooleanConverter}, Mode=TwoWay, ConverterParameter=TRIMMING}" Foreground="White" Margin="0,0,0,8" IsEnabled="{Binding Shuffle, Converter={StaticResource NegBoolConverter}}"/>
                 </StackPanel>
             </Grid>
 
+            <CheckBox Content="Shuffle" IsChecked="{Binding Shuffle, Mode=TwoWay}" Margin="0,8" Foreground="White"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-                <Button Content="OK" Click="OnOK" Width="60" Margin="0,0,8,0"/>
-                <Button Content="Cancel" Width="60" Click="OnCancel"/>
+                <Button Content="OK" Click="OnOK" Width="60" Margin="0,10" VerticalAlignment="Center"/>
+                <Button Content="Cancel" Width="60" Click="OnCancel" VerticalAlignment="Center"/>
             </StackPanel>
         </StackPanel>
     </Grid>
