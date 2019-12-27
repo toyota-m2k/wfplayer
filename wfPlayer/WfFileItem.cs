@@ -331,4 +331,11 @@ namespace wfPlayer
         //    }
         //}
     }
+
+    public static class TrimExtension {
+        public static WfFileItem.Trim ToTrim(this ITrim src) {
+            return new WfFileItem.Trim(src.Id, src.Name, src.Prologue, src.Epilogue, src.RefPath);
+        }
+
+    }
 }
