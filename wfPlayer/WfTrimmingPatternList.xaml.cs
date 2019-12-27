@@ -79,8 +79,11 @@ namespace wfPlayer
         private void OnContentRendered(object sender, EventArgs e)
         {
             mTPListView.Focus();
-            var item = mTPListView.ItemContainerGenerator.ContainerFromIndex(mTPListView.SelectedIndex) as System.Windows.Controls.ListViewItem;
-            item?.Focus();
+            var index = mTPListView.SelectedIndex;
+            if (0 <= index && index < mList.Count) {
+                var item = mTPListView.ItemContainerGenerator.ContainerFromIndex(mTPListView.SelectedIndex) as System.Windows.Controls.ListViewItem;
+                item?.Focus();
+            }
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)

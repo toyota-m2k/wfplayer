@@ -301,12 +301,13 @@ namespace wfPlayer
          * ファイル選択ダイアログを開いてDBファイルを選択して開く
          */
         private void SelectDB() {
-            var dlg = new OpenFileDialog();
-            dlg.Filter = "WfPlayer Data (.wpd)|*.wpd|All Files (*.*)|*.*";
-            dlg.CheckFileExists = false;
-            dlg.DefaultExt = "wpd";
-            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
-                OpenDB(dlg.SafeFileName);
+            var dlg = new CommonOpenFileDialog();
+            dlg.DefaultExtension = ".wpd";
+            dlg.RestoreDirectory = true;
+            dlg.Filters.Add(new CommonFileDialogFilter("wfPlayer DB", "*.wpd"));
+            dlg.Filters.Add(new CommonFileDialogFilter("All Files", "*.*"));
+            if (dlg.ShowDialog(GetWindow(this)) == CommonFileDialogResult.Ok) {
+                OpenDB(dlg.FileName);
             }
         }
 
