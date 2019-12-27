@@ -504,6 +504,9 @@ namespace wfPlayer
             Close();
         }
 
+        /**
+         * 新しくトリミングパターンを作成登録して、選択アイテムにセットする
+         */
         private void OnRegister(object sender, RoutedEventArgs e)
         {
             if (!IsValid)
@@ -528,6 +531,9 @@ namespace wfPlayer
             }
         }
 
+        /**
+         * 選択されているトリミングパターンの内容を更新してして、選択アイテムにセットする
+         */
         private void OnUpdate(object sender, RoutedEventArgs e)
         {
             if (!IsValid || !HasTarget)
@@ -552,6 +558,9 @@ namespace wfPlayer
             }
         }
 
+        /**
+         * 選択されているトリミングパターンを、そのまま選択アイテムにセットする
+         */
         private void OnApply(object sender, RoutedEventArgs e) {
             if (EditMode) {
                 return;
