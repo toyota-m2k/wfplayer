@@ -33,8 +33,8 @@
             LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Uniform"
             ScrubbingEnabled="True"
             Name="mMediaElement" MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed"
-            Volume="{Binding Volume, Mode=OneWay}"
-            IsMuted="{Binding Mute, Mode=OneWay}"
+            Volume="{Binding Volume.Value, Mode=OneWay}"
+            IsMuted="{Binding Mute.Value, Mode=OneWay}"
             />
         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="8">
             <Grid.ColumnDefinitions>
@@ -42,29 +42,29 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Stretch">
-                <local:CheckButton Click="OnPlay" IsChecked="{Binding Started, Mode=OneWay}" IsEnabled="{Binding IsReady}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
-                <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" IsEnabled="{Binding Started}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
-                <Button Click="OnStop"  IsEnabled="{Binding Started}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}" Margin="0,0,8,0"/>
+                <local:CheckButton Click="OnPlay" IsChecked="{Binding Started.Value, Mode=OneWay}" IsEnabled="{Binding IsReady.Value}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
+                <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing.Value, Mode=OneWay}" IsEnabled="{Binding Started.Value}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
+                <Button Click="OnStop"  IsEnabled="{Binding Started.Value}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}" Margin="0,0,8,0"/>
 
-                <Button Click="OnStepBack2"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepBack2}" Style="{StaticResource PushButtonStyle}"/>
-                <Button Click="OnStepBack"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepBack}" Style="{StaticResource PushButtonStyle}"/>
-                <Button Click="OnStepForward"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepForward}" Style="{StaticResource PushButtonStyle}"/>
-                <Button Click="OnStepForward2"  IsEnabled="{Binding IsReady}" Content="{StaticResource PathStepForward2}" Style="{StaticResource PushButtonStyle}" Margin="0,0,8,0"/>
+                <Button Click="OnStepBack2"  IsEnabled="{Binding IsReady.Value}" Content="{StaticResource PathStepBack2}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnStepBack"  IsEnabled="{Binding IsReady.Value}" Content="{StaticResource PathStepBack}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnStepForward"  IsEnabled="{Binding IsReady.Value}" Content="{StaticResource PathStepForward}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnStepForward2"  IsEnabled="{Binding IsReady.Value}" Content="{StaticResource PathStepForward2}" Style="{StaticResource PushButtonStyle}" Margin="0,0,8,0"/>
 
-                <Button Click="OnPrev" IsEnabled="{Binding HasPrev}" Visibility="{Binding EditMode, Converter={StaticResource NegBoolVisibilityConverter}}" Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}"/>
-                <Button Click="OnNext" IsEnabled="{Binding HasNext}" Visibility="{Binding EditMode, Converter={StaticResource NegBoolVisibilityConverter}}" Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnPrev" IsEnabled="{Binding HasPrev.Value}" Visibility="{Binding EditMode.Value, Converter={StaticResource NegBoolVisibilityConverter}}" Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnNext" IsEnabled="{Binding HasNext}" Visibility="{Binding EditMode.Value, Converter={StaticResource NegBoolVisibilityConverter}}" Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
             </StackPanel>
-            <ToggleButton Grid.Column="1" IsChecked="{Binding Mute}" Content="{StaticResource PathMute}" Style="{StaticResource ToggleButtonStyle}" HorizontalAlignment="Right"/>
+            <ToggleButton Grid.Column="1" IsChecked="{Binding Mute.Value}" Content="{StaticResource PathMute}" Style="{StaticResource ToggleButtonStyle}" HorizontalAlignment="Right"/>
         </Grid>
         <local:TimelineSlider Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" 
             x:Name="mPositionSlider" ValueChanged="OnSliderValueChanged" 
-            Minimum="0" Maximum="{Binding Duration}" 
-            LargeChange="{Binding LargePositionChange}" SmallChange="{Binding SmallPositionChange}" 
+            Minimum="0" Maximum="{Binding Duration.Value}" 
+            LargeChange="{Binding LargePositionChange.Value}" SmallChange="{Binding SmallPositionChange.Value}" 
             DragStateChanged="OnSliderDragStateChanged" Margin="8"/>
         <TextBlock Grid.Row="3" Grid.Column="0" Text="Prologue" Margin="8" Foreground="White" FontWeight="Bold"/>
         <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" Margin="8,0,8,8">
-            <CheckBox Content="Enabled" Name="mStartCheck" IsChecked="{Binding TrimStartEnabled, Mode=TwoWay}" Foreground="White" VerticalAlignment="Center"/>
-            <TextBox Text="{Binding TrimStart}" IsReadOnly="True" Width="150" Margin="8,0,0,0"/>
+            <CheckBox Content="Enabled" Name="mStartCheck" IsChecked="{Binding PrologueEnabled.Value, Mode=TwoWay}" Foreground="White" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding Prologue.Value}" IsReadOnly="True" Width="150" Margin="8,0,0,0"/>
             <Button Click="OnSetTrimStart" IsEnabled="{Binding Path=IsChecked, ElementName=mStartCheck}"  Content="{StaticResource PathRoundArrow1}" Style="{StaticResource SmallPushButtonStyle}">
                 <Button.LayoutTransform>
                     <RotateTransform CenterX="0.5" CenterY="0.5" Angle="180"/>
@@ -74,8 +74,8 @@
         </StackPanel>
         <TextBlock Grid.Row="3" Grid.Column="1" Text="Epilogue" Margin="8" Foreground="White" FontWeight="Bold"/>
         <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="8,0,8,8">
-            <CheckBox Content="Enabled" Name="mEndCheck" IsChecked="{Binding TrimEndEnabled, Mode=TwoWay}" Foreground="White" VerticalAlignment="Center"/>
-            <TextBox Text="{Binding TrimEnd}" IsReadOnly="True" Width="150" Margin="8,0,0,0"/>
+            <CheckBox Content="Enabled" Name="mEndCheck" IsChecked="{Binding EpilogueEnabled.Value, Mode=TwoWay}" Foreground="White" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding Epilogue.Value}" IsReadOnly="True" Width="150" Margin="8,0,0,0"/>
             <Button Click="OnSetTrimEnd" IsEnabled="{Binding Path=IsChecked, ElementName=mEndCheck}" Content="{StaticResource PathRoundArrow2}" Style="{StaticResource SmallPushButtonStyle}">
                 <Button.LayoutTransform>
                     <RotateTransform CenterX="0.5" CenterY="0.5" Angle="180"/>
@@ -85,19 +85,29 @@
         </StackPanel>
         <StackPanel Grid.Row="5" Grid.Column="0"  Orientation="Horizontal" Margin="8">
             <TextBlock Text="Trimming Name" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
-            <TextBox Text="{Binding TrimmingName, Mode=TwoWay}" Width="200" Margin="0,0,8,0"/>
-            <Button Content="Select" Padding="8,1" Margin="0,0,16,0" Click="OnSelect" Visibility="{Binding EditMode, Converter={StaticResource NegBoolVisibilityConverter}}"/>
+            <TextBox Text="{Binding TrimmingName.Value, Mode=TwoWay}" Width="200" Margin="0,0,8,0"/>
+            <Button Content="Select" Padding="8,1" Margin="0,0,16,0" 
+                    Command="{Binding CommandSelect}" 
+                    Visibility="{Binding EditMode.Value, Converter={StaticResource NegBoolVisibilityConverter}}"/>
         </StackPanel>
         <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
-            <Button Content="Apply" Padding="8,1" Margin="0,0,8,0" Click="OnApply" 
-                    IsEnabled="{Binding Modified, Converter={StaticResource NegBoolConverter}}" 
-                    Visibility="{Binding IsRegisteredTrim, Converter={StaticResource BoolVisibilityConverter}}"/>
-            <Button Content="Update" Padding="8,1" Margin="0,0,8,0" Click="OnUpdate" 
-                    IsEnabled="{Binding IsVaild}" 
-                    Visibility="{Binding HasTarget, Converter={StaticResource BoolVisibilityConverter}}"/>
-            <Button Content="Register" Padding="8,1" Margin="0,0,8,0" Click="OnRegister" 
-                    IsEnabled="{Binding IsValid}"/>
-            <Button Content="Cancel" Padding="8,1" Click="OnCancel"/>
+            <!-- Undo -->
+            <Button Command="{Binding CommandUndo}" Content="{StaticResource PathUndo}" Style="{StaticResource PushButtonStyle}" Margin="0,0,16,0"
+                    Visibility="{Binding CanUndo.Value, Converter={StaticResource BoolVisibilityConverter}}"
+                    />
+
+            <!-- Apply -->
+            <Button Content="Apply" Padding="8,1" Margin="0,0,8,0"
+                    Command="{Binding CommandApply}"
+                    Visibility="{Binding CanApply.Value, Converter={StaticResource BoolVisibilityConverter}}"/>
+            <Button Content="Update" Padding="8,1" Margin="0,0,8,0"
+                    Command="{Binding CommandUpdate}"
+                    Visibility="{Binding CanUpdate.Value, Converter={StaticResource BoolVisibilityConverter}}"/>
+            <Button Content="Register" Padding="8,1" Margin="0,0,8,0"
+                    Command="{Binding CommandRegister}"
+                    Visibility="{Binding CanRegister.Value, Converter={StaticResource BoolVisibilityConverter}}"/>
+            <Button Content="Cancel" Padding="8,1" 
+                    Command="{Binding CommandCancel}"/>
         </StackPanel>
     </Grid>
 </Window>

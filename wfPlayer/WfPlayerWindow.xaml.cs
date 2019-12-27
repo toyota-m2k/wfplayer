@@ -1258,7 +1258,7 @@ namespace wfPlayer
             var tp = new WfTrimmingPlayer(item.Trimming, WfTrimmingPlayer.GetRefPath(item.Trimming, item.FullPath, true));
             WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
             {
-                item.Trimming = tp.Result;
+                item.Trimming = result;
                 //db.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
                 item.SaveModified();
                 notify("TrimmingEnabled");
