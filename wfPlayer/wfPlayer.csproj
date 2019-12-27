@@ -105,6 +105,13 @@
     <Compile Include="GeCommand.cs" />
     <Compile Include="MenuButton.cs" />
     <Compile Include="NumericTextBox.cs" />
+    <Compile Include="reactive\IHasErrors.cs" />
+    <Compile Include="reactive\IReactiveProperty.cs" />
+    <Compile Include="reactive\IReadOnlyReactiveProperty.cs" />
+    <Compile Include="reactive\ReactiveCommand.cs" />
+    <Compile Include="reactive\ReactiveProperty.cs" />
+    <Compile Include="reactive\ReactivePropertyScheduler.cs" />
+    <Compile Include="reactive\UIDispatcherScheduler.cs" />
     <Compile Include="server\lib\HttpBuilder.cs" />
     <Compile Include="server\lib\HttpProcessor.cs" />
     <Compile Include="server\lib\HttpServer.cs" />
