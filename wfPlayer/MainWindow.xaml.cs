@@ -353,8 +353,14 @@ namespace wfPlayer
             }
             // リストからも削除
             // 追加ファイルがあれば登録
+            bool add = false;
             foreach (var folder in mPlayListDB.ListTargetFolders()) {
                 RegisterFilesInPath(folder);
+                add = true;
+            }
+
+            if(add) {
+                ExecSort(WfGlobalParams.Instance.SortInfo, force: true);
             }
         }
 
@@ -662,11 +668,10 @@ namespace wfPlayer
             }
         }
 
-        private void ExecSort(WfSortInfo next)
+        private void ExecSort(WfSortInfo next, bool force=false)
         {
             var prev = WfGlobalParams.Instance.SortInfo;
-            if(prev == next)
-            {
+            if (!force && prev == next) {
                 return;
             }
             WfGlobalParams.Instance.SortInfo = next;
@@ -674,7 +679,7 @@ namespace wfPlayer
                 Shuffle();
                 return;
             }
-            if (prev.Key == next.Key && !prev.Shuffle)
+            if (!force && prev.Key == next.Key && !prev.Shuffle)
             {
                 if (prev.Order != next.Order)
                 {
