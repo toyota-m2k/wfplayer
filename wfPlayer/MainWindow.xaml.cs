@@ -248,7 +248,6 @@ namespace wfPlayer
                 next.Order = prev.Order == WfSortOrder.ASCENDING ? WfSortOrder.DESCENDING : WfSortOrder.ASCENDING;
             }
             ExecSort(next);
-            UpdateColumnHeaderOnSort(next);
         }
 
         private static IEnumerable<T> FindVisualChildren<T>(DependencyObject depObj) where T : DependencyObject {
@@ -695,6 +694,7 @@ namespace wfPlayer
                     LoadListFromDB();
                 }
             }
+            UpdateColumnHeaderOnSort(next);
         }
 
         private void Shuffle() {
