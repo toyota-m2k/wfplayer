@@ -560,6 +560,7 @@ namespace wfPlayer
                     }
                 }
             }
+            ExecSort(WfGlobalParams.Instance.SortInfo, force: true);
         }
 
         /**
@@ -670,6 +671,9 @@ namespace wfPlayer
 
         private void ExecSort(WfSortInfo next, bool force=false)
         {
+            if(next==null) {
+                return;
+            }
             var prev = WfGlobalParams.Instance.SortInfo;
             if (!force && prev == next) {
                 return;
