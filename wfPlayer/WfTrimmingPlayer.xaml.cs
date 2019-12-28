@@ -87,6 +87,13 @@ namespace wfPlayer
                 CanUndo.Value = _CanUndo;
             }
 
+            public ITrim GetContinuousTrim() {
+                var trim = SelectedTrim.Value;
+                if (null == trim || !trim.HasValue) {
+                    trim = OriginalTrim;
+                }
+                return trim;
+            }
 
             // Trimming設定は有効か？
             private bool _IsAvailable {
@@ -142,7 +149,7 @@ namespace wfPlayer
             private bool _CanUndo {
                 get {
                     return IsSelectedTrimModified
-                        || (OriginalTrim != null && !OriginalTrim.Equals(SelectedTrim.Value));
+                        || (OriginalTrim != null && OriginalTrim.HasValue && !OriginalTrim.Equals(SelectedTrim.Value));
                 }
             }
 
@@ -160,13 +167,15 @@ namespace wfPlayer
             public ReactiveProperty<bool> EditMode { get; } = new ReactiveProperty<bool>(false);
             public ReactiveProperty<bool> HasNext { get; } = new ReactiveProperty<bool>(false);
             public ReactiveProperty<bool> HasPrev { get; } = new ReactiveProperty<bool>(false);
+            public ReactiveProperty<bool> Continuous { get; } = new ReactiveProperty<bool>(false);
 
             private IWfSourceList mSourceList = null;
             public IWfSourceList SourceList {
                 get => mSourceList;
                 set {
                     mSourceList = value;
-                    EditMode.Value = true;
+                    EditMode.Value = value == null;
+                    UpdateNextPrev();
                 }
             }
 
@@ -180,7 +189,7 @@ namespace wfPlayer
             public ReactiveProperty<bool> Playing { get; } = new ReactiveProperty<bool>(false);
 
             void SetTrimSettingsWith(ITrim trim) {
-                if (trim == null) {
+                if (trim == null || !trim.HasValue) {
                     if (OriginalTrim != null) {
                         SetTrimSettingsWith(OriginalTrim);
                     } else {
@@ -195,10 +204,16 @@ namespace wfPlayer
                     if (trim.Prologue > 0) {
                         Prologue.Value = trim.Prologue;
                         PrologueEnabled.Value = true;
+                    } else {
+                        Prologue.Value = 0;
+                        PrologueEnabled.Value = false;
                     }
                     if (trim.Epilogue > 0) {
                         Epilogue.Value = trim.Epilogue;
                         EpilogueEnabled.Value = true;
+                    } else {
+                        Epilogue.Value = 0;
+                        EpilogueEnabled.Value = false;
                     }
                 }
                 UpdateButtonStatus();
@@ -251,6 +266,7 @@ namespace wfPlayer
             public string VideoPath { get; set; } = null;
 
             public ReactiveProperty<ITrim> ResultTrim = new ReactiveProperty<ITrim>(null, ReactivePropertyMode.None);
+            public Subject<bool> FeedNext = new Subject<bool>();
 
             /**
              * 新しくトリミングパターンを作成登録して、選択アイテムにセットする
@@ -264,12 +280,14 @@ namespace wfPlayer
                     if (trim == null) {
                         return;
                     }
+                    ResultTrim.Value = trim;
                     if (!EditMode.Value) {
                         var item = SourceList.Current;
                         item.Trimming = trim;
                         item.SaveModified();
                     }
-                    ResultTrim.Value = trim;
+                    SelectedTrim.Value = trim;
+                    FeedNext.OnNext(true);
                 }
             }
 
@@ -285,12 +303,15 @@ namespace wfPlayer
                     if (trim== null) {
                         return;
                     }
+
+                    ResultTrim.Value = trim;
                     if (!EditMode.Value) {
                         var item = SourceList.Current;
                         item.Trimming = trim;
                         item.SaveModified();
                     }
-                    ResultTrim.Value = trim;
+                    SelectedTrim.Value = trim;
+                    FeedNext.OnNext(true);
                 }
             }
 
@@ -298,7 +319,7 @@ namespace wfPlayer
              * 選択されているトリミングパターンを、そのまま選択アイテムにセットする
              */
             private void ExecApply() {
-                if (CanApply.Value) {
+                if (!CanApply.Value) {
                     return;
                 }
                 var trim = WfPlayListDB.Instance.TP.Get(TrimmingName.Value);
@@ -306,12 +327,15 @@ namespace wfPlayer
                     var item = SourceList.Current;
                     item.Trimming = trim;
                     item.SaveModified();
+                    FeedNext.OnNext(true);
+                    SelectedTrim.Value = trim;
                 }
             }
 
 
             private void ExecCancel() {
                 ResultTrim.Value = null;
+                FeedNext.OnNext(false);
             }
 
             private void ExecSelect() {
@@ -389,9 +413,16 @@ namespace wfPlayer
                 if (v != null) {
                     OnResult?.Invoke(v, WfPlayListDB.Instance);
                 }
-                if (ViewModel.EditMode.Value) {
+            });
+            ViewModel.FeedNext.Subscribe((v) => {
+                if(!v || ViewModel.EditMode.Value) {
                     Close();
+                } else {
+                    OnNext(null, null);
                 }
+            });
+            ViewModel.Playing.Subscribe((v) => {
+                OnPlayingStateChanged(v);
             });
             InitializeComponent();
         }
@@ -410,11 +441,14 @@ namespace wfPlayer
         private async Task SetSourceToPlayer(string path=null) {
             ViewModel.Started.Value = false;
             ViewModel.Pausing.Value = false;
-            if(path!=null) {
+            if (path != null) {
                 ViewModel.VideoPath = path;
+            }
+            if(ViewModel.VideoPath!=null) { 
                 mVideoLoadingTask = new TaskCompletionSource<bool>();
                 mMediaElement.Source = new Uri(ViewModel.VideoPath);
                 mMediaElement.Position = TimeSpan.FromMilliseconds(0);
+                mPositionSlider.Value = 0;
                 mMediaElement.Play();
                 if (await mVideoLoadingTask.Task) {
                     mMediaElement.Pause();
@@ -426,13 +460,12 @@ namespace wfPlayer
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            PropertyChanged += OnBindingPropertyChanged;
             await SetSourceToPlayer();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            PropertyChanged -= OnBindingPropertyChanged;
+            ViewModel.Dispose();
             mVideoLoadingTask?.TrySetResult(false);
             mVideoLoadingTask = null;
         }
@@ -593,14 +626,6 @@ namespace wfPlayer
                         mMediaElement.Play();
                     }
                     break;
-            }
-        }
-
-        private void OnBindingPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "Playing")
-            {
-                OnPlayingStateChanged(ViewModel.Playing.Value);
             }
         }
 
@@ -779,7 +804,7 @@ namespace wfPlayer
         //    }
         //}
 
-        private async Task setTargetVideo(IWfSource source) {
+        private async Task SetTargetVideo(IWfSource source) {
             if(null==source) {
                 return;
             }
@@ -798,13 +823,21 @@ namespace wfPlayer
 
         private async void OnPrev(object sender, RoutedEventArgs e) {
             if(ViewModel.HasPrev.Value) {
-                await setTargetVideo(ViewModel.SourceList.Prev);
+                var trim = ViewModel.GetContinuousTrim();
+                await SetTargetVideo(ViewModel.SourceList.Prev);
+                if(ViewModel.Continuous.Value) {
+                    ViewModel.SelectedTrim.Value = trim;
+                }
             }
         }
 
         private async void OnNext(object sender, RoutedEventArgs e) {
             if (ViewModel.HasNext.Value) {
-                await setTargetVideo(ViewModel.SourceList.Next);
+                var trim = ViewModel.GetContinuousTrim();
+                await SetTargetVideo(ViewModel.SourceList.Next);
+                if (ViewModel.Continuous.Value) {
+                    ViewModel.SelectedTrim.Value = trim;
+                }
             }
         }
 

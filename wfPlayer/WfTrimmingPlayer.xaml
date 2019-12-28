@@ -81,33 +81,42 @@
                     <RotateTransform CenterX="0.5" CenterY="0.5" Angle="180"/>
                 </Button.LayoutTransform>
             </Button>
-            <Button Click="SeekToEpilogue" IsEnabled="{Binding Path=IsChecked, ElementName=mEndCheck}" Content="{StaticResource PathSeekTo2}" Style="{StaticResource SmallPushButtonStyle}"/>
+            <Button Click="SeekToEpilogue" IsEnabled="{Binding Path=IsChecked, ElementName=mEndCheck}" 
+                    Content="{StaticResource PathSeekTo2}" Style="{StaticResource SmallPushButtonStyle}"/>
         </StackPanel>
-        <StackPanel Grid.Row="5" Grid.Column="0"  Orientation="Horizontal" Margin="8">
-            <TextBlock Text="Trimming Name" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
-            <TextBox Text="{Binding TrimmingName.Value, Mode=TwoWay}" Width="200" Margin="0,0,8,0"/>
-            <Button Content="Select" Padding="8,1" Margin="0,0,16,0" 
+        <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2">
+            <StackPanel Grid.Row="5" Grid.Column="0"  Orientation="Horizontal" Margin="8" HorizontalAlignment="Left">
+                <TextBlock Text="Trimming Name" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding TrimmingName.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="0,0,8,0"/>
+                <Button Content="Select" Padding="8,1" Margin="0,0,8,0" 
                     Command="{Binding CommandSelect}" 
                     Visibility="{Binding EditMode.Value, Converter={StaticResource NegBoolVisibilityConverter}}"/>
-        </StackPanel>
-        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
-            <!-- Undo -->
-            <Button Command="{Binding CommandUndo}" Content="{StaticResource PathUndo}" Style="{StaticResource PushButtonStyle}" Margin="0,0,16,0"
-                    Visibility="{Binding CanUndo.Value, Converter={StaticResource BoolVisibilityConverter}}"
-                    />
 
-            <!-- Apply -->
-            <Button Content="Apply" Padding="8,1" Margin="0,0,8,0"
+                <!-- Undo -->
+                <Button Command="{Binding CommandUndo}" Content="{StaticResource PathUndo}" Style="{StaticResource SmallPushButtonStyle}" 
+                    Visibility="{Binding CanUndo.Value, Converter={StaticResource BoolVisibilityConverter}}"
+                    Margin="0,0,8,0"
+                    />
+                <CheckBox Content="Continuous" IsChecked="{Binding Continuous.Value, Mode=TwoWay}" Foreground="White" 
+                    VerticalAlignment="Center" Margin="0,0,16,0"
+                    Visibility="{Binding EditMode.Value, Converter={StaticResource NegBoolVisibilityConverter}}"
+                    />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+
+                <!-- Apply -->
+                <Button Content="Apply" Padding="8,1" Margin="0,0,8,0"
                     Command="{Binding CommandApply}"
                     Visibility="{Binding CanApply.Value, Converter={StaticResource BoolVisibilityConverter}}"/>
-            <Button Content="Update" Padding="8,1" Margin="0,0,8,0"
+                <Button Content="Update" Padding="8,1" Margin="0,0,8,0"
                     Command="{Binding CommandUpdate}"
                     Visibility="{Binding CanUpdate.Value, Converter={StaticResource BoolVisibilityConverter}}"/>
-            <Button Content="Register" Padding="8,1" Margin="0,0,8,0"
+                <Button Content="Register" Padding="8,1" Margin="0,0,8,0"
                     Command="{Binding CommandRegister}"
                     Visibility="{Binding CanRegister.Value, Converter={StaticResource BoolVisibilityConverter}}"/>
-            <Button Content="Cancel" Padding="8,1" 
+                <Button Content="Cancel" Padding="8,1" 
                     Command="{Binding CommandCancel}"/>
-        </StackPanel>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
