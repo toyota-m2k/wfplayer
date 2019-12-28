@@ -53,7 +53,14 @@ namespace wfPlayer
             public ReactiveProperty<bool> Mute { get; } = new ReactiveProperty<bool>(true);
 
             // もともとアイテムに設定されていたTrimPattern
-            public ITrim OriginalTrim { get; set; } = null;
+            private ITrim mOriginalTrim = null;
+            public ITrim OriginalTrim {
+                get => mOriginalTrim;
+                set {
+                    mOriginalTrim = value;
+                    SelectedTrim.Value = value;
+                }
+            }
 
             // 選択されたTrimPattern
             public ReactiveProperty<ITrim> SelectedTrim { get; } = new ReactiveProperty<ITrim>(null);
