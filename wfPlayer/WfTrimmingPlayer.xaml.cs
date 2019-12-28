@@ -190,7 +190,7 @@ namespace wfPlayer
 
             void SetTrimSettingsWith(ITrim trim) {
                 if (trim == null || !trim.HasValue) {
-                    if (OriginalTrim != null) {
+                    if (OriginalTrim != null && OriginalTrim.HasValue) {
                         SetTrimSettingsWith(OriginalTrim);
                     } else {
                         TrimmingName.Value = "";
