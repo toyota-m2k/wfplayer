@@ -174,7 +174,11 @@ namespace wfPlayer
         }
 
         private void OnPlayAll(object sender, RoutedEventArgs e) {
-            Play(true);
+            Play(start:true, preview:false);
+        }
+
+        private void OnPlayPreview(object sender, RoutedEventArgs e) {
+            Play(start: true, preview: true);
         }
 
         private void OnCreateTrimming(object sender, RoutedEventArgs e) {
@@ -201,7 +205,7 @@ namespace wfPlayer
 
 
         private void OnListItemDoubleClick(object sender, MouseButtonEventArgs e) {
-            Play(false);
+            Play(start:false, preview:true);
         }
         private WfSortKey HeaderName2SortKey(string name) {
             switch (name) {
@@ -367,10 +371,10 @@ namespace wfPlayer
         /**
          * 現在選択されているファイルから再生を開始する
          */
-        private void Play(bool start) {
+        private void Play(bool start, bool preview) {
             if (mFileList.Count > 0) {
                 Dispatcher.InvokeAsync(() => {
-                    var player = new WfPlayerWindow();
+                    var player = new WfPlayerWindow(preview);
                     mFileList.CurrentIndex = mFileListView.SelectedIndex;
                     player.SetSources(mFileList, start);
                     player.ShowDialog();
@@ -669,9 +673,8 @@ namespace wfPlayer
             }
         }
 
-        private void ExecSort(WfSortInfo next, bool force=false)
-        {
-            if(next==null) {
+        private void ExecSort(WfSortInfo next, bool force = false) {
+            if (next == null) {
                 return;
             }
             var prev = WfGlobalParams.Instance.SortInfo;
@@ -681,25 +684,16 @@ namespace wfPlayer
             WfGlobalParams.Instance.SortInfo = next;
             if (next.Shuffle) {
                 Shuffle();
-                return;
-            }
-            if (!force && prev.Key == next.Key && !prev.Shuffle)
-            {
-                if (prev.Order != next.Order)
-                {
+            } else if (!force && prev.Key == next.Key && !prev.Shuffle) {
+                if (prev.Order != next.Order) {
                     SaveCurrentSelection();
                     SetFileList(new WfFileItemList(mFileList.Reverse(), null));
                     EnsureSelectItem();
                 }
-            }
-            else
-            {
-                if (next.IsExternalKey)
-                {
+            } else {
+                if (next.IsExternalKey) {
                     InitSorter().Sort();
-                }
-                else
-                {
+                } else {
                     LoadListFromDB();
                 }
             }
@@ -776,7 +770,7 @@ namespace wfPlayer
             switch (e.Key)
             {
                 case Key.Return:
-                    Play(false);
+                    Play(start:false, preview:true);
                     break;
                 default:
                     return;

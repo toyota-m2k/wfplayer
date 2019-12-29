@@ -384,12 +384,9 @@ namespace wfPlayer
             mMediaElement.Position = TimeSpan.FromMilliseconds(rec.Trimming.Prologue);
             mMediaElement.Play();
             var r = await mVideoLoadingTaskSource.Task;
-            if (!startNow)
-            {
+            if (!startNow) {
                 mMediaElement.Pause();
-            }
-            else
-            {
+            } else if (!mPreviewMode) {
                 rec.Touch();
             }
             mVideoLoadingTaskSource = null;
@@ -533,7 +530,9 @@ namespace wfPlayer
             {
                 mMediaElement.Play();
                 Started = true;
-                Current?.Touch();
+                if (!mPreviewMode) {
+                    Current?.Touch();
+                }
             }
         }
 
@@ -553,7 +552,9 @@ namespace wfPlayer
             {
                 mMediaElement.Play();
                 Pausing = false;
-                Current?.Touch();
+                if (!mPreviewMode) {
+                    Current?.Touch();
+                }
             }
         }
 
@@ -595,9 +596,11 @@ namespace wfPlayer
 
         #region 初期化/解放
         private bool mLoaded = false;
+        private bool mPreviewMode = false;  // true にすると、再生時にCounterをインクリメントしない
 
-        public WfPlayerWindow()
+        public WfPlayerWindow(bool preview)
         {
+            mPreviewMode = preview;
             Duration = 1.0;
             //Rating = new RatingBindable(this);
             mSources = null;
@@ -844,18 +847,18 @@ namespace wfPlayer
 
         public string DurationText => FormatDuration(Duration);
 
-        private void OnSliderDragStateChanged(TimelineSlider.DragState state)
+        private void OnSliderDragStateChanged(TimelineSliderOld.DragState state)
         {
             switch(state)
             {
-                case TimelineSlider.DragState.START:
+                case TimelineSliderOld.DragState.START:
                     mDragging = true;
                     mMediaElement.Pause();
                     break;
-                case TimelineSlider.DragState.DRAGGING:
+                case TimelineSliderOld.DragState.DRAGGING:
                     updateTimelinePosition(mPositionSlider.Value, slider:false, player:true);
                     break;
-                case TimelineSlider.DragState.END:
+                case TimelineSliderOld.DragState.END:
                     updateTimelinePosition(mPositionSlider.Value, slider: false, player: true);
                     mDragging = false;
                     if (Playing)
@@ -1249,13 +1252,31 @@ namespace wfPlayer
 
         #region Trimming
 
+        private class SingleSourceList : IWfSourceList {
+            public bool HasNext => false;
+
+            public bool HasPrev => false;
+
+            public IWfSource Current { get; }
+
+            public IWfSource Next => null;
+
+            public IWfSource Prev => null;
+
+            public IWfSource Head => Current;
+
+            public SingleSourceList(IWfSource src) {
+                Current = src;
+            }
+        }
+
         private void EditTrimming(WfFileItem item)
         {
             if (null == item)
             {
                 return;
             }
-            var tp = new WfTrimmingPlayer(item.Trimming, WfTrimmingPlayer.GetRefPath(item.Trimming, item.FullPath, true));
+            var tp = new WfTrimmingPlayer(new SingleSourceList(item));
             WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
             {
                 item.Trimming = result;

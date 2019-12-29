@@ -122,6 +122,7 @@
     <Compile Include="server\WfServer.cs" />
     <Compile Include="server\WfServerEx.cs" />
     <Compile Include="TimelineSlider.cs" />
+    <Compile Include="TimelineSliderOld.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="UtObservableProperty.cs" />
     <Compile Include="WfFileItem.cs" />

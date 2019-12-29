@@ -334,7 +334,7 @@ namespace Reactive.Bindings
     /// <seealso cref="Reactive.Bindings.IReadOnlyReactiveProperty{T}"/>
     /// <seealso cref="Reactive.Bindings.IObserverLinkedList{T}"/>
     /// <seealso cref="System.IObserver{T}"/>
-    public class ReadOnlyReactivePropertySlim<T> : IReadOnlyReactiveProperty<T>, IObserverLinkedList<T>, IObserver<T>
+    public class ReadOnlyReactiveProperty<T> : IReadOnlyReactiveProperty<T>, IObserverLinkedList<T>, IObserver<T>
     {
         private const int IsDisposedFlagNumber = 1 << 9; // (reserve 0 ~ 8)
 
@@ -384,13 +384,13 @@ namespace Reactive.Bindings
         private bool IsRaiseLatestValueOnSubscribe => (mode & ReactivePropertyMode.RaiseLatestValueOnSubscribe) == ReactivePropertyMode.RaiseLatestValueOnSubscribe;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReadOnlyReactivePropertySlim{T}"/> class.
+        /// Initializes a new instance of the <see cref="ReadOnlyReactiveProperty{T}"/> class.
         /// </summary>
         /// <param name="source">The source.</param>
         /// <param name="initialValue">The initial value.</param>
         /// <param name="mode">The mode.</param>
         /// <param name="equalityComparer">The equality comparer.</param>
-        public ReadOnlyReactivePropertySlim(IObservable<T> source, T initialValue = default(T), ReactivePropertyMode mode = ReactivePropertyMode.DistinctUntilChanged | ReactivePropertyMode.RaiseLatestValueOnSubscribe, IEqualityComparer<T> equalityComparer = null)
+        public ReadOnlyReactiveProperty(IObservable<T> source, T initialValue = default(T), ReactivePropertyMode mode = ReactivePropertyMode.DistinctUntilChanged | ReactivePropertyMode.RaiseLatestValueOnSubscribe, IEqualityComparer<T> equalityComparer = null)
         {
             latestValue = initialValue;
             this.mode = mode;
@@ -552,9 +552,9 @@ namespace Reactive.Bindings
         /// <param name="mode">The mode.</param>
         /// <param name="equalityComparer">The equality comparer.</param>
         /// <returns></returns>
-        public static ReadOnlyReactivePropertySlim<T> ToReadOnlyReactivePropertySlim<T>(this IObservable<T> source, T initialValue = default(T), ReactivePropertyMode mode = ReactivePropertyMode.DistinctUntilChanged | ReactivePropertyMode.RaiseLatestValueOnSubscribe, IEqualityComparer<T> equalityComparer = null)
+        public static ReadOnlyReactiveProperty<T> ToReadOnlyReactiveProperty<T>(this IObservable<T> source, T initialValue = default(T), ReactivePropertyMode mode = ReactivePropertyMode.DistinctUntilChanged | ReactivePropertyMode.RaiseLatestValueOnSubscribe, IEqualityComparer<T> equalityComparer = null)
         {
-            return new ReadOnlyReactivePropertySlim<T>(source, initialValue, mode, equalityComparer);
+            return new ReadOnlyReactiveProperty<T>(source, initialValue, mode, equalityComparer);
         }
     }
 }

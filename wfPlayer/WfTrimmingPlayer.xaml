@@ -52,15 +52,15 @@
                 <Button Click="OnStepForward2"  IsEnabled="{Binding IsReady.Value}" Content="{StaticResource PathStepForward2}" Style="{StaticResource PushButtonStyle}" Margin="0,0,8,0"/>
 
                 <Button Click="OnPrev" IsEnabled="{Binding HasPrev.Value}" Visibility="{Binding EditMode.Value, Converter={StaticResource NegBoolVisibilityConverter}}" Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}"/>
-                <Button Click="OnNext" IsEnabled="{Binding HasNext}" Visibility="{Binding EditMode.Value, Converter={StaticResource NegBoolVisibilityConverter}}" Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
+                <Button Click="OnNext" IsEnabled="{Binding HasNext.Value}" Visibility="{Binding EditMode.Value, Converter={StaticResource NegBoolVisibilityConverter}}" Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
             </StackPanel>
             <ToggleButton Grid.Column="1" IsChecked="{Binding Mute.Value}" Content="{StaticResource PathMute}" Style="{StaticResource ToggleButtonStyle}" HorizontalAlignment="Right"/>
         </Grid>
         <local:TimelineSlider Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" 
-            x:Name="mPositionSlider" ValueChanged="OnSliderValueChanged" 
-            Minimum="0" Maximum="{Binding Duration.Value}" 
-            LargeChange="{Binding LargePositionChange.Value}" SmallChange="{Binding SmallPositionChange.Value}" 
-            DragStateChanged="OnSliderDragStateChanged" Margin="8"/>
+                x:Name="mPositionSlider" 
+                Minimum="0" Maximum="{Binding Duration.Value}" 
+                LargeChange="{Binding LargePositionChange.Value}" SmallChange="{Binding SmallPositionChange.Value}" 
+                Margin="8"/>
         <TextBlock Grid.Row="3" Grid.Column="0" Text="Prologue" Margin="8" Foreground="White" FontWeight="Bold"/>
         <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" Margin="8,0,8,8">
             <CheckBox Content="Enabled" Name="mStartCheck" IsChecked="{Binding PrologueEnabled.Value, Mode=TwoWay}" Foreground="White" VerticalAlignment="Center"/>

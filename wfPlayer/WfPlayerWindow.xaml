@@ -185,7 +185,7 @@
                         </MultiBinding>
                     </TextBlock.Text>
                 </TextBlock>
-                <local:TimelineSlider 
+                <local:TimelineSliderOld 
                     Grid.Row="0" Grid.Column="0"
                     VerticalAlignment="Center"
                     x:Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}"
