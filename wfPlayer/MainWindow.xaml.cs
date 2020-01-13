@@ -624,6 +624,14 @@ namespace wfPlayer
             e.CanExecute = mFileListView.SelectedIndex >= 0;
         }
 
+        private void SafeDeleteFile(string path) {
+            try {
+                File.Delete(path);
+            }catch(Exception e) {
+                Debug.WriteLine(e);
+            }
+        }
+
         private void DeleteFilesInList(IEnumerable<WfFileItem> list) {
             //if (!list.Any()) {
             //    return;
@@ -632,7 +640,7 @@ namespace wfPlayer
             using (var remover = mPlayListDB.BeginRemove()) {
                 foreach (WfFileItem v in list) {
                     remover.Remove(v.FullPath);
-                    File.Delete(v.FullPath);
+                    SafeDeleteFile(v.FullPath);
                     var idx = mFileList.IndexOfPath(v.FullPath);
                     if (idx >= 0) {
                         mFileList.RemoveAt(idx);
