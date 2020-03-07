@@ -94,6 +94,8 @@ namespace wfPlayer {
                 CommandUndo.Subscribe(ExecUndo);
                 CommandCancel.Subscribe(ExecCancel);
                 CommandSelect.Subscribe(ExecSelect);
+
+                Rating.Subscribe(ChangeRating);
             }
 
             #endregion
@@ -138,6 +140,7 @@ namespace wfPlayer {
             public void UpdateNextPrev() {
                 HasNext.Value = mSourceList?.HasNext ?? false;
                 HasPrev.Value = mSourceList?.HasPrev ?? false;
+                Rating.Value = SourceList?.Current?.Rating ?? Ratings.NORMAL;
             }
 
             // ボタン類の有効性チェック
@@ -192,6 +195,8 @@ namespace wfPlayer {
             public long RealEpilogue => EpilogueEnabled.Value ? Epilogue.Value : 0;
             public ReactiveProperty<ITrim> ResultTrim = new ReactiveProperty<ITrim>(null, ReactivePropertyMode.None);
 
+            public ReactiveProperty<Ratings> Rating { get; } = new ReactiveProperty<Ratings>(Ratings.NORMAL);
+
             #endregion
 
             #region Commands
@@ -210,6 +215,9 @@ namespace wfPlayer {
             public ReactiveCommand CommandRegister { get; } = new ReactiveCommand();
             public ReactiveCommand CommandCancel { get; } = new ReactiveCommand();
             public ReactiveCommand CommandSelect { get; } = new ReactiveCommand();
+
+            public ReactiveProperty<long> PrologueCandidate { get; } = new ReactiveProperty<long>(0);
+            public ReactiveProperty<long> EpilogueCandidate { get; } = new ReactiveProperty<long>(0);
 
             public double LargePositionChange => 5000;
             public double SmallPositionChange => 1000;
@@ -371,6 +379,14 @@ namespace wfPlayer {
                 }
             }
 
+            private void ChangeRating(Ratings rating) {
+                var item = SourceList?.Current;
+                if (item != null && item.Rating != rating) {
+                    item.Rating = rating;
+                    item.SaveModified();
+                }
+            }
+
 
             private void ExecCancel() {
                 ResultTrim.Value = null;
@@ -418,6 +434,8 @@ namespace wfPlayer {
                     if (owner != null) {
                         owner.mMediaElement.Position = TimeSpan.FromMilliseconds(value);
                     }
+                    PrologueCandidate.Value = (long)Math.Round(value);
+                    EpilogueCandidate.Value = (long)Math.Round(Duration.Value - value);
                 }
             }
 
@@ -487,7 +505,7 @@ namespace wfPlayer {
 
 
         public WfTrimmingPlayer(ITrim trim, string videoPath) {
-            InitViewModel(trim, videoPath, null);
+            InitViewModel(trim, videoPath, sourceList:null);
         }
 
         public WfTrimmingPlayer(IWfSourceList source) {
@@ -519,6 +537,7 @@ namespace wfPlayer {
         private async void OnLoaded(object sender, RoutedEventArgs e) {
             await SetSourceToPlayer();
             mPositionSlider.Initialize(ViewModel);
+
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e) {

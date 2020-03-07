@@ -17,7 +17,7 @@ namespace wfPlayer {
     }
 
     public class TimelineViewModel : WfViewModelBase {
-        public ReadOnlyReactiveProperty<bool> IsPlaying { get; set; }
+        public ReadOnlyReactiveProperty<bool> IsPlaying { get; private set; }
 
         private WeakReference<Slider> mSlider;
         private Slider OwnerSlider => mSlider?.GetValue();
