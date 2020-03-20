@@ -2,6 +2,7 @@ package com.michael.remocon
 
 import android.content.Context
 import android.preference.PreferenceManager
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -43,10 +44,12 @@ class WfClient() {
         }
     }
 
+    private val defaultAddress = "192.168.0.5"
+
     private val serverAddress:String
         get() {
-            val key = context?.getString(R.string.key_server_address) ?: return ""
-            return PreferenceManager.getDefaultSharedPreferences(context).getString(key, null) ?: "192.168.0.5"
+            val key = context?.getString(R.string.key_server_address) ?: return defaultAddress
+            return PreferenceManager.getDefaultSharedPreferences(context).getString(key, null) ?: defaultAddress
         }
 
 
@@ -60,13 +63,17 @@ class WfClient() {
                 .close()
             true
         } catch(e:Throwable) {
+            Log.e("WfClient", e.message);
+            Log.e("WfClient", "sendCommand error.")
             false
         }
     }
 
     fun postCommand(command:String) {
         CoroutineScope(Dispatchers.Default).launch {
-            sendCommand(command)
+            if(!sendCommand(command)) {
+                Log.e("WfClient", "postCommand error.")
+            }
         }
     }
 }
