@@ -1,6 +1,7 @@
 package com.michael.remocon
 
 import android.content.Context
+import android.util.Log
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,6 +61,7 @@ class WfClient() {
                 .close()
             true
         } catch(e:Throwable) {
+            Log.e("WfClient", e.message);
             false
         }
     }
