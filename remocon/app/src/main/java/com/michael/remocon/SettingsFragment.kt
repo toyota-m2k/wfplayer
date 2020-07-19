@@ -1,6 +1,6 @@
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import com.michael.remocon.R
