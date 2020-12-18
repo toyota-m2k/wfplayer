@@ -38,6 +38,38 @@
                           IsMuted="{Binding Mute, Mode=OneWay}"
                           />
         </Grid>
+        <Grid Grid.Column="2" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" 
+              Name="mSizingPanel"
+              Background="{StaticResource ControlPanelBG}" Opacity="1" 
+              MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave">
+            <Grid.Style>
+                <!-- Fade in/out effect -->
+                <Style TargetType="Grid">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShowSizingPanel}" Value="True">
+                            <DataTrigger.EnterActions>
+                                <StopStoryboard BeginStoryboardName="MouseLeaveStoryboard" />
+                                <BeginStoryboard Name="MouseOverStoryboard" Storyboard="{StaticResource MouseOverStoryboard}" />
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="MouseOverStoryboard" />
+                                <BeginStoryboard Name="MouseLeaveStoryboard" Storyboard="{StaticResource MouseLeaveStoryboard}" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <Button 
+                Visibility="{Binding WinMaximized, Converter={StaticResource NegBoolVisibilityConverter}}"
+                Content="{StaticResource PathWinMaximum}" 
+                Click="OnMaximizeWindow"
+                Style="{StaticResource PushButtonStyle}" Margin="20"/>
+            <Button 
+                Visibility="{Binding WinMaximized, Converter={StaticResource BoolVisibilityConverter}}"
+                Content="{StaticResource PathWinNormal}" 
+                Click="OnMaximizeWindow"
+                Style="{StaticResource PushButtonStyle}" Margin="20"/>
+        </Grid>
         <Grid Grid.Column="0" Grid.Row="0" Name="mStretchModePanel" 
               Background="{StaticResource ControlPanelBG}" Opacity="1" 
               MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave">

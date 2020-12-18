@@ -210,10 +210,16 @@ namespace wfPlayer
             get => mMouseInSliderPanel;
             set => setProp("MouseInSliderPanel", ref mMouseInSliderPanel, value, "ShowSliderPanel", "ShowPanel");
         }
+        private bool mMouseInSizingPanel = false;
+        public bool MouseInSizingPanel {
+            get => mMouseInSizingPanel;
+            set => setProp("MouseInSizingPanel", ref mMouseInSizingPanel, value, "ShowSizingPanel");
+        }
 
         public bool ShowPanel => MouseInPanel || MouseInSliderPanel || !Playing;
         public bool ShowSliderPanel => MouseInSliderPanel || MouseInPanel || !Playing || SliderPinned;
         public bool ShowStretchModePanel => MouseInStretchModePanel || !Playing;
+        public bool ShowSizingPanel => MouseInSizingPanel || !Playing;
 
 
         public bool HasNext => mSources?.HasNext ?? false;
@@ -362,7 +368,23 @@ namespace wfPlayer
             get => mSliderPinned;
             set => setProp("SliderPinned", ref mSliderPinned, value, "ShowSliderPanel");
         }
-        
+
+        private bool mWinMaximized = false;
+        public bool WinMaximized {
+            get => mWinMaximized;
+            set {
+                setProp("WinMaximized", ref mWinMaximized, value);
+                var win = Window.GetWindow(this);
+                if (value) {
+                    win.WindowStyle = WindowStyle.None;         // タイトルバーと境界線を表示しない
+                    win.WindowState = WindowState.Maximized;    // 最大化表示
+                } else {
+                    win.WindowStyle = WindowStyle.SingleBorderWindow;
+                    win.WindowState = WindowState.Normal;
+                }
+            }
+        }
+
         #endregion
 
         #region ビデオソース
@@ -604,8 +626,8 @@ namespace wfPlayer
             Duration = 1.0;
             //Rating = new RatingBindable(this);
             mSources = null;
-            mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel", "ShowStretchModePanel", "ShowSliderPanel");
-            mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel", "ShowStretchModePanel", "ShowSliderPanel");
+            mStarted = new UtObservableProperty<bool>("Started", false, this, "Playing", "ShowPanel", "ShowStretchModePanel", "ShowSliderPanel", "ShowSizingPanel");
+            mPausing = new UtObservableProperty<bool>("Pausing", false, this, "Playing", "ShowPanel", "ShowStretchModePanel", "ShowSliderPanel", "ShowSizingPanel");
             mCursorManager = new HidingCursor(this);
             InitKeyMap();
 
@@ -627,6 +649,7 @@ namespace wfPlayer
                 await InitSource(mAutoStart);
             }
             AllowRemoteControl = true;
+            WinMaximized = Window.GetWindow(this).WindowStyle == WindowStyle.None;
             OnStretchModeChanged();
         }
 
@@ -793,6 +816,11 @@ namespace wfPlayer
             //        break;
             //}
         }
+
+        private void OnMaximizeWindow(object sender, RoutedEventArgs e) {
+            WinMaximized = !WinMaximized;
+        }
+
         #endregion
 
         #region タイムラインスライダー操作
@@ -887,7 +915,7 @@ namespace wfPlayer
 
         private void OnPlayingStateChanged(bool playing)
         {
-            mCursorManager.Enabled = mCursorManager.Enabled = !MouseInPanel && !MouseInSliderPanel && !MouseInStretchModePanel && playing;
+            mCursorManager.Enabled = mCursorManager.Enabled = !MouseInPanel && !MouseInSliderPanel && !MouseInStretchModePanel && !MouseInSizingPanel && playing;
             if (playing)
             {
                 if (null == mPositionTimer)
@@ -1129,10 +1157,13 @@ namespace wfPlayer
                 case "mSliderPanel":
                     MouseInSliderPanel = enter;
                     break;
+                case "mSizingPanel":
+                    MouseInSizingPanel = enter;
+                    break;
                 default:
                     return false;
             }
-            mCursorManager.Enabled = !MouseInPanel && !MouseInStretchModePanel && Playing;
+            mCursorManager.Enabled = !MouseInPanel && !MouseInStretchModePanel && !MouseInSizingPanel && Playing;
             return true;
         }
         #endregion
