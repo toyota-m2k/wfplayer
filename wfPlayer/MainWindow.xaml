@@ -6,7 +6,6 @@
         xmlns:local="clr-namespace:wfPlayer"
         Loaded="OnLoaded"
         Unloaded="OnUnloaded"
-        Closing="OnClosing"
         PreviewKeyDown="OnKeyDown"
         ContentRendered="OnContentRendered"
         mc:Ignorable="d"

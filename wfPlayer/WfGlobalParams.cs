@@ -23,6 +23,8 @@ namespace wfPlayer
 
         public WfFilter Filter { get; set; } = new WfFilter();
 
+        public bool IsFiltered { get; set; } = false;
+
         public WfSortInfo SortInfo { get; set; } = new WfSortInfo();
 
         public List<string> MRU { get; set; } = new List<string>(12);

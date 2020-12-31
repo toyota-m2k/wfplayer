@@ -97,6 +97,7 @@ namespace wfPlayer
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e) {
+            IsFiltered = WfGlobalParams.Instance.IsFiltered;
             OpenDB(WfGlobalParams.Instance.FilePath);
             UpdateColumnHeaderOnSort(WfGlobalParams.Instance.SortInfo);
             CreateFileMenu();
@@ -141,10 +142,12 @@ namespace wfPlayer
             mFileList.CurrentChanged -= PlayingItemChanged;
         }
 
-        private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e) {
-            SaveCurrentSelection();
+        protected override void OnClosing(CancelEventArgs e) {
+            base.OnClosing(e);
+            WfGlobalParams.Instance.IsFiltered = IsFiltered;
             WfGlobalParams.Instance.Placement.GetPlacementFrom(this);
             WfGlobalParams.Instance.Serialize();
+            SaveCurrentSelection();
         }
 
         #endregion
