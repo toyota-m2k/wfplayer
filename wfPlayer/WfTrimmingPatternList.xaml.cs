@@ -54,7 +54,7 @@ namespace wfPlayer
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             mList = new ObservableCollection<WfFileItem.Trim>();
-            WfPlayListDB.Instance.TP.List(mList);
+            //WfPlayListDB.Instance.TP.List(mList);
             mTPListView.DataContext = mList;
             SelectItemByName(WfGlobalParams.Instance.LastSelectTrimmingName);
         }
@@ -144,7 +144,7 @@ namespace wfPlayer
             var removed = mList[index];
             using (var txn = WfPlayListDB.Instance.Transaction())
             {
-                WfPlayListDB.Instance.TP.Remove(removed.Name);
+                //WfPlayListDB.Instance.TP.Remove(removed.Name);
             }
             mList.RemoveAt(index);
         }

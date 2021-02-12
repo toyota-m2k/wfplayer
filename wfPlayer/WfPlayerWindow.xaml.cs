@@ -225,7 +225,7 @@ namespace wfPlayer
         public bool HasNext => mSources?.HasNext ?? false;
         public bool HasPrev => mSources?.HasPrev ?? false;
 
-        public bool TrimmingEnabled => Current?.Trimming?.HasValue ?? false;
+        public bool TrimmingEnabled => Current?.HasTrimming ?? false;
 
         /**
          * Ratings
@@ -403,7 +403,7 @@ namespace wfPlayer
             mMediaElement.Stop();
             mMediaElement.Close();
             mMediaElement.Source = rec.Uri;
-            mMediaElement.Position = TimeSpan.FromMilliseconds(rec.Trimming.Prologue);
+            mMediaElement.Position = TimeSpan.FromMilliseconds(rec.TrimStart);
             mMediaElement.Play();
             var r = await mVideoLoadingTaskSource.Task;
             if (!startNow) {
@@ -589,7 +589,7 @@ namespace wfPlayer
             mMediaElement.Stop();
             Started = false;
             Pausing = false;
-            mPositionSlider.Value = mSources.Current.Trimming.Prologue;
+            mPositionSlider.Value = mSources.Current.TrimStart;
         }
 
         private DispatcherTimer mSuperFastPlayTimer;
@@ -686,7 +686,7 @@ namespace wfPlayer
             Debug.WriteLine("MediaOpened");
             Duration = mMediaElement.NaturalDuration.TimeSpan.TotalMilliseconds;
             mMediaElement.SpeedRatio = calcSpeedRatio(Speed);
-            updateTimelinePosition(Current.Trimming.Prologue, true, true);
+            updateTimelinePosition(Current.TrimStart, true, true);
             mVideoLoadingTaskSource?.TrySetResult(true);
         }
 
@@ -927,7 +927,7 @@ namespace wfPlayer
                         {
                             var current = mMediaElement.Position.TotalMilliseconds;
                             var remains = Duration - current;
-                            if (remains>0 && remains < Current.Trimming.Epilogue)
+                            if (remains>0 && remains < Current.TrimEnd)
                             {
                                 //mPositionTimer?.Stop();
                                 //mPositionTimer = null;
@@ -975,7 +975,7 @@ namespace wfPlayer
             if (!Ready) return;
 
             var v = mPositionSlider.Value + seek;
-            updateTimelinePosition(Math.Min(Math.Max(v, Current.Trimming.Prologue), mPositionSlider.Maximum - Current.Trimming.Epilogue), true, true);
+            updateTimelinePosition(Math.Min(Math.Max(v, Current.TrimStart), mPositionSlider.Maximum - Current.TrimEnd), true, true);
         }
 
         void SeekForward(SeekUnit unit) {
@@ -1307,17 +1307,18 @@ namespace wfPlayer
             {
                 return;
             }
-            var tp = new WfTrimmingPlayer(new SingleSourceList(item));
-            WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
-            {
-                item.Trimming = result;
-                //db.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
-                item.SaveModified();
-                notify("TrimmingEnabled");
-            };
-            tp.OnResult += onNewTrimming;
-            tp.ShowDialog();
-            tp.OnResult -= onNewTrimming;
+            //var tp = new WfTrimmingPlayer(new SingleSourceList(item));
+            //WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
+            //{
+            //    item.TrimStart = result.Prologue;
+            //    item.TrimEnd = result.Epilogue;
+            //    //db.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+            //    item.SaveModified();
+            //    notify("TrimmingEnabled");
+            //};
+            //tp.OnResult += onNewTrimming;
+            //tp.ShowDialog();
+            //tp.OnResult -= onNewTrimming;
         }
 
         private void OnEditTrimming(object sender, RoutedEventArgs e)
@@ -1335,7 +1336,8 @@ namespace wfPlayer
             dlg.ShowDialog();
             if (null != dlg.Result)
             {
-                item.Trimming = dlg.Result;
+                item.TrimStart = dlg.Result.Prologue;
+                item.TrimEnd = dlg.Result.Epilogue;
                 // WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
                 item.SaveModified();
                 notify("TrimmingEnabled");
@@ -1349,11 +1351,12 @@ namespace wfPlayer
 
         private void ResetTrimming(WfFileItem item)
         {
-            if (null == item || !item.Trimming.HasValue)
+            if (null == item || !item.HasTrimming)
             {
                 return;
             }
-            item.Trimming = WfFileItem.Trim.NoTrim;
+            item.TrimStart = 0;
+            item.TrimEnd = 0;
             //WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
             item.SaveModified();
             notify("TrimmingEnabled");

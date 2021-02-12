@@ -233,7 +233,7 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="Trimming" Width="100" DisplayMemberBinding="{Binding Trimming.Name}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
+                    <GridViewColumn Header="Trimming" Width="100" DisplayMemberBinding="{Binding TrimRange}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
                     <GridViewColumn Header="Rating" Width="40" HeaderTemplate="{StaticResource SortHeaderTemplate}">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
