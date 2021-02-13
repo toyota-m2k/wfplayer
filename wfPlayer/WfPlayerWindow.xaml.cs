@@ -424,9 +424,10 @@ namespace wfPlayer
 
         private bool mAutoStart = false;
         private IWfSourceList mSources;
-        private IWfSource Current => mSources?.Current;
+        public IWfSource Current => mSources?.Current;
         private void VideoSourcesChanged()
         {
+            notify("Current");
             notify("HasNext");
             notify("HasPrev");
             notify("TrimmingEnabled");
@@ -536,6 +537,22 @@ namespace wfPlayer
         #endregion
 
         #region 再生操作
+
+
+        class SeenFlagMediator {
+            private DispatcherTimer timer = new DispatcherTimer();
+            private WeakReference<IWfSource> mSource = new WeakReference<IWfSource>(null);
+            private IWfSource Source => mSource.GetValue();
+            public bool PreviewMode { get; set; }
+
+            
+            public void Reset(IWfSource item, long duration) {
+                mSource.SetTarget(item);
+                var minTime = (duration - item.TrimStart - item.TrimEnd) - 1;
+
+            }
+
+        }
 
         void Play(double speed=0.5)
         {
@@ -1301,53 +1318,53 @@ namespace wfPlayer
             }
         }
 
-        private void EditTrimming(WfFileItem item)
-        {
-            if (null == item)
-            {
-                return;
-            }
-            //var tp = new WfTrimmingPlayer(new SingleSourceList(item));
-            //WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
-            //{
-            //    item.TrimStart = result.Prologue;
-            //    item.TrimEnd = result.Epilogue;
-            //    //db.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
-            //    item.SaveModified();
-            //    notify("TrimmingEnabled");
-            //};
-            //tp.OnResult += onNewTrimming;
-            //tp.ShowDialog();
-            //tp.OnResult -= onNewTrimming;
-        }
+        //private void EditTrimming(WfFileItem item)
+        //{
+        //    if (null == item)
+        //    {
+        //        return;
+        //    }
+        //    //var tp = new WfTrimmingPlayer(new SingleSourceList(item));
+        //    //WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
+        //    //{
+        //    //    item.TrimStart = result.Prologue;
+        //    //    item.TrimEnd = result.Epilogue;
+        //    //    //db.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+        //    //    item.SaveModified();
+        //    //    notify("TrimmingEnabled");
+        //    //};
+        //    //tp.OnResult += onNewTrimming;
+        //    //tp.ShowDialog();
+        //    //tp.OnResult -= onNewTrimming;
+        //}
 
-        private void OnEditTrimming(object sender, RoutedEventArgs e)
-        {
-            EditTrimming( Current as WfFileItem );
-        }
+        //private void OnEditTrimming(object sender, RoutedEventArgs e)
+        //{
+        //    EditTrimming( Current as WfFileItem );
+        //}
 
-        private void SelectTrimming(WfFileItem item)
-        {
-            if (null == item)
-            {
-                return;
-            }
-            var dlg = new WfTrimmingPatternList();
-            dlg.ShowDialog();
-            if (null != dlg.Result)
-            {
-                item.TrimStart = dlg.Result.Prologue;
-                item.TrimEnd = dlg.Result.Epilogue;
-                // WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
-                item.SaveModified();
-                notify("TrimmingEnabled");
-            }
-        }
+        //private void SelectTrimming(WfFileItem item)
+        //{
+        //    if (null == item)
+        //    {
+        //        return;
+        //    }
+        //    var dlg = new WfTrimmingPatternList();
+        //    dlg.ShowDialog();
+        //    if (null != dlg.Result)
+        //    {
+        //        item.TrimStart = dlg.Result.Prologue;
+        //        item.TrimEnd = dlg.Result.Epilogue;
+        //        // WfPlayListDB.Instance.UpdatePlaylistItem(item, (long)WfPlayListDB.FieldFlag.TRIMMING);
+        //        item.SaveModified();
+        //        notify("TrimmingEnabled");
+        //    }
+        //}
 
-        private void OnSelectTrimming(object sender, RoutedEventArgs e)
-        {
-            SelectTrimming(Current as WfFileItem);
-        }
+        //private void OnSelectTrimming(object sender, RoutedEventArgs e)
+        //{
+        //    SelectTrimming(Current as WfFileItem);
+        //}
 
         private void ResetTrimming(WfFileItem item)
         {
@@ -1365,6 +1382,31 @@ namespace wfPlayer
         private void OnResetTrimming(object sender, RoutedEventArgs e)
         {
             ResetTrimming(Current as WfFileItem);
+        }
+
+        public void OnSetTrimStart(object sender, RoutedEventArgs e) {
+            var item = Current as WfFileItem;
+            if (item != null) {
+                item.TrimStart = (long)mMediaElement.Position.TotalMilliseconds;
+            }
+        }
+        public void OnResetTrimStart(object sender, RoutedEventArgs e) {
+            var item = Current as WfFileItem;
+            if (item != null) {
+                item.TrimStart = 0;
+            }
+        }
+        public void OnSetTrimEnd(object sender, RoutedEventArgs e) {
+            var item = Current as WfFileItem;
+            if (item != null) {
+                item.TrimEnd = (long)mMediaElement.NaturalDuration.TimeSpan.TotalMilliseconds - (long)mMediaElement.Position.TotalMilliseconds;
+            }
+        }
+        public void OnResetTrimEnd(object sender, RoutedEventArgs e) {
+            var item = Current as WfFileItem;
+            if (item != null) {
+                item.TrimEnd = 0;
+            }
         }
 
         #endregion
@@ -1446,8 +1488,8 @@ namespace wfPlayer
                 { Commands.NEXT_CST_STRETCH, ()=> ToggleCustomStretchMode(true) },
                 { Commands.PREV_CST_STRETCH, ()=> ToggleCustomStretchMode(false) },
 
-                { Commands.TRIM_EDIT, ()=>EditTrimming(Current as WfFileItem) },
-                { Commands.TRIM_SELECT, ()=>SelectTrimming(Current as WfFileItem) },
+                //{ Commands.TRIM_EDIT, ()=>EditTrimming(Current as WfFileItem) },
+                //{ Commands.TRIM_SELECT, ()=>SelectTrimming(Current as WfFileItem) },
                 { Commands.TRIM_RESET, ()=>ResetTrimming(Current as WfFileItem) },
 
                 { Commands.PIN_SLIDER, ToggleSliderPanel },

@@ -44,6 +44,8 @@ namespace wfPlayer
         bool HasTrimming { get; }
         long TrimStart { get; set; }
         long TrimEnd { get; set; }
+        string TrimStartText { get; }
+        string TrimEndText { get; }
         WfAspect Aspect { get; set; }
         void Touch();
         void SaveModified();

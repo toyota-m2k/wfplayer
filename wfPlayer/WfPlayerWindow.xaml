@@ -129,27 +129,17 @@
                 </Style>
             </Grid.Style>
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
-                <Grid Margin="0,8,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Orientation="Horizontal" Grid.Column="0">
-                        <local:CheckButton Click="OnPlay" IsChecked="{Binding Started, Mode=OneWay}" IsEnabled="{Binding Ready}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
-                        <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" IsEnabled="{Binding Ready}" Style="{StaticResource PushButtonStyle}"/>
-                        <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" IsEnabled="{Binding Started}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
-                        <Button Click="OnStop"  IsEnabled="{Binding Started}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
-                        <Button IsEnabled="{Binding HasPrev}" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
-                        <Button IsEnabled="{Binding HasNext}" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
-                        <Button IsEnabled="{Binding Ready}" Click="OnEditTrimming"  Content="{StaticResource PathCut}" Style="{StaticResource PushButtonStyle}"/>
-                        <Button IsEnabled="{Binding Ready}" Click="OnSelectTrimming"  Content="{StaticResource PathList}" Style="{StaticResource PushButtonStyle}"/>
-                        <Button IsEnabled="{Binding TrimmingEnabled}" Click="OnResetTrimming"  Content="{StaticResource PathRemove}" Style="{StaticResource PushButtonStyle}"/>
-                    </StackPanel>
-                </Grid>
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <local:CheckButton Click="OnPlay" IsChecked="{Binding Started, Mode=OneWay}" IsEnabled="{Binding Ready}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
+                    <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" IsEnabled="{Binding Ready}" Style="{StaticResource PushButtonStyle}"/>
+                    <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" IsEnabled="{Binding Started}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
+                    <Button Click="OnStop"  IsEnabled="{Binding Started}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
+                    <Button IsEnabled="{Binding HasPrev}" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
+                    <Button IsEnabled="{Binding HasNext}" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
+                </StackPanel>
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -172,6 +162,55 @@
                         <RadioButton IsChecked="{Binding Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=BAD, Mode=TwoWay}"  Content="{StaticResource PathBad}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
                         <RadioButton IsChecked="{Binding Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=DREADFUL, Mode=TwoWay}"  Content="{StaticResource PathDreadful}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
                     </StackPanel>
+                    <Grid Grid.Row="3" Grid.ColumnSpan="3" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.Resources>
+                                <Path x:Key="PathPickHere" Data="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                                <Path x:Key="PathReset" Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                            </Grid.Resources>
+                            <TextBlock Grid.Column="0" Text="S:" Foreground="White" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Current.TrimStartText}" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                            <Button Grid.Column="2" IsEnabled="{Binding Ready}" Click="OnSetTrimStart"  Content="{StaticResource PathPickHere}" Style="{StaticResource PushButtonStyle}" Margin="2,0,0,0">
+                                <Button.RenderTransform>
+                                    <RotateTransform Angle="180" CenterX="15" CenterY="15"/>
+                                </Button.RenderTransform>
+                            </Button>
+                            <Button Grid.Column="3" IsEnabled="{Binding Ready}" Click="OnResetTrimStart"  Content="{StaticResource PathReset}" Style="{StaticResource PushButtonStyle}" Margin="0,0,0,0"/>
+                        </Grid>
+                        <Grid Grid.Column="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.Resources>
+                                <Path x:Key="PathPickHere" Data="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                                <Path x:Key="PathReset" Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                            </Grid.Resources>
+                            <TextBlock Grid.Column="0" Text="E:" Foreground="White" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Current.TrimEndText}" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                            <Button Grid.Column="2" IsEnabled="{Binding Ready}" Click="OnSetTrimEnd"  Content="{StaticResource PathPickHere}" Style="{StaticResource PushButtonStyle}" Margin="2,0,0,0">
+                                <Button.RenderTransform>
+                                    <RotateTransform Angle="180" CenterX="15" CenterY="15"/>
+                                </Button.RenderTransform>
+                            </Button>
+
+                            <Button Grid.Column="3" IsEnabled="{Binding Ready}" Click="OnResetTrimEnd"  Content="{StaticResource PathReset}" Style="{StaticResource PushButtonStyle}" Margin="0,0,0,0"/>
+
+                        </Grid>
+                    </Grid>
                 </Grid>
             </StackPanel>
         </Grid>

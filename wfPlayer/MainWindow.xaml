@@ -15,8 +15,8 @@
     </Window.Resources>
     <Window.CommandBindings>
         <!-- Project Command -->
-        <CommandBinding Command="{x:Static local:MainWindow.CreateTrimming}" Executed="ExecCreateTrimming" CanExecute="CanCreateTrimming"/>
-        <CommandBinding Command="{x:Static local:MainWindow.ApplyTrimming}" Executed="ExecApplyTrimming" CanExecute="CanApplyTrimming"/>
+        <!--<CommandBinding Command="{x:Static local:MainWindow.CreateTrimming}" Executed="ExecCreateTrimming" CanExecute="CanCreateTrimming"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ApplyTrimming}" Executed="ExecApplyTrimming" CanExecute="CanApplyTrimming"/>-->
         <CommandBinding Command="{x:Static local:MainWindow.ResetCounter}" Executed="ExecResetCounter" CanExecute="CanResetCounter"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeleteFiles}" Executed="ExecDeleteFiles" CanExecute="CanDeleteFiles"/>
     </Window.CommandBindings>
@@ -80,7 +80,7 @@
                 </ToolTipService.ToolTip>
             </Button>
 
-            <Button Click="OnCreateTrimming"  Content="{StaticResource PathCut}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0">
+            <!--<Button Click="OnCreateTrimming"  Content="{StaticResource PathCut}" Style="{StaticResource PushButtonStyle}" Margin="4,0,0,0">
                 <ToolTipService.ToolTip>
                     <ToolTip Content="New Trimming"/>
                 </ToolTipService.ToolTip>
@@ -90,7 +90,7 @@
                 <ToolTipService.ToolTip>
                     <ToolTip Content="Apply Registered Trimming"/>
                 </ToolTipService.ToolTip>
-            </Button>
+            </Button>-->
 
             <Button Click="OnResetTrimming"  Content="{StaticResource PathRemove}" Style="{StaticResource PushButtonStyle}">
                 <ToolTipService.ToolTip>
@@ -192,8 +192,8 @@
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu Background="WhiteSmoke">
-                                <MenuItem Header="Edit or Create Trimming (_E)" InputGestureText="Ctrl+E" Command="{x:Static local:MainWindow.CreateTrimming}"/>
-                                <MenuItem Header="Apply Existing Trimming (_J)" InputGestureText="Ctrl+J" Command="{x:Static local:MainWindow.ApplyTrimming}"/>
+                                <!--<MenuItem Header="Edit or Create Trimming (_E)" InputGestureText="Ctrl+E" Command="{x:Static local:MainWindow.CreateTrimming}"/>
+                                <MenuItem Header="Apply Existing Trimming (_J)" InputGestureText="Ctrl+J" Command="{x:Static local:MainWindow.ApplyTrimming}"/>-->
                                 <MenuItem Header="Reset Play Counter (_N)" InputGestureText="Ctrl+N" Command="{x:Static local:MainWindow.ResetCounter}"/>
                                 <MenuItem Header="Delete Files (_D)" InputGestureText="Ctrl+D" Command="{x:Static local:MainWindow.DeleteFiles}"/>
                             </ContextMenu>

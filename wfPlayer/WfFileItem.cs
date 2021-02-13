@@ -141,14 +141,17 @@ namespace wfPlayer
         private long mTrimStart = 0;
         public long TrimStart {
             get => mTrimStart;
-            set { if(setProp("TrimStart", ref mTrimStart, value, "HasTrimming", "TrimRange")){ mDirty |= (long)WfPlayListDB.FieldFlag.TRIM_START; } }
+            set { if(setProp("TrimStart", ref mTrimStart, value, "HasTrimming", "TrimRange", "TrimStartText")){ mDirty |= (long)WfPlayListDB.FieldFlag.TRIM_START; } }
         }
 
         private long mTrimEnd = 0;
         public long TrimEnd {
             get => mTrimEnd;
-            set { if (setProp("TrimEnd", ref mTrimEnd, value, "HasTrimming", "TrimRange")) { mDirty |= (long)WfPlayListDB.FieldFlag.TRIM_END; } }
+            set { if (setProp("TrimEnd", ref mTrimEnd, value, "HasTrimming", "TrimRange", "TrimEndText")) { mDirty |= (long)WfPlayListDB.FieldFlag.TRIM_END; } }
         }
+
+        public string TrimStartText => mTrimStart > 0 ? $"{mTrimStart / 1000.0:#.#}" : "-";
+        public string TrimEndText => mTrimEnd > 0 ? $"{mTrimEnd/ 1000.0:#.#}" : "-";
 
         public long TrimmingId = 0;
 

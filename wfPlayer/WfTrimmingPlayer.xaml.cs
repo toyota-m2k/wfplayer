@@ -171,7 +171,7 @@ namespace wfPlayer {
             }
 
             // 選択されたTrimPattern
-            public ReactiveProperty<ITrim> SelectedTrim { get; } = new ReactiveProperty<ITrim>(null);
+            public ReactiveProperty<ITrim> SelectedTrim { get; } = new ReactiveProperty<ITrim>();
 
             // Trimming Settings
             public ReactiveProperty<long> Prologue { get; } = new ReactiveProperty<long>(0);
