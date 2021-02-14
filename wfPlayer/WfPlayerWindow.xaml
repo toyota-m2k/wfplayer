@@ -34,8 +34,8 @@
                           VerticalAlignment="Center" HorizontalAlignment="Center"
                           ScrubbingEnabled="True"
                           Name="mMediaElement" MediaOpened="OnMediaOpened" MediaEnded="OnMediaEnded" MediaFailed="OnMediaFailed"
-                          Volume="{Binding Volume, Mode=OneWay}"
-                          IsMuted="{Binding Mute, Mode=OneWay}"
+                          Volume="{Binding Volume.Value, Mode=OneWay}"
+                          IsMuted="{Binding Mute.Value, Mode=OneWay}"
                           />
         </Grid>
         <Grid Grid.Column="2" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" 
@@ -46,7 +46,7 @@
                 <!-- Fade in/out effect -->
                 <Style TargetType="Grid">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding ShowSizingPanel}" Value="True">
+                        <DataTrigger Binding="{Binding ShowSizingPanel.Value}" Value="True">
                             <DataTrigger.EnterActions>
                                 <StopStoryboard BeginStoryboardName="MouseLeaveStoryboard" />
                                 <BeginStoryboard Name="MouseOverStoryboard" Storyboard="{StaticResource MouseOverStoryboard}" />
@@ -60,14 +60,14 @@
                 </Style>
             </Grid.Style>
             <Button 
-                Visibility="{Binding WinMaximized, Converter={StaticResource NegBoolVisibilityConverter}}"
+                Visibility="{Binding WinMaximized.Value, Converter={StaticResource NegBoolVisibilityConverter}}"
                 Content="{StaticResource PathWinMaximum}" 
-                Click="OnMaximizeWindow"
+                Command="{Binding CommandMaximize}"
                 Style="{StaticResource PushButtonStyle}" Margin="20"/>
             <Button 
-                Visibility="{Binding WinMaximized, Converter={StaticResource BoolVisibilityConverter}}"
+                Visibility="{Binding WinMaximized.Value, Converter={StaticResource BoolVisibilityConverter}}"
                 Content="{StaticResource PathWinNormal}" 
-                Click="OnMaximizeWindow"
+                Command="{Binding CommandMaximize}"
                 Style="{StaticResource PushButtonStyle}" Margin="20"/>
         </Grid>
         <Grid Grid.Column="0" Grid.Row="0" Name="mStretchModePanel" 
@@ -77,7 +77,7 @@
                 <!-- Fade in/out effect -->
                 <Style TargetType="Grid">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding ShowStretchModePanel}" Value="True">
+                        <DataTrigger Binding="{Binding ShowStretchModePanel.Value}" Value="True">
                             <DataTrigger.EnterActions>
                                 <StopStoryboard BeginStoryboardName="MouseLeaveStoryboard" />
                                 <BeginStoryboard Name="MouseOverStoryboard" Storyboard="{StaticResource MouseOverStoryboard}" />
@@ -91,19 +91,19 @@
                 </Style>
             </Grid.Style>
             <StackPanel Orientation="Horizontal" Margin="10">
-                <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=UniformToFill}"  Content="{StaticResource PathUniformFit}" Style="{StaticResource IconRadioButton}" GroupName="StretchMode"/>
-                <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Uniform}"  Content="{StaticResource PathUniform}" Style="{StaticResource IconRadioButton}" GroupName="StretchMode"/>
-                <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Fill}"  Content="{StaticResource PathFill}" Style="{StaticResource IconRadioButton}" Margin="4,0" GroupName="StretchMode"/>
-                
-                <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM125}"  Content="5:4" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>
-                <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM133}"  Content="4:3" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>
-                <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM150}"  Content="3:2" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>
-                <RadioButton IsChecked="{Binding StretchMode, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM177}"  Content="16:9" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>
-                
-                <ToggleButton IsChecked="{Binding StretchMaximum, Mode=TwoWay}" Content="{StaticResource PathMaximize}" Style="{StaticResource ToggleButtonStyle}" Margin="4.0" IsEnabled="{Binding CustomStretchMode}"/>
-                <ToggleButton IsChecked="{Binding SaveAspectAuto, Mode=TwoWay}" Content="{StaticResource PathSave}" Style="{StaticResource ToggleButtonStyle}" Margin="4.0"/>
+                <RadioButton IsChecked="{Binding StretchMode.Value, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=UniformToFill}"  Content="{StaticResource PathUniformFit}" Style="{StaticResource IconRadioButton}" GroupName="StretchMode"/>
+                <RadioButton IsChecked="{Binding StretchMode.Value, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Uniform}"  Content="{StaticResource PathUniform}" Style="{StaticResource IconRadioButton}" GroupName="StretchMode"/>
+                <RadioButton IsChecked="{Binding StretchMode.Value, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Fill}"  Content="{StaticResource PathFill}" Style="{StaticResource IconRadioButton}" Margin="4,0" GroupName="StretchMode"/>
 
-                <ToggleButton IsChecked="{Binding AllowRemoteControl, Mode=TwoWay}" Content="{StaticResource PathRemote}" Style="{StaticResource ToggleButtonStyle}" Margin="8.0"/>
+                <RadioButton IsChecked="{Binding StretchMode.Value, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM125}"  Content="5:4" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>
+                <RadioButton IsChecked="{Binding StretchMode.Value, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM133}"  Content="4:3" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>
+                <RadioButton IsChecked="{Binding StretchMode.Value, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM150}"  Content="3:2" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>
+                <RadioButton IsChecked="{Binding StretchMode.Value, Mode=TwoWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CUSTOM177}"  Content="16:9" Style="{StaticResource IconRadioButton}" Width="40" GroupName="StretchMode"/>
+
+                <ToggleButton IsChecked="{Binding StretchMaximum.Value, Mode=TwoWay}" Content="{StaticResource PathMaximize}" Style="{StaticResource ToggleButtonStyle}" Margin="4.0" IsEnabled="{Binding CustomStretchMode.Value}"/>
+                <ToggleButton IsChecked="{Binding SaveAspectAuto.Value, Mode=TwoWay}" Content="{StaticResource PathSave}" Style="{StaticResource ToggleButtonStyle}" Margin="4.0"/>
+
+                <ToggleButton IsChecked="{Binding AllowRemoteControl.Value, Mode=TwoWay}" Content="{StaticResource PathRemote}" Style="{StaticResource ToggleButtonStyle}" Margin="8.0"/>
             </StackPanel>
         </Grid>
         <Grid Grid.Column="2" Grid.Row="2" Name="mPanelBase" 
@@ -115,7 +115,7 @@
                 <!-- Fade in/out effect -->
                 <Style TargetType="Grid">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding ShowPanel}" Value="True">
+                        <DataTrigger Binding="{Binding ShowPanel.Value}" Value="True">
                             <DataTrigger.EnterActions>
                                 <StopStoryboard BeginStoryboardName="MouseLeaveStoryboard" />
                                 <BeginStoryboard Name="MouseOverStoryboard" Storyboard="{StaticResource MouseOverStoryboard}" />
@@ -130,12 +130,12 @@
             </Grid.Style>
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <local:CheckButton Click="OnPlay" IsChecked="{Binding Started, Mode=OneWay}" IsEnabled="{Binding Ready}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
-                    <Button Click="OnPlayFast" Content="{StaticResource PathPlayFast}" IsEnabled="{Binding Ready}" Style="{StaticResource PushButtonStyle}"/>
-                    <local:CheckButton Click="OnPause" IsChecked="{Binding Pausing, Mode=OneWay}" IsEnabled="{Binding Started}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
-                    <Button Click="OnStop"  IsEnabled="{Binding Started}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
-                    <Button IsEnabled="{Binding HasPrev}" Click="OnPrev"  Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
-                    <Button IsEnabled="{Binding HasNext}" Click="OnNext"  Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
+                    <local:CheckButton Command="{Binding CommandPlay}" IsChecked="{Binding Started.Value, Mode=OneWay}" IsEnabled="{Binding Ready.Value}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
+                    <Button Command="{Binding CommandPlayFast}" Content="{StaticResource PathPlayFast}" IsEnabled="{Binding Ready.Value}" Style="{StaticResource PushButtonStyle}"/>
+                    <local:CheckButton Command="{Binding CommandPause}" IsChecked="{Binding Pausing.Value, Mode=OneWay}" IsEnabled="{Binding Started.Value}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
+                    <Button Command="{Binding CommandStop}"  IsEnabled="{Binding Started.Value}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
+                    <Button Command="{Binding CommandPrev}" IsEnabled="{Binding HasPrev.Value}" Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
+                    <Button Command="{Binding CommandNext}" IsEnabled="{Binding HasNext.Value}" Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
                 </StackPanel>
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
@@ -152,15 +152,15 @@
                     <TextBlock Grid.Column="0" Grid.Row="0" Text="Volume" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="0" Grid.Row="1" Text="Speed" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="0" Grid.Row="2" Text="Rating"  Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <Slider Grid.Column="1" Grid.Row="0" Minimum="0" Maximum="1" Value="{Binding Volume, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1" VerticalAlignment="Center"/>
-                    <Slider Grid.Column="1" Grid.Row="1" Minimum="0" Maximum="1" Value="{Binding Speed, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1" VerticalAlignment="Center"/>
-                    <ToggleButton Grid.Column="2" Grid.Row="0" IsChecked="{Binding Mute}" Content="{StaticResource PathMute}" Style="{StaticResource ToggleButtonStyle}"/>
-                    <Button Grid.Column="2" Grid.Row="1" Click="OnResetSpeed" Content="{StaticResource PathResetSpeed}" Style="{StaticResource PushButtonStyle}"/>
+                    <Slider Grid.Column="1" Grid.Row="0" Minimum="0" Maximum="1" Value="{Binding Volume.Value, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1" VerticalAlignment="Center"/>
+                    <Slider Grid.Column="1" Grid.Row="1" Minimum="0" Maximum="1" Value="{Binding Speed.Value, Mode=TwoWay}" SmallChange="0.1" LargeChange="0.1" VerticalAlignment="Center"/>
+                    <ToggleButton Grid.Column="2" Grid.Row="0" IsChecked="{Binding Mute.Value}" Content="{StaticResource PathMute}" Style="{StaticResource ToggleButtonStyle}"/>
+                    <Button Command="{Binding CommandResetSpeed}" Grid.Column="2" Grid.Row="1" Content="{StaticResource PathResetSpeed}" Style="{StaticResource PushButtonStyle}"/>
                     <StackPanel Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Orientation="Horizontal">
-                        <RadioButton IsChecked="{Binding Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=GOOD, Mode=TwoWay}"  Content="{StaticResource PathGood}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
-                        <RadioButton IsChecked="{Binding Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=NORMAL, Mode=TwoWay}"  Content="{StaticResource PathNormal}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
-                        <RadioButton IsChecked="{Binding Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=BAD, Mode=TwoWay}"  Content="{StaticResource PathBad}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
-                        <RadioButton IsChecked="{Binding Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=DREADFUL, Mode=TwoWay}"  Content="{StaticResource PathDreadful}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
+                        <RadioButton IsChecked="{Binding Current.Value.Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=GOOD, Mode=TwoWay}"  Content="{StaticResource PathGood}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
+                        <RadioButton IsChecked="{Binding Current.Value.Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=NORMAL, Mode=TwoWay}"  Content="{StaticResource PathNormal}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
+                        <RadioButton IsChecked="{Binding Current.Value.Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=BAD, Mode=TwoWay}"  Content="{StaticResource PathBad}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
+                        <RadioButton IsChecked="{Binding Current.Value.Rating, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=DREADFUL, Mode=TwoWay}"  Content="{StaticResource PathDreadful}" Style="{StaticResource IconRadioButton}" GroupName="Rating"/>
                     </StackPanel>
                     <Grid Grid.Row="3" Grid.ColumnSpan="3" Margin="0,8,0,0">
                         <Grid.ColumnDefinitions>
@@ -180,13 +180,13 @@
                                 <Path x:Key="PathReset" Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
                             </Grid.Resources>
                             <TextBlock Grid.Column="0" Text="S:" Foreground="White" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{Binding Current.TrimStartText}" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center"/>
-                            <Button Grid.Column="2" IsEnabled="{Binding Ready}" Click="OnSetTrimStart"  Content="{StaticResource PathPickHere}" Style="{StaticResource PushButtonStyle}" Margin="2,0,0,0">
+                            <TextBlock Grid.Column="1" Text="{Binding Current.Value.TrimStartText}" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                            <Button Command="{Binding CommandSetTrimStart}" Grid.Column="2" IsEnabled="{Binding Ready.Value}" Content="{StaticResource PathPickHere}" Style="{StaticResource PushButtonStyle}" Margin="2,0,0,0">
                                 <Button.RenderTransform>
                                     <RotateTransform Angle="180" CenterX="15" CenterY="15"/>
                                 </Button.RenderTransform>
                             </Button>
-                            <Button Grid.Column="3" IsEnabled="{Binding Ready}" Click="OnResetTrimStart"  Content="{StaticResource PathReset}" Style="{StaticResource PushButtonStyle}" Margin="0,0,0,0"/>
+                            <Button Command="{Binding CommandResetTrimStart}" Grid.Column="3" IsEnabled="{Binding Ready.Value}" Content="{StaticResource PathReset}" Style="{StaticResource PushButtonStyle}" Margin="0,0,0,0"/>
                         </Grid>
                         <Grid Grid.Column="2">
                             <Grid.ColumnDefinitions>
@@ -200,14 +200,14 @@
                                 <Path x:Key="PathReset" Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" Stretch="Fill" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
                             </Grid.Resources>
                             <TextBlock Grid.Column="0" Text="E:" Foreground="White" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{Binding Current.TrimEndText}" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center"/>
-                            <Button Grid.Column="2" IsEnabled="{Binding Ready}" Click="OnSetTrimEnd"  Content="{StaticResource PathPickHere}" Style="{StaticResource PushButtonStyle}" Margin="2,0,0,0">
+                            <TextBlock Grid.Column="1" Text="{Binding Current.Value.TrimEndText}" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                            <Button Command="{Binding CommandSetTrimEnd}" Grid.Column="2" IsEnabled="{Binding Ready.Value}" Content="{StaticResource PathPickHere}" Style="{StaticResource PushButtonStyle}" Margin="2,0,0,0">
                                 <Button.RenderTransform>
                                     <RotateTransform Angle="180" CenterX="15" CenterY="15"/>
                                 </Button.RenderTransform>
                             </Button>
 
-                            <Button Grid.Column="3" IsEnabled="{Binding Ready}" Click="OnResetTrimEnd"  Content="{StaticResource PathReset}" Style="{StaticResource PushButtonStyle}" Margin="0,0,0,0"/>
+                            <Button Command="{Binding CommandResetTrimEnd}" Grid.Column="3" IsEnabled="{Binding Ready.Value}" Content="{StaticResource PathReset}" Style="{StaticResource PushButtonStyle}" Margin="0,0,0,0"/>
 
                         </Grid>
                     </Grid>
@@ -223,7 +223,7 @@
                 <!-- Fade in/out effect -->
                 <Style TargetType="Grid">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding ShowSliderPanel}" Value="True">
+                        <DataTrigger Binding="{Binding ShowSliderPanel.Value}" Value="True">
                             <DataTrigger.EnterActions>
                                 <StopStoryboard BeginStoryboardName="MouseLeaveStoryboard" />
                                 <BeginStoryboard Name="MouseOverStoryboard" Storyboard="{StaticResource MouseOverStoryboard}" />
@@ -251,23 +251,23 @@
                 <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Foreground="White" Margin="0,-5,0,0">
                     <TextBlock.Text>
                         <MultiBinding StringFormat="{}{0} / {1}">
-                            <Binding Path="SeekPositionText"/>
-                            <Binding Path="DurationText"/>
+                            <Binding Path="SeekPositionText.Value"/>
+                            <Binding Path="DurationText.Value"/>
                         </MultiBinding>
                     </TextBlock.Text>
                 </TextBlock>
                 <local:TimelineSliderOld 
                     Grid.Row="0" Grid.Column="0"
                     VerticalAlignment="Center"
-                    x:Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration}"
+                    x:Name="mPositionSlider" Minimum="0" Maximum="{Binding Duration.Value}"
                     ValueChanged="OnPositionChanged"
-                    LargeChange="{Binding LargePositionChange}" 
-                    SmallChange="{Binding SmallPositionChange}" 
+                    LargeChange="{Binding LargePositionChange.Value}" 
+                    SmallChange="{Binding SmallPositionChange.Value}" 
                     DragStateChanged="OnSliderDragStateChanged"/>
                 <ToggleButton 
                     Grid.Row="0" Grid.Column="2"
                     VerticalAlignment="Center"
-                    IsChecked="{Binding SliderPinned}" Content="{StaticResource PathPin}" Style="{StaticResource ToggleButtonStyle}"/>
+                    IsChecked="{Binding SliderPinned.Value}" Content="{StaticResource PathPin}" Style="{StaticResource ToggleButtonStyle}"/>
             </Grid>
         </Grid>
     </Grid>

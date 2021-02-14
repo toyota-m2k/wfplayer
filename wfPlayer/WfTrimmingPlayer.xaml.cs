@@ -1,4 +1,5 @@
-﻿using Reactive.Bindings;
+﻿using common;
+using Reactive.Bindings;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -38,7 +39,7 @@ namespace wfPlayer {
 #endregion
 
 #region Binding Properties
-        class TrimViewModel : WfViewModelBase, ITimelineOwnerPlayer {
+        class TrimViewModel : MicViewModelBase, ITimelineOwnerPlayer {
             
 #region Construction
             // Owner

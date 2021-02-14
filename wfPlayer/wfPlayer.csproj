@@ -110,6 +110,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="CheckButton.cs" />
+    <Compile Include="common\MicViewModelBase.cs" />
+    <Compile Include="common\Utils.cs" />
     <Compile Include="GeCommand.cs" />
     <Compile Include="MenuButton.cs" />
     <Compile Include="NumericTextBox.cs" />
@@ -149,7 +151,6 @@
     <Compile Include="WfTrimmingPlayer.xaml.cs">
       <DependentUpon>WfTrimmingPlayer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WfViewModelBase.cs" />
     <Compile Include="WinPlacement.cs" />
     <Compile Include="WinShutdown.cs" />
     <Page Include="MainWindow.xaml">
