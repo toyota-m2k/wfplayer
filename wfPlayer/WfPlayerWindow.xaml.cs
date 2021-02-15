@@ -109,7 +109,6 @@ namespace wfPlayer {
             SeekPositionText = SeekPosition.Select((d) => FormatDuration(d)).ToReadOnlyReactiveProperty();
 
             CustomStretchMode = StretchMode.Select((s) => IsCustomStretchMode(s)).ToReadOnlyReactiveProperty();
-            //SaveAspectTrigger = StretchMode.CombineLatest(SaveAspectAuto, (m, a) => a).ToReadOnlyReactiveProperty();
             StretchMode.Subscribe((m) => {
                 if (!IsCustomStretchMode(m)) {
                     StandardStretchMode = m;
@@ -129,11 +128,6 @@ namespace wfPlayer {
 
             CommandMaximize.Subscribe(() => WinMaximized.Value = !WinMaximized.Value);
             CommandResetSpeed.Subscribe(() => Speed.Value = 0.5);
-            //CommandSetTrimStart.Subscribe(() => Current.Value?.Apply((c)=>c.TrimStart = (long)SeekPosition.Value));
-            //CommandResetTrimStart.Subscribe(() => Current.Value?.Apply((c)=>c.TrimStart = 0));
-            //CommandSetTrimEnd.Subscribe(() => Current.Value?.Apply((c)=>c.TrimEnd = (long)(Duration.Value - SeekPosition.Value)));
-            //CommandResetTrimEnd.Subscribe(() => Current.Value?.Apply((c)=>c.TrimEnd = 0));
-
             CommandSetTrimStart.CombineLatest(Current.Where((c) => c != null), (s, c) => c).Subscribe((c) => c.TrimStart = (long)SeekPosition.Value);
             CommandSetTrimEnd.CombineLatest(Current.Where((c) => c != null), (s, c) => c).Subscribe((c) => c.TrimEnd= (long)(Duration.Value - SeekPosition.Value));
             CommandResetTrimStart.CombineLatest(Current.Where((c) => c != null), (s, c) => c).Subscribe((c) => c.TrimStart= 0);
@@ -226,7 +220,7 @@ namespace wfPlayer {
 
                 CurrentItem = newItem;
                 if (newItem != null) {
-                    Threshold = (duration - newItem.TrimStart - newItem.TrimEnd) / 10;
+                    Threshold = (duration - newItem.TrimStart - newItem.TrimEnd) / 2;   // 再生時間の50%以上再生された場合に既読フラグを立てる
                     if (Playing) {
                         Tick = System.Environment.TickCount;
                     }
@@ -355,7 +349,6 @@ namespace wfPlayer {
         }
 
         #endregion
-
 
         #region Binding Properties
 
