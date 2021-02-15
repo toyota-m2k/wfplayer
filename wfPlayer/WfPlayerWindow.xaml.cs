@@ -86,6 +86,7 @@ namespace wfPlayer {
         public ReactiveCommand CommandPrev { get; } = new ReactiveCommand();
         public ReactiveCommand CommandNext { get; } = new ReactiveCommand();
         public ReactiveCommand CommandResetSpeed { get; } = new ReactiveCommand();
+
         public ReactiveCommand CommandSetTrimStart { get; } = new ReactiveCommand();
         public ReactiveCommand CommandSetTrimEnd{ get; } = new ReactiveCommand();
         public ReactiveCommand CommandResetTrimStart { get; } = new ReactiveCommand();
@@ -128,10 +129,11 @@ namespace wfPlayer {
 
             CommandMaximize.Subscribe(() => WinMaximized.Value = !WinMaximized.Value);
             CommandResetSpeed.Subscribe(() => Speed.Value = 0.5);
-            CommandSetTrimStart.CombineLatest(Current.Where((c) => c != null), (s, c) => c).Subscribe((c) => c.TrimStart = (long)SeekPosition.Value);
-            CommandSetTrimEnd.CombineLatest(Current.Where((c) => c != null), (s, c) => c).Subscribe((c) => c.TrimEnd= (long)(Duration.Value - SeekPosition.Value));
-            CommandResetTrimStart.CombineLatest(Current.Where((c) => c != null), (s, c) => c).Subscribe((c) => c.TrimStart= 0);
-            CommandResetTrimEnd.CombineLatest(Current.Where((c) => c != null), (s, c) => c).Subscribe((c) => c.TrimEnd = 0);
+
+            CommandSetTrimStart.Subscribe(()=> Current.Value?.Apply((c) => c.TrimStart = (long)SeekPosition.Value));
+            CommandSetTrimEnd.Subscribe(() => Current.Value?.Apply((c) => c.TrimEnd= (long)(Duration.Value - SeekPosition.Value)));
+            CommandResetTrimStart.Subscribe(() => Current.Value?.Apply((c) => c.TrimStart= 0));
+            CommandResetTrimEnd.Subscribe(() => Current.Value?.Apply((c) => c.TrimEnd = 0));
 
         }
 
@@ -518,7 +520,6 @@ namespace wfPlayer {
         }
 
         #endregion
-
 
         #region MediaElement Event Handlers
 
