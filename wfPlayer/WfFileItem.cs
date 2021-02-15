@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace wfPlayer
 {
@@ -16,30 +17,32 @@ namespace wfPlayer
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
-        private bool setProp<T>(string name, ref T field, T value)
-        {
-            if (!field.Equals(value))
-            {
-                field = value;
-                notify(name);
-                return true;
-            }
-            return false;
+        protected string callerName([CallerMemberName] string memberName = "") {
+            return memberName;
         }
 
-        private bool setProp<T>(string[] names, ref T field, T value)
-        {
-            if (!field.Equals(value))
-            {
+        protected bool setProp<T>(string name, ref T field, T value, params string[] familyProperties) {
+            if (field != null ? !field.Equals(value) : value != null) {
                 field = value;
-                foreach (var name in names)
-                {
-                    notify(name);
+                notify(name);
+                foreach (var p in familyProperties) {
+                    notify(p);
                 }
                 return true;
             }
             return false;
         }
+
+        //private bool setProp<T>(string name, ref T field, T value)
+        //{
+        //    if (!field.Equals(value))
+        //    {
+        //        field = value;
+        //        notify(name);
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
         public void NotifyPropertyChanged(string propName)
         {
@@ -56,8 +59,11 @@ namespace wfPlayer
             Size = info.Length;
             Date = info.CreationTimeUtc;
             mRating = Ratings.NORMAL;
+            mTrimStart = 0;
+            mTrimEnd = 0;
         }
-        public WfFileItem(string path, long size, DateTime date, string mark, Ratings rating, bool exists, DateTime lastPlay, int playCount, Trim trimming, WfAspect aspect)
+        public WfFileItem(string path, long size, DateTime date, string mark, Ratings rating, bool exists, DateTime lastPlay, 
+            int playCount, long trimId, WfAspect aspect, long trimStart, long trimEnd)
         {
             FullPath = path;
             Size = size;
@@ -68,8 +74,11 @@ namespace wfPlayer
 
             LastPlayDate = lastPlay;
             PlayCount = playCount;
-            Trimming = trimming;
+            TrimmingId = trimId;
             Aspect = aspect;
+
+            mTrimStart = trimStart;
+            mTrimEnd = trimEnd;
             mDirty = 0;
         }
 
@@ -129,6 +138,23 @@ namespace wfPlayer
             set { if(setProp("Aspect", ref mAspect, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.ASPECT; } }
         }
 
+        private long mTrimStart = 0;
+        public long TrimStart {
+            get => mTrimStart;
+            set { if(setProp("TrimStart", ref mTrimStart, value, "HasTrimming", "TrimRange", "TrimStartText")){ mDirty |= (long)WfPlayListDB.FieldFlag.TRIM_START; } }
+        }
+
+        private long mTrimEnd = 0;
+        public long TrimEnd {
+            get => mTrimEnd;
+            set { if (setProp("TrimEnd", ref mTrimEnd, value, "HasTrimming", "TrimRange", "TrimEndText")) { mDirty |= (long)WfPlayListDB.FieldFlag.TRIM_END; } }
+        }
+
+        public string TrimStartText => mTrimStart > 0 ? $"{mTrimStart / 1000.0:#.#}" : "-";
+        public string TrimEndText => mTrimEnd > 0 ? $"{mTrimEnd/ 1000.0:#.#}" : "-";
+
+        public long TrimmingId = 0;
+
         public class Trim : ITrim
         {
             public long Id { get; }
@@ -136,6 +162,7 @@ namespace wfPlayer
             public long Prologue { get; }
             public long Epilogue { get; }
             public string RefPath { get; }
+            public string RangeLabel => null;
 
             public Trim(long id, string name, long prologue, long epilogue, string refPath)
             {
@@ -173,11 +200,59 @@ namespace wfPlayer
             #endregion
         }
 
-        private ITrim mTrimming = Trim.NoTrim;
-        public ITrim Trimming
-        {
-            get => mTrimming;
-            set { if (setProp("Trimming", ref mTrimming, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.TRIMMING; } }
+        //private ITrim mTrimming = Trim.NoTrim;
+        //public ITrim Trimming
+        //{
+        //    get => WfPlayListDB.Instance.Version == 1 ? this : mTrimming;
+        //    set {
+        //        TrimStart = value.Prologue;
+        //        TrimEnd = value.Epilogue;
+        //    }
+        //}
+
+        //long ITrim.Id => 0;
+        //string ITrim.Name => null;
+        //long ITrim.Prologue => TrimStart;
+        //long ITrim.Epilogue => TrimEnd;
+        //string ITrim.RefPath => null;
+        //bool ITrim.HasValue => TrimStart > 0 || TrimEnd > 0;
+        //string ITrim.RangeLabel {
+        //    get {
+        //        string tf(long time) {
+        //            return $"{time / 1000:#.#}";
+        //        }
+        //        if(TrimStart>0) {
+        //            if(TrimEnd>0) {
+        //                return $"{tf(TrimStart)}-{tf(TrimEnd)}";
+        //            } else {
+        //                return $"{tf(TrimStart)}-";
+        //            }
+        //        } else if(TrimEnd>0) {
+        //            return $"-{tf(TrimEnd)}";
+        //        } else {
+        //            return "";
+        //        }
+        //    }
+        //}
+
+        public bool HasTrimming => TrimStart > 0 || TrimEnd >= 0;
+        public string TrimRange {
+            get {
+                string tf(long time) {
+                    return $"{time / 1000:#.#}";
+                }
+                if (TrimStart > 0) {
+                    if (TrimEnd > 0) {
+                        return $"{tf(TrimStart)}-{tf(TrimEnd)}";
+                    } else {
+                        return $"{tf(TrimStart)}-";
+                    }
+                } else if (TrimEnd > 0) {
+                    return $"-{tf(TrimEnd)}";
+                } else {
+                    return "";
+                }
+            }
         }
 
         bool mPlayCountModified = false;

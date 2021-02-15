@@ -1,4 +1,5 @@
-﻿using Reactive.Bindings;
+﻿using common;
+using Reactive.Bindings;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -12,7 +13,7 @@ namespace wfPlayer {
     /// WfTrimmingPlayer.xaml の相互作用ロジック
     /// </summary>
     public partial class WfTrimmingPlayer : Window, INotifyPropertyChanged {
-        #region INotifyPropertyChanged i/f
+#region INotifyPropertyChanged i/f
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void notify(string propName) {
@@ -35,12 +36,12 @@ namespace wfPlayer {
             notify(propName);
         }
 
-        #endregion
+#endregion
 
-        #region Binding Properties
-        class TrimViewModel : WfViewModelBase, ITimelineOwnerPlayer {
+#region Binding Properties
+        class TrimViewModel : MicViewModelBase, ITimelineOwnerPlayer {
             
-            #region Construction
+#region Construction
             // Owner
             private WeakReference<WfTrimmingPlayer> mOwner;
             private WfTrimmingPlayer Owner => mOwner?.GetValue();
@@ -98,9 +99,9 @@ namespace wfPlayer {
                 Rating.Subscribe(ChangeRating);
             }
 
-            #endregion
+#endregion
 
-            #region 状態更新
+#region 状態更新
 
             void SetTrimSettingsWith(ITrim trim) {
                 if (!IsValidTrim(trim)) {
@@ -153,9 +154,9 @@ namespace wfPlayer {
                 CanUndo.Value = _CanUndo;
             }
 
-            #endregion
+#endregion
 
-            #region Properties
+#region Properties
 
             public ReactiveProperty<double> Volume { get; } = new ReactiveProperty<double>(0.5);
             public ReactiveProperty<bool> Mute { get; } = new ReactiveProperty<bool>(true);
@@ -171,7 +172,7 @@ namespace wfPlayer {
             }
 
             // 選択されたTrimPattern
-            public ReactiveProperty<ITrim> SelectedTrim { get; } = new ReactiveProperty<ITrim>(null);
+            public ReactiveProperty<ITrim> SelectedTrim { get; } = new ReactiveProperty<ITrim>();
 
             // Trimming Settings
             public ReactiveProperty<long> Prologue { get; } = new ReactiveProperty<long>(0);
@@ -197,9 +198,9 @@ namespace wfPlayer {
 
             public ReactiveProperty<Ratings> Rating { get; } = new ReactiveProperty<Ratings>(Ratings.NORMAL);
 
-            #endregion
+#endregion
 
-            #region Commands
+#region Commands
 
             // Commands
             public ReactiveProperty<bool> IsAvailable { get; } = new ReactiveProperty<bool>(false);
@@ -323,17 +324,17 @@ namespace wfPlayer {
                     return;
                 }
                 using (var txn = WfPlayListDB.Instance.Transaction()) {
-                    var trim = WfPlayListDB.Instance.TP.Register(0, TrimmingName.Value, RealPrologue, RealEpilogue, VideoPath);
-                    if (trim == null) {
-                        return;
-                    }
-                    ResultTrim.Value = trim;
-                    if (!EditMode.Value) {
-                        var item = SourceList.Current;
-                        item.Trimming = trim;
-                        item.SaveModified();
-                    }
-                    SelectedTrim.Value = trim;
+                    //var trim = WfPlayListDB.Instance.TP.Register(0, TrimmingName.Value, RealPrologue, RealEpilogue, VideoPath);
+                    //if (trim == null) {
+                    //    return;
+                    //}
+                    //ResultTrim.Value = trim;
+                    //if (!EditMode.Value) {
+                    //    var item = SourceList.Current;
+                    //    //item.Trimming = trim;
+                    //    item.SaveModified();
+                    //}
+                    //SelectedTrim.Value = trim;
                     FeedNext.OnNext(true);
                 }
             }
@@ -345,21 +346,21 @@ namespace wfPlayer {
                 if (!CanUpdate.Value) {
                     return;
                 }
-                using (var txn = WfPlayListDB.Instance.Transaction()) {
-                    var trim = WfPlayListDB.Instance.TP.Register(SelectedTrim.Value.Id, TrimmingName.Value, RealPrologue, RealEpilogue, VideoPath);
-                    if (trim == null) {
-                        return;
-                    }
+                //using (var txn = WfPlayListDB.Instance.Transaction()) {
+                //    var trim = WfPlayListDB.Instance.TP.Register(SelectedTrim.Value.Id, TrimmingName.Value, RealPrologue, RealEpilogue, VideoPath);
+                //    if (trim == null) {
+                //        return;
+                //    }
 
-                    ResultTrim.Value = trim;
-                    if (!EditMode.Value) {
-                        var item = SourceList.Current;
-                        item.Trimming = trim;
-                        item.SaveModified();
-                    }
-                    SelectedTrim.Value = trim;
-                    FeedNext.OnNext(true);
-                }
+                //    ResultTrim.Value = trim;
+                //    if (!EditMode.Value) {
+                //        var item = SourceList.Current;
+                //        //item.Trimming = trim;
+                //        item.SaveModified();
+                //    }
+                //    SelectedTrim.Value = trim;
+                //    FeedNext.OnNext(true);
+                //}
             }
 
             /**
@@ -369,14 +370,14 @@ namespace wfPlayer {
                 if (!CanApply.Value) {
                     return;
                 }
-                var trim = WfPlayListDB.Instance.TP.Get(TrimmingName.Value);
-                if (trim != null) {
-                    var item = SourceList.Current;
-                    item.Trimming = trim;
-                    item.SaveModified();
-                    FeedNext.OnNext(true);
-                    SelectedTrim.Value = trim;
-                }
+                //var trim = WfPlayListDB.Instance.TP.Get(TrimmingName.Value);
+                //if (trim != null) {
+                //    var item = SourceList.Current;
+                //    //item.Trimming = trim;
+                //    item.SaveModified();
+                //    FeedNext.OnNext(true);
+                //    SelectedTrim.Value = trim;
+                //}
             }
 
             private void ChangeRating(Ratings rating) {
@@ -410,9 +411,9 @@ namespace wfPlayer {
                 }
             }
 
-            #endregion
+#endregion
 
-            #region ITimelineOwnerPlayer
+#region ITimelineOwnerPlayer
 
             // 再生状態の変更監視(true:再生中 / false:停止中）
             public IObservable<bool> IsPlayingProperty => Playing;
@@ -448,18 +449,18 @@ namespace wfPlayer {
                 Owner?.mMediaElement?.Pause();
             }
 
-            #endregion
+#endregion
         }
-        #endregion
+#endregion
 
-        #region Fields
+#region Fields
 
         private TaskCompletionSource<bool> mVideoLoadingTask = null;
         public delegate void ResultEventProc(ITrim result, WfPlayListDB dbWithTransaction);
         public event ResultEventProc OnResult;
         public ITrim Result;
         
-        #endregion
+#endregion
 
         private TrimViewModel ViewModel {
             get => DataContext as TrimViewModel;
@@ -510,8 +511,8 @@ namespace wfPlayer {
 
         public WfTrimmingPlayer(IWfSourceList source) {
             var item = source.Current;
-            var path = WfTrimmingPlayer.GetRefPath(item.Trimming, item.FullPath, true);
-            InitViewModel(item.Trimming, path, source);
+            //var path = WfTrimmingPlayer.GetRefPath(item.Trimming, item.FullPath, true);
+            //InitViewModel(item.Trimming, path, source);
         }
 
         private async Task SetSourceToPlayer(string path = null) {
@@ -856,16 +857,16 @@ namespace wfPlayer {
             if (null == source) {
                 return;
             }
-            var trim = source.Trimming;
-            var videoPath = WfTrimmingPlayer.GetRefPath(source.Trimming, source.FullPath, true);
+            //var trim = source.Trimming;
+            //var videoPath = WfTrimmingPlayer.GetRefPath(source.Trimming, source.FullPath, true);
 
-            await SetSourceToPlayer(videoPath);
-            if (null != trim) {
-                ViewModel.OriginalTrim = trim;
-                ViewModel.SelectedTrim.Value = trim;
-            } else {
-                ViewModel.OriginalTrim = null;
-            }
+            //await SetSourceToPlayer(videoPath);
+            //if (null != trim) {
+            //    ViewModel.OriginalTrim = trim;
+            //    ViewModel.SelectedTrim.Value = trim;
+            //} else {
+            //    ViewModel.OriginalTrim = null;
+            //}
             ViewModel.UpdateNextPrev();
         }
 

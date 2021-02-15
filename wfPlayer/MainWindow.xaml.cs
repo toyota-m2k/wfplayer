@@ -408,28 +408,13 @@ namespace wfPlayer
          * カレントアイテムに、トリミングパターンを作成してセットする
          */
         private void CreateTrimmingPattern() {
-            var item = mFileListView.SelectedItem as WfFileItem;
-            if (null == item) {
-                return;
-            }
-#if true
-            mFileList.CurrentIndex = mFileListView.SelectedIndex;
-            var tp = new WfTrimmingPlayer(mFileList);
-            tp.ShowDialog();
-#else
-            var tp = new WfTrimmingPlayer(item.Trimming, WfTrimmingPlayer.GetRefPath(null, item.FullPath, true));
-            WfTrimmingPlayer.ResultEventProc onNewTrimming = (result, db) =>
-            {
-                if (null != tp.Result)
-                {
-                    item.Trimming = tp.Result;
-                    item.SaveModified();
-                }
-            };
-            tp.OnResult += onNewTrimming;
-            tp.ShowDialog();
-            tp.OnResult -= onNewTrimming;
-#endif
+            //var item = mFileListView.SelectedItem as WfFileItem;
+            //if (null == item) {
+            //    return;
+            //}
+            //mFileList.CurrentIndex = mFileListView.SelectedIndex;
+            //var tp = new WfTrimmingPlayer(mFileList);
+            //tp.ShowDialog();
         }
 
         /**
@@ -441,7 +426,8 @@ namespace wfPlayer
             if (dlg.Result != null) {
                 using (var txn = WfPlayListDB.Instance.Transaction()) {
                     foreach (WfFileItem v in mFileListView.SelectedItems) {
-                        v.Trimming = dlg.Result;
+                        v.TrimStart = dlg.Result.Prologue;
+                        v.TrimEnd = dlg.Result.Epilogue;
                         v.SaveModified();
                     }
                 }
@@ -454,7 +440,8 @@ namespace wfPlayer
         private void ResetTrimmingPattern() {
             using (var txn = WfPlayListDB.Instance.Transaction()) {
                 foreach (WfFileItem v in mFileListView.SelectedItems) {
-                    v.Trimming = WfFileItem.Trim.NoTrim;
+                    v.TrimStart = 0;
+                    v.TrimEnd = 0;
                     v.SaveModified();
                 }
             }

@@ -1,4 +1,5 @@
-﻿using Reactive.Bindings;
+﻿using common;
+using Reactive.Bindings;
 using System;
 using System.Diagnostics;
 using System.Reactive.Subjects;
@@ -16,7 +17,7 @@ namespace wfPlayer {
         void Pause();
     }
 
-    public class TimelineViewModel : WfViewModelBase {
+    public class TimelineViewModel : MicViewModelBase {
         public ReadOnlyReactiveProperty<bool> IsPlaying { get; private set; }
 
         private WeakReference<Slider> mSlider;

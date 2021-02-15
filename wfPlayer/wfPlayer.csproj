@@ -57,7 +57,13 @@
       <HintPath>..\packages\Microsoft.WindowsAPICodePack-Shell.1.1.0.0\lib\Microsoft.WindowsAPICodePack.ShellExtensions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xaml.Behaviors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Xaml.Behaviors.Wpf.1.1.19\lib\net45\Microsoft.Xaml.Behaviors.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Xaml.Behaviors.Wpf.1.1.31\lib\net45\Microsoft.Xaml.Behaviors.dll</HintPath>
+    </Reference>
+    <Reference Include="ReactiveProperty, Version=7.7.0.0, Culture=neutral, PublicKeyToken=910d1732782c71cb, processorArchitecture=MSIL">
+      <HintPath>..\packages\ReactiveProperty.7.7.0\lib\netstandard2.0\ReactiveProperty.dll</HintPath>
+    </Reference>
+    <Reference Include="ReactiveProperty.Core, Version=7.7.0.0, Culture=neutral, PublicKeyToken=910d1732782c71cb, processorArchitecture=MSIL">
+      <HintPath>..\packages\ReactiveProperty.Core.7.7.0\lib\netstandard2.0\ReactiveProperty.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -104,16 +110,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="CheckButton.cs" />
+    <Compile Include="common\MicViewModelBase.cs" />
+    <Compile Include="common\Utils.cs" />
     <Compile Include="GeCommand.cs" />
     <Compile Include="MenuButton.cs" />
     <Compile Include="NumericTextBox.cs" />
-    <Compile Include="reactive\IHasErrors.cs" />
-    <Compile Include="reactive\IReactiveProperty.cs" />
-    <Compile Include="reactive\IReadOnlyReactiveProperty.cs" />
-    <Compile Include="reactive\ReactiveCommand.cs" />
-    <Compile Include="reactive\ReactiveProperty.cs" />
-    <Compile Include="reactive\ReactivePropertyScheduler.cs" />
-    <Compile Include="reactive\UIDispatcherScheduler.cs" />
     <Compile Include="server\lib\HttpBuilder.cs" />
     <Compile Include="server\lib\HttpProcessor.cs" />
     <Compile Include="server\lib\HttpServer.cs" />
@@ -150,7 +151,6 @@
     <Compile Include="WfTrimmingPlayer.xaml.cs">
       <DependentUpon>WfTrimmingPlayer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WfViewModelBase.cs" />
     <Compile Include="WinPlacement.cs" />
     <Compile Include="WinShutdown.cs" />
     <Page Include="MainWindow.xaml">

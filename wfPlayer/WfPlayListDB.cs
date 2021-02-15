@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
+using static wfPlayer.WfFileItem;
 
 namespace wfPlayer
 {
@@ -18,6 +20,8 @@ namespace wfPlayer
             RATING = 0x08,
             TRIMMING = 0x10,
             ASPECT = 0x20,
+            TRIM_START = 0x40,
+            TRIM_END = 0x80,
         }
 
         public class Txn : IDisposable
@@ -74,7 +78,7 @@ namespace wfPlayer
                 {
                     long lastPlay = f.LastPlayDate == DateTime.MinValue ? 0 : f.LastPlayDate.ToFileTimeUtc();
                     mCmd.CommandText = $"INSERT INTO t_playlist (path,date,size,mark,rating,lastPlay,playCount,trimming,aspect) "
-                                     + $"VALUES('{f.FullPath}','{f.Date.ToFileTimeUtc()}','{f.Size}','{f.Mark}','{(int)f.Rating}','{lastPlay}','{f.PlayCount}','{f.Trimming.Id}', '{(long)f.Aspect}')";
+                                     + $"VALUES('{f.FullPath}','{f.Date.ToFileTimeUtc()}','{f.Size}','{f.Mark}','{(int)f.Rating}','{lastPlay}','{f.PlayCount}','0', '{(long)f.Aspect}')";
                     return 1 == mCmd.ExecuteNonQuery();
                 }
                 catch (SQLiteException)
@@ -151,20 +155,20 @@ namespace wfPlayer
 
                 WfFileItem.Trim trim = WfFileItem.Trim.NoTrim;
                 var rawTrimId = reader["trim_id"];
-                if (!(rawTrimId is DBNull)) {
-                    long trimId = Convert.ToInt64(rawTrimId);
-                    if (trimId > 0) {
-                        try {
-                            trim = new WfFileItem.Trim(trimId, Convert.ToString(reader["trim_name"]),
-                                Convert.ToInt64(reader["prologue"]),
-                                Convert.ToInt64(reader["epilogue"]),
-                                refPath: "");
-                        } catch (SQLiteException) {
-                            trim = WfFileItem.Trim.NoTrim;
-                        }
-                    }
-                }
-
+                long trimId = !(rawTrimId is DBNull) ? Convert.ToInt64(rawTrimId) : 0;
+                //if (!(rawTrimId is DBNull)) {
+                //    long trimId = Convert.ToInt64(rawTrimId);
+                //    if (trimId > 0) {
+                //        try {
+                //            trim = new WfFileItem.Trim(trimId, Convert.ToString(reader["trim_name"]),
+                //                Convert.ToInt64(reader["prologue"]),
+                //                Convert.ToInt64(reader["epilogue"]),
+                //                refPath: "");
+                //        } catch (SQLiteException) {
+                //            trim = WfFileItem.Trim.NoTrim;
+                //        }
+                //    }
+                //}
                 rec = new WfFileItem(
                                 path,
                                 Convert.ToInt64(reader["size"]),
@@ -174,8 +178,10 @@ namespace wfPlayer
                                 exists,
                                 lastPlayDate,
                                 Convert.ToInt32(reader["playCount"]),
-                                trim,
-                                (WfAspect)Convert.ToInt32(reader["aspect"])
+                                trimId,
+                                (WfAspect)Convert.ToInt32(reader["aspect"]),
+                                Convert.ToInt64(reader["trim_start"]),
+                                Convert.ToInt64(reader["trim_end"])
                                 );
                 return true;
             }
@@ -236,14 +242,18 @@ namespace wfPlayer
             {
                 Instance.Dispose();
             }
-            Instance = new WfPlayListDB(path);
+            Instance = new WfPlayListDB();
+            Instance.Open(path);
             return Instance;
         }
 
-        public TrimmingPattern TP;
+        //public TrimmingPattern TP;
 
         private SQLiteConnection mDB;
-        private WfPlayListDB(string dbPath)
+        private WfPlayListDB() {
+        }
+
+        private void Open(string dbPath)
         {
             var builder = new SQLiteConnectionStringBuilder() { DataSource = dbPath ?? "wfplay.db" };
             mDB = new SQLiteConnection(builder.ToString());
@@ -282,7 +292,47 @@ namespace wfPlayer
                 value TEXT NOT NULL
                 )"
                 );
-            TP = new TrimmingPattern(mDB);
+
+            UpdateTable();
+        }
+
+        const string KEY_APP_NAME = "AppName";
+        const string KEY_VERSION = "Version";
+        const string VAL_APP_NAME = "WfPlayer";
+        const string VAL_VERSION = "1";
+
+        public int Version = 0;
+
+        void UpdateTable() {
+            Version = Convert.ToInt32(GetValueAt(KEY_VERSION));
+            var name = GetValueAt(KEY_APP_NAME);
+            if(name==null) {
+                try {
+                    safeExecuteSql(@"ALTER TABLE t_playlist ADD COLUMN trim_start INTEGER DEFAULT '0'");
+                    safeExecuteSql(@"ALTER TABLE t_playlist ADD COLUMN trim_end INTEGER DEFAULT '0'");
+                    
+                    var tp = new TrimmingPattern(mDB);
+                    var list = QueryAll(false).List;
+                    foreach(var c in list) {
+                        if(c.TrimmingId!=0) {
+                            var trim = tp.GetById(c.TrimmingId);
+                            if (trim != null) {
+                                c.TrimStart = trim.Prologue;
+                                c.TrimEnd = trim.Epilogue;
+                                c.TrimmingId = 0;
+                                c.SaveModified();
+                            }
+                        }
+                    }
+                    SetValueAt(KEY_APP_NAME, VAL_APP_NAME);
+                    SetValueAt(KEY_VERSION, VAL_VERSION);
+                    Version = Convert.ToInt32(VAL_VERSION);
+                }
+                catch (Exception e) {
+                    Debug.WriteLine(e);
+                }
+            }
+
         }
 
         static List<string> splitPath(string path)
@@ -427,39 +477,41 @@ namespace wfPlayer
             {
                 return;
             }
-            using (var cmd = mDB.CreateCommand())
-            {
+            using (var cmd = mDB.CreateCommand()) {
                 var sql = new StringBuilder("UPDATE t_playlist SET ");
                 bool prev = false;
-                if(0!=(flags & (long)FieldFlag.MARK))
-                {
+                if (0 != (flags & (long)FieldFlag.MARK)) {
                     sql.Append($"mark='{item.Mark}' "); prev = true;
                 }
-                if(0!=(flags&(long)FieldFlag.RATING))
-                {
+                if (0 != (flags & (long)FieldFlag.RATING)) {
                     if (prev) sql.Append(", ");
                     sql.Append($"rating='{(int)item.Rating}' "); prev = true;
                 }
-                if(0!=(flags&(long)FieldFlag.PLAY_COUNT))
-                {
+                if (0 != (flags & (long)FieldFlag.PLAY_COUNT)) {
                     if (prev) sql.Append(", ");
                     sql.Append($"playCount='{item.PlayCount} '"); prev = true;
                 }
-                if (0 != (flags & (long)FieldFlag.LAST_PLAY))
-                {
+                if (0 != (flags & (long)FieldFlag.LAST_PLAY)) {
                     long tm = item.LastPlayDate == DateTime.MinValue ? 0 : item.LastPlayDate.ToFileTimeUtc();
                     if (prev) sql.Append(", ");
                     sql.Append($"lastPlay='{tm}' "); prev = true;
                 }
-                if (0 != (flags & (long)FieldFlag.TRIMMING))
-                {
-                    if (prev) sql.Append(", ");
-                    sql.Append($"trimming='{item.Trimming.Id}' "); prev = true;
-                }
-                if (0 != (flags & (long)FieldFlag.ASPECT))
-                {
+                //if (0 != (flags & (long)FieldFlag.TRIMMING))
+                //{
+                //    if (prev) sql.Append(", ");
+                //    sql.Append($"trimming='{item.Trimming.Id}' "); prev = true;
+                //}
+                if (0 != (flags & (long)FieldFlag.ASPECT)) {
                     if (prev) sql.Append(", ");
                     sql.Append($"aspect='{(long)item.Aspect}' "); prev = true;
+                }
+                if (0 != (flags & (long)FieldFlag.TRIM_START)) {
+                    if (prev) sql.Append(", ");
+                    sql.Append($"trim_start='{item.TrimStart}' "); prev = true;
+                }
+                if (0 != (flags & (long)FieldFlag.TRIM_END)) {
+                    if (prev) sql.Append(", ");
+                    sql.Append($"trim_end='{item.TrimEnd}' "); prev = true;
                 }
                 sql.Append($" WHERE path='{item.FullPath}'");
                 executeSql(sql.ToString());
@@ -507,6 +559,17 @@ namespace wfPlayer
         {
             return new Txn(mDB.BeginTransaction());
         }
+
+        private bool safeExecuteSql(params string[] sqls) {
+            try {
+                executeSql(sqls);
+                return true;
+            } catch(Exception e) {
+                Debug.WriteLine(e);
+                return false;
+            }
+        }
+
 
         private void executeSql(params string[] sqls)
         {
@@ -620,6 +683,27 @@ namespace wfPlayer
                     }
                     catch (Exception)
                     {
+                    }
+                    return null;
+                }
+            }
+
+            public ITrim GetById(long id) {
+                using (var cmd = DB.CreateCommand()) {
+                    try {
+
+                        cmd.CommandText = $"SELECT * FROM t_trim_patterns WHERE trim_id='{id}'";
+                        using (var reader = cmd.ExecuteReader()) {
+                            if (reader.Read()) {
+                                return new WfFileItem.Trim(Convert.ToInt64(reader["trim_id"]),
+                                    Convert.ToString(reader["trim_name"]),
+                                    Convert.ToInt64(reader["prologue"]),
+                                    Convert.ToInt64(reader["epilogue"]),
+                                    Convert.ToString(reader["ref_path"]));
+                            }
+                        }
+                    }
+                    catch (Exception) {
                     }
                     return null;
                 }

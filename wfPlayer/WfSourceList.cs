@@ -31,6 +31,7 @@ namespace wfPlayer
         long Epilogue { get; }
         string RefPath { get; }
         bool HasValue { get; }
+        string RangeLabel { get; }
     }
 
     public interface IWfSource
@@ -39,7 +40,12 @@ namespace wfPlayer
         string FullPath { get; }
         string Mark { get; set; }
         Ratings Rating { get; set; }
-        ITrim Trimming { get; set; }
+        //ITrim Trimming { get; set; }
+        bool HasTrimming { get; }
+        long TrimStart { get; set; }
+        long TrimEnd { get; set; }
+        string TrimStartText { get; }
+        string TrimEndText { get; }
         WfAspect Aspect { get; set; }
         void Touch();
         void SaveModified();
