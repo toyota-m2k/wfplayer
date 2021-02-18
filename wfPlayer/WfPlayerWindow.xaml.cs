@@ -217,7 +217,7 @@ namespace wfPlayer {
                 if (PreviewMode) return;
 
                 if (Playing && CurrentItem != null && newItem != CurrentItem) {
-                    PlayingStateChanged(false);
+                    PlayingStateChanged(Playing);
                 }
 
                 CurrentItem = newItem;
