@@ -55,14 +55,15 @@ namespace SimpleHttpServer
         //        Thread.Sleep(1);
         //    }
         //}
-
+        private bool Alive = true;
         public void Start()
         {
+            Alive = true;
             Task.Run(async () =>
             {
                 this.Listener = new TcpListener(IPAddress.Any, this.Port);
                 this.Listener.Start();
-                while (true)
+                while (Alive)
                 {
                     try
                     {
@@ -71,7 +72,7 @@ namespace SimpleHttpServer
                     }
                     catch(Exception)
                     {
-                        break;
+                        Alive = false;
                     }
                 }
                 Listener.Stop();
@@ -80,6 +81,7 @@ namespace SimpleHttpServer
 
         public void Stop()
         {
+            Alive = false;
             Listener.Stop();
         }
         #endregion

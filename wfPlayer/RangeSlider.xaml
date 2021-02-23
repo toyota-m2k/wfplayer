@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="wfPlayer.RangeSlider"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:wfPlayer"
+             mc:Ignorable="d" 
+             SizeChanged="OnSizeChanged"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ResourceDictionary Source="WfResource.xaml"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="12"/>
+            <ColumnDefinition Width="{Binding RangeSliderViewModel.StartWidth.Value, Converter={StaticResource GridLengthConverter}}"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="{Binding RangeSliderViewModel.EndWidth.Value, Converter={StaticResource GridLengthConverter}}"/>
+            <ColumnDefinition Width="12"/>
+        </Grid.ColumnDefinitions>
+        <Rectangle Grid.Column="1" Height="4" Grid.ColumnSpan="3" VerticalAlignment="Top" Fill="Transparent"/>
+        <Rectangle Grid.Column="2" Height="4" VerticalAlignment="Top" Fill="White"/>
+        <Rectangle Grid.Column="3" Height="4" VerticalAlignment="Top" Fill="Transparent"/>
+        <Grid Grid.Column="1" Margin="-12,0,0,0">
+            <Grid HorizontalAlignment="Right" Margin="0,-18,-12,0" Background="#00000000">
+                <Path Data="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" Fill="{StaticResource PressedBtnFG}" HorizontalAlignment="Right" Margin="0,0,4,0">
+                    <Path.RenderTransform>
+                        <RotateTransform Angle="180" CenterX="12" CenterY="12"/>
+                    </Path.RenderTransform>
+                </Path>
+            </Grid>
+        </Grid>
+        <Grid Grid.Column="3" Margin="-12,0,0,0">
+            <Grid HorizontalAlignment="Left" Margin="0,-18,-12,0" Background="#00000000">
+                <Path Data="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" Fill="{StaticResource PressedBtnFG}" HorizontalAlignment="Right" Margin="0,0,4,0">
+                    <Path.RenderTransform>
+                        <RotateTransform Angle="180" CenterX="12" CenterY="12"/>
+                    </Path.RenderTransform>
+                </Path>
+            </Grid>
+        </Grid>
+
+    </Grid>
+</UserControl>

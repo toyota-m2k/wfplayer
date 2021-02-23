@@ -92,6 +92,9 @@ namespace wfPlayer {
         public ReactiveCommand CommandResetTrimStart { get; } = new ReactiveCommand();
         public ReactiveCommand CommandResetTrimEnd { get; } = new ReactiveCommand();
 
+        public RangeSliderViewModel RangeSliderViewModel { get; }
+        public ContinuousKeyWatcher ContinuousCommand { get; } = new ContinuousKeyWatcher();
+
         public WfPlayerViewModel() {
             Playing = Started.CombineLatest(Pausing, (s, p) => s && !p).ToReadOnlyReactiveProperty();
             LargePositionChange = Duration.Select((d) => d / 10).ToReadOnlyReactiveProperty();
@@ -130,11 +133,61 @@ namespace wfPlayer {
             CommandMaximize.Subscribe(() => WinMaximized.Value = !WinMaximized.Value);
             CommandResetSpeed.Subscribe(() => Speed.Value = 0.5);
 
-            CommandSetTrimStart.Subscribe(()=> Current.Value?.Apply((c) => c.TrimStart = (long)SeekPosition.Value));
-            CommandSetTrimEnd.Subscribe(() => Current.Value?.Apply((c) => c.TrimEnd= (long)(Duration.Value - SeekPosition.Value)));
-            CommandResetTrimStart.Subscribe(() => Current.Value?.Apply((c) => c.TrimStart= 0));
-            CommandResetTrimEnd.Subscribe(() => Current.Value?.Apply((c) => c.TrimEnd = 0));
+            //CommandSetTrimStart.Subscribe(()=> Current.Value?.Apply((c) => c.TrimStart = (long)SeekPosition.Value));
+            //CommandSetTrimEnd.Subscribe(() => Current.Value?.Apply((c) => c.TrimEnd= (long)(Duration.Value - SeekPosition.Value)));
+            //CommandResetTrimStart.Subscribe(() => Current.Value?.Apply((c) => c.TrimStart= 0));
+            //CommandResetTrimEnd.Subscribe(() => Current.Value?.Apply((c) => c.TrimEnd = 0));
 
+            RangeSliderViewModel = new RangeSliderViewModel(Duration.ToReadOnlyReactiveProperty());
+        }
+
+        public class ContinuousKeyWatcher {
+            public enum ContinuousCommand {
+                None,
+                Forward,
+                Backward,
+                ResetTrimStart,
+                ResetTrimEnd,
+            }
+            Dictionary<Key, ContinuousCommand> Map = new Dictionary<Key, ContinuousCommand>() {
+                { Key.S, ContinuousCommand.Backward },
+                { Key.D, ContinuousCommand.Forward },
+                { Key.J, ContinuousCommand.ResetTrimStart },
+                { Key.K, ContinuousCommand.ResetTrimEnd },
+            };
+
+            private ReactiveProperty<Key> ActiveKey { get; } = new ReactiveProperty<Key>(Key.None, ReactivePropertyMode.DistinctUntilChanged);
+            private ReactiveProperty<bool> Ctrl { get; } = new ReactiveProperty<bool>(false, ReactivePropertyMode.DistinctUntilChanged);
+            public ReadOnlyReactiveProperty<ContinuousCommand> Command { get; }
+            public ContinuousKeyWatcher() {
+                Command = ActiveKey.CombineLatest(Ctrl, (key, ctrl) => {
+                    return Map.GetValue(key, ContinuousCommand.None);
+                }).ToReadOnlyReactiveProperty(mode: ReactivePropertyMode.DistinctUntilChanged);
+            }
+
+            public bool Down(Key key) {
+                if (key == Key.LeftCtrl || key == Key.RightCtrl) {
+                    Ctrl.Value = true;
+                    return true;
+                } else if(Ctrl.Value) {
+                    ActiveKey.Value = key;
+                    return true;
+                }
+                return false;
+            }
+            public void Up(Key key) {
+                if (key == Key.LeftCtrl || key == Key.RightCtrl) {
+                    Ctrl.Value = false;
+                } else if (key == ActiveKey.Value) {
+                    ActiveKey.Value = Key.None;
+                }
+            }
+            public void Cancel() {
+                ActiveKey.Value = Key.None;
+                Ctrl.Value = false;
+            }
+
+            public Action OnStopCommand = null;
         }
 
         public string FormatDuration(double duration) {
@@ -281,6 +334,10 @@ namespace wfPlayer {
             ViewModel.CommandPrev.Subscribe(()=> _=Prev());
             ViewModel.CommandNext.Subscribe(()=> _=Next());
 
+            ViewModel.CommandSetTrimStart.Subscribe(SetTrimStart);
+            ViewModel.CommandSetTrimEnd.Subscribe(SetTrimEnd);
+            ViewModel.CommandResetTrimStart.Subscribe(ResetTrimStart);
+            ViewModel.CommandResetTrimEnd.Subscribe(ResetTrimEnd);
             InitializeComponent();
         }
 
@@ -323,7 +380,74 @@ namespace wfPlayer {
             ViewModel.StretchMode.Subscribe((c) => OnStretchModeChanged());
             ViewModel.StretchMaximum.Subscribe((c) => OnStretchModeChanged());
             ViewModel.Speed.Subscribe(OnSpeedChanged);
+
+            ViewModel.ContinuousCommand.Command.Subscribe((cmd) => {
+                switch(cmd) {
+                    case WfPlayerViewModel.ContinuousKeyWatcher.ContinuousCommand.Forward:
+                        ContinuousCommandPlayFast();
+                        break;
+                    case WfPlayerViewModel.ContinuousKeyWatcher.ContinuousCommand.Backward:
+                        ContinuousCommandPlayBack();
+                        break;
+                    case WfPlayerViewModel.ContinuousKeyWatcher.ContinuousCommand.ResetTrimStart:
+                        ResetTrimStart();
+                        return;
+                    case WfPlayerViewModel.ContinuousKeyWatcher.ContinuousCommand.ResetTrimEnd:
+                        ResetTrimEnd();
+                        return;
+                    case WfPlayerViewModel.ContinuousKeyWatcher.ContinuousCommand.None:
+                    default:
+                        ViewModel.ContinuousCommand.OnStopCommand?.Invoke();
+                        ViewModel.ContinuousCommand.OnStopCommand = null;
+                        break;
+                }
+            });
         }
+
+        private void ContinuousCommandPlayFast() {
+            bool playing = ViewModel.Playing.Value;
+            double speed = mMediaElement.SpeedRatio;
+            ViewModel.ContinuousCommand.OnStopCommand = () => {
+                mMediaElement.SpeedRatio = speed;
+                if(!playing) {
+                    Pause();
+                }
+            };
+            if (!playing) {
+                Play();
+            }
+            mMediaElement.SpeedRatio = 3.0;
+        }
+
+        private void ContinuousCommandPlayBack() {
+            int speedRatio = 3;
+            long pos = (long)ViewModel.SeekPosition.Value;
+            bool playing = ViewModel.Playing.Value;
+            double speed = mMediaElement.SpeedRatio;
+            var timer = new DispatcherTimer() {
+                Interval = new TimeSpan(0, 0, 0, 0, 42),
+            };
+            timer.Tick += (s,e) => {
+                pos -= 42 * speedRatio;
+                if (pos <= 0) {
+                    pos = 0;
+                }
+                mMediaElement.Position = TimeSpan.FromMilliseconds(pos);
+            };
+            timer.Start();
+            ViewModel.ContinuousCommand.OnStopCommand = () => {
+                timer.Stop();
+                mMediaElement.SpeedRatio = speed;
+                if (!playing) {
+                    Pause();
+                }
+            };
+            if (!playing) {
+                Play();
+            }
+            mMediaElement.SpeedRatio = 1;
+        }
+
 
         /**
          * ビューが破棄されるときの終了処理
@@ -347,6 +471,8 @@ namespace wfPlayer {
         }
 
         private void OnClosing(object sender, CancelEventArgs e) {
+            mServer?.Dispose();
+            mServer = null;
             WfGlobalParams.Instance.Placement.GetPlacementFrom(this);
         }
 
@@ -527,6 +653,8 @@ namespace wfPlayer {
             Debug.WriteLine("MediaOpened");
             ViewModel.Ready.Value = true;
             ViewModel.Duration.Value = mMediaElement.NaturalDuration.TimeSpan.TotalMilliseconds;
+            ViewModel.RangeSliderViewModel.TrimStart.Value = ViewModel.Current.Value.TrimStart;
+            ViewModel.RangeSliderViewModel.TrimEnd.Value = ViewModel.Current.Value.TrimEnd;
             mMediaElement.SpeedRatio = calcSpeedRatio(ViewModel.Speed.Value);
             updateTimelinePosition(ViewModel.Current.Value.TrimStart, true, true);
             SeenFlagAgent.ItemChanged(ViewModel.Current.Value, (long)ViewModel.Duration.Value);
@@ -583,11 +711,30 @@ namespace wfPlayer {
         }
 
         private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e) {
-            Debug.WriteLine($"KEY:{e.Key} - {e.SystemKey} - {e.KeyStates} - Rep={e.IsRepeat} - D/U/T={e.IsDown}/{e.IsUp}/{e.IsToggled}");
+            Debug.WriteLine($"KEYDown: Key={e.Key}, Sys={e.SystemKey}, State={e.KeyStates}, Rep={e.IsRepeat}, Down={e.IsDown}, Up={e.IsUp}, Toggled={e.IsToggled}");
+            if(ViewModel.ContinuousCommand.Down(e.Key)) {
+                e.Handled = true;
+                return;
+            }
+
             if (InvokeKeyCommand(e.Key)) {
                 e.Handled = true;
             }
         }
+
+        private void OnKeyUp(object sender, System.Windows.Input.KeyEventArgs e) {
+            Debug.WriteLine($"KEYUp  : Key={e.Key}, Sys={e.SystemKey}, State={e.KeyStates}, Rep={e.IsRepeat}, Down={e.IsDown}, Up={e.IsUp}, Toggled={e.IsToggled}");
+            ViewModel.ContinuousCommand.Up(e.Key);
+        }
+
+        private void OnActivated(object sender, EventArgs e) {
+            ViewModel.ContinuousCommand.Cancel();
+        }
+
+        private void OnDeactivated(object sender, EventArgs e) {
+            ViewModel.ContinuousCommand.Cancel();
+        }
+
 
         #endregion
 
@@ -942,6 +1089,33 @@ namespace wfPlayer {
             item.SaveModified();
         }
 
+        private void SetTrimStart() {
+            if (ViewModel.RangeSliderViewModel.CheckAndSetTrimStart(ViewModel.SeekPosition.Value)) {
+                ViewModel.Current.Value?.Apply((item) => {
+                    item.TrimStart = Convert.ToInt64(ViewModel.RangeSliderViewModel.TrimStart.Value);
+                });
+            }
+        }
+        private void SetTrimEnd() {
+            if (ViewModel.RangeSliderViewModel.CheckAndSetTrimEnd(ViewModel.SeekPosition.Value)) {
+                ViewModel.Current.Value?.Apply((item) => {
+                    item.TrimEnd= Convert.ToInt64(ViewModel.RangeSliderViewModel.TrimEnd.Value);
+                });
+            }
+        }
+        private void ResetTrimStart() {
+            ViewModel.RangeSliderViewModel.TrimStart.Value = 0;
+            ViewModel.Current.Value?.Apply((item) => {
+                item.TrimStart = 0;
+            });
+        }
+        private void ResetTrimEnd() {
+            ViewModel.RangeSliderViewModel.TrimEnd.Value = 0;
+            ViewModel.Current.Value?.Apply((item) => {
+                item.TrimEnd = 0;
+            });
+        }
+
         #endregion
 
         #region Key Mapping
@@ -972,9 +1146,12 @@ namespace wfPlayer {
             public const string NEXT_CST_STRETCH = "custNext";
             public const string PREV_CST_STRETCH = "custPrev";
 
-            public const string TRIM_EDIT = "trimEdit";
-            public const string TRIM_SELECT = "trimSelect";
-            public const string TRIM_RESET = "trimReset";
+            //public const string TRIM_EDIT = "trimEdit";
+            //public const string TRIM_SELECT = "trimSelect";
+            public const string TRIM_SET_START = "trimSetStart";
+            public const string TRIM_SET_END = "trimSetEnd";
+            public const string TRIM_RESET_START = "trimResetStart";
+            public const string TRIM_RESET_END = "trimResetEnd";
 
             public const string PIN_SLIDER = "showSlider";
 
@@ -1021,7 +1198,11 @@ namespace wfPlayer {
 
                 //{ Commands.TRIM_EDIT, ()=>EditTrimming(ViewModel.Current.Value as WfFileItem) },
                 //{ Commands.TRIM_SELECT, ()=>SelectTrimming(ViewModel.Current.Value as WfFileItem) },
-                { Commands.TRIM_RESET, ()=>ResetTrimming(ViewModel.Current.Value as WfFileItem) },
+                //{ Commands.TRIM_RESET, ()=>ResetTrimming(ViewModel.Current.Value as WfFileItem) },
+                {Commands.TRIM_SET_START, SetTrimStart },
+                {Commands.TRIM_SET_END, SetTrimEnd },
+                {Commands.TRIM_RESET_START, ResetTrimStart },
+                {Commands.TRIM_RESET_END, ResetTrimEnd },
 
                 { Commands.PIN_SLIDER, ToggleSliderPanel },
 
@@ -1033,12 +1214,15 @@ namespace wfPlayer {
             {
                 { Key.G, Commands.PLAY },
                 { Key.P, Commands.PAUSE },
-                { Key.S, Commands.STOP },
+                { Key.X, Commands.STOP },
                 { Key.F, Commands.FAST_PLAY },
                 { Key.M, Commands.MUTE },
-                { Key.K, Commands.TRIM_EDIT },
-                { Key.L, Commands.TRIM_SELECT },
-                //{ Key.L, Commands.TRIM_RESET },
+                { Key.U, Commands.PREV },
+                { Key.N, Commands.NEXT },
+                { Key.S, Commands.SEEK_BACK },
+                { Key.D, Commands.SEEK_FWD },
+                { Key.J, Commands.TRIM_SET_START},
+                { Key.K, Commands.TRIM_SET_END},
                 { Key.Escape, Commands.CLOSE },
                 { Key.OemPeriod, Commands.NEXT },
                 { Key.OemComma, Commands.PREV },
@@ -1087,5 +1271,6 @@ namespace wfPlayer {
         }
 
         #endregion
+
     }
 }
