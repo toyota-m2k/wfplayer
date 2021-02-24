@@ -12,6 +12,7 @@
     <local:DateStringConverter x:Key="DateStringConverter"/>
     <local:DecimalStringConverter x:Key="DecimalStringConverter"/>
     <local:AspectStringConverter x:Key="AspectStringConverter"/>
+    <local:GridLengthConverter x:Key="GridLengthConverter"/>
 
 
 

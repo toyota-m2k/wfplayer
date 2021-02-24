@@ -115,6 +115,9 @@
     <Compile Include="GeCommand.cs" />
     <Compile Include="MenuButton.cs" />
     <Compile Include="NumericTextBox.cs" />
+    <Compile Include="RangeSlider.xaml.cs">
+      <DependentUpon>RangeSlider.xaml</DependentUpon>
+    </Compile>
     <Compile Include="server\lib\HttpBuilder.cs" />
     <Compile Include="server\lib\HttpProcessor.cs" />
     <Compile Include="server\lib\HttpServer.cs" />
@@ -165,6 +168,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="RangeSlider.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="WfFilterSetting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

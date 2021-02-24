@@ -853,7 +853,7 @@ namespace wfPlayer {
         //    }
         //}
 
-        private async Task SetTargetVideo(IWfSource source) {
+        private void SetTargetVideo(IWfSource source) {
             if (null == source) {
                 return;
             }
@@ -870,10 +870,10 @@ namespace wfPlayer {
             ViewModel.UpdateNextPrev();
         }
 
-        private async void MoveNext(bool closeIfEnd) {
+        private void MoveNext(bool closeIfEnd) {
             if (ViewModel.HasNext.Value) {
                 var trim = ViewModel.GetContinuousTrim();
-                await SetTargetVideo(ViewModel.SourceList.Next);
+                SetTargetVideo(ViewModel.SourceList.Next);
                 if (ViewModel.Continuous.Value) {
                     ViewModel.SelectedTrim.Value = trim;
                 }
@@ -881,10 +881,10 @@ namespace wfPlayer {
                 Close();
             }
         }
-        private async void MovePrev(bool closeIfTop) {
+        private void MovePrev(bool closeIfTop) {
             if (ViewModel.HasPrev.Value) {
                 var trim = ViewModel.GetContinuousTrim();
-                await SetTargetVideo(ViewModel.SourceList.Prev);
+                SetTargetVideo(ViewModel.SourceList.Prev);
                 if (ViewModel.Continuous.Value) {
                     ViewModel.SelectedTrim.Value = trim;
                 }
