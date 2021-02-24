@@ -1239,9 +1239,9 @@ namespace wfPlayer {
                 { Key.D3, Commands.RATING_BAD },
                 { Key.D4, Commands.RATING_DREADFUL },
                 { Key.NumPad1, Commands.RATING_GOOD },
-                { Key.NumPad0, Commands.RATING_NORMAL },
-                { Key.NumPad2, Commands.RATING_BAD },
-                { Key.NumPad3, Commands.RATING_DREADFUL },
+                { Key.NumPad2, Commands.RATING_NORMAL },
+                { Key.NumPad3, Commands.RATING_BAD },
+                { Key.NumPad0, Commands.RATING_DREADFUL },
 
                 { Key.NumPad4, Commands.NEXT_STD_STRETCH },
                 { Key.NumPad5, Commands.NEXT_CST_STRETCH },
