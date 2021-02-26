@@ -15,6 +15,7 @@ namespace wfPlayer
         DATE,
         SIZE,
         TRIMMING,
+        ID,
     }
 
     public class WfSortInfo : INotifyPropertyChanged
@@ -118,7 +119,7 @@ namespace wfPlayer
 
         // DBのソートが使えないキーか？
         [System.Xml.Serialization.XmlIgnore]
-        public bool IsExternalKey => Key == WfSortKey.NAME || Key == WfSortKey.TYPE;
+        public bool IsExternalKey => Key == WfSortKey.NAME || Key == WfSortKey.TYPE || Key == WfSortKey.ID;
 
         [System.Xml.Serialization.XmlIgnore]
         public string SQL
@@ -149,7 +150,7 @@ namespace wfPlayer
                         sb.Append("size");
                         break;
                     case WfSortKey.TRIMMING:
-                        sb.Append("trimming");
+                        sb.Append("trim_start,trim_end");
                         break;
 
                     case WfSortKey.TYPE:

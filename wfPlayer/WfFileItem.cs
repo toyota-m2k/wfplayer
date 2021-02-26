@@ -4,16 +4,15 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace wfPlayer
 {
-    public class WfFileItem : INotifyPropertyChanged, IUtPropertyChangedNotifier, IWfSource
-    {
+    public class WfFileItem : INotifyPropertyChanged, IUtPropertyChangedNotifier, IWfSource {
         #region INotifyPropertyChanged i/f
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private void notify(string propName)
-        {
+        private void notify(string propName) {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
@@ -44,15 +43,13 @@ namespace wfPlayer
         //    return false;
         //}
 
-        public void NotifyPropertyChanged(string propName)
-        {
+        public void NotifyPropertyChanged(string propName) {
             notify(propName);
         }
 
         #endregion
 
-        public WfFileItem(string path)
-        {
+        public WfFileItem(string path) {
             FullPath = path;
             var info = new FileInfo(path);
             Exists = info.Exists;
@@ -62,9 +59,8 @@ namespace wfPlayer
             mTrimStart = 0;
             mTrimEnd = 0;
         }
-        public WfFileItem(string path, long size, DateTime date, string mark, Ratings rating, bool exists, DateTime lastPlay, 
-            int playCount, long trimId, WfAspect aspect, long trimStart, long trimEnd)
-        {
+        public WfFileItem(string path, long size, DateTime date, string mark, Ratings rating, bool exists, DateTime lastPlay,
+            int playCount, long trimId, WfAspect aspect, long trimStart, long trimEnd) {
             FullPath = path;
             Size = size;
             Date = date;
@@ -86,6 +82,8 @@ namespace wfPlayer
 
         public bool Exists { get; }
 
+        public string ID => IDFromName(Name);
+
         public string Name => Path.GetFileNameWithoutExtension(FullPath);
 
         public string Type => Path.GetExtension(FullPath);
@@ -97,6 +95,23 @@ namespace wfPlayer
         public long Size { get; }
 
         public DateTime Date { get; }
+
+        static Regex regId = new Regex(@"(?<id>\d{6}-\d{3})|(?<id>\w+)_[a-z]{3}_[a-z]");
+        static Regex regId2 = new Regex(@"sample(?:_low)*-(?<id>\d+)");
+        private string IDFromName(string name) {
+            string id = null;
+            var m = regId.Match(name);
+            if (m.Success) {
+                id = m.Groups["id"]?.Value;
+                if (!string.IsNullOrEmpty(id)) return id;
+            }
+            m = regId2.Match(name);
+            if (m.Success) {
+                id = m.Groups["id"]?.Value;
+                if (!string.IsNullOrEmpty(id)) return $"({id})";
+            }
+            return name;
+        }
 
         #endregion 
         #region RW Properties

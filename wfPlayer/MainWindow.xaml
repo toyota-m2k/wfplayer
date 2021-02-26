@@ -64,6 +64,7 @@
                     <ContextMenu>
                         <MenuItem Header="Add Folders" Command="{Binding AddFolderCommand}"/>
                         <MenuItem Header="Refresh All" Command="{Binding RefreshAllCommand}"/>
+                        <MenuItem Header="Select Duplicate Files" Command="{Binding SelectDupCommand}"/>
                     </ContextMenu>
                 </local:MenuButton.DropDownMenu>
             </local:MenuButton>
@@ -203,7 +204,8 @@
             </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Name" Width="200" DisplayMemberBinding="{Binding Name}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
+                    <GridViewColumn Header="ID" Width="100" DisplayMemberBinding="{Binding ID}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
+                    <GridViewColumn Header="Name" Width="100" DisplayMemberBinding="{Binding Name}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
                     <GridViewColumn Header="Type" Width="50" DisplayMemberBinding="{Binding Type}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
                     <GridViewColumn Header="Size" Width="100" HeaderTemplate="{StaticResource SortHeaderTemplate}">
                         <GridViewColumn.CellTemplate>

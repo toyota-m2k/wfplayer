@@ -65,6 +65,7 @@ namespace wfPlayer
 
         public GeCommand AddFolderCommand { get; }
         public GeCommand RefreshAllCommand { get; }
+        public GeCommand SelectDupCommand { get; }
 
         #endregion
 
@@ -84,6 +85,9 @@ namespace wfPlayer
             });
             RefreshAllCommand = new GeCommand(() => {
                 RefreshDB();
+            });
+            SelectDupCommand = new GeCommand(() => {
+                SelectDuplicatedFiles();
             });
 
             DataContext = this;
@@ -212,6 +216,7 @@ namespace wfPlayer
         }
         private WfSortKey HeaderName2SortKey(string name) {
             switch (name) {
+                case "ID": return WfSortKey.ID;
                 case "Size": return WfSortKey.SIZE;
                 case "Name": return WfSortKey.NAME;
                 case "Type": return WfSortKey.TYPE;
@@ -370,6 +375,28 @@ namespace wfPlayer
                 ExecSort(WfGlobalParams.Instance.SortInfo, force: true);
             }
         }
+
+        private void SelectDuplicatedFiles() {
+            var dic = new Dictionary<string, int>();
+            var list = mFileList.ToList();
+            list.ForEach((item) => {
+                var id = item.ID;
+                if(dic.ContainsKey(id)) {
+                    dic[id]++;
+                } else {
+                    dic[id] = 1;
+                }
+            });
+            mFileListView.SelectedItems.Clear();
+            list.ForEach((item) => {
+                if(dic[item.ID]>1) {
+                    mFileListView.SelectedItems.Add(item);
+                    mFileListView.ScrollIntoView(item);
+                }
+            });
+
+        }
+
 
         /**
          * 現在選択されているファイルから再生を開始する
@@ -739,6 +766,13 @@ namespace wfPlayer
             }
             return r;
         }
+        private int CompareInID(WfFileItem o1, WfFileItem o2) {
+            int r = o1.ID.CompareTo(o2.ID);
+            if (r == 0) {
+                r = CompareInName(o1, o2);
+            }
+            return r;
+        }
 
         private WfSorter<WfFileItem> InitSorter()
         {
@@ -750,6 +784,9 @@ namespace wfPlayer
             IWfSorterComparator<WfFileItem> comparator = null;
             switch (sortInfo.Key)
             {
+                case WfSortKey.ID:
+                    comparator = CompareInID;
+                    break;
                 case WfSortKey.NAME:
                     comparator = CompareInName;
                     break;
