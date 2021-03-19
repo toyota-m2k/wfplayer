@@ -465,15 +465,21 @@ namespace wfPlayer {
             WfPlayListDB.Instance.SetValueAt("SliderPinned", ViewModel.SliderPinned.Value ? "1" : "0");
         }
 
+        //protected override void OnInitialized(EventArgs e) {
+        //    base.OnInitialized(e);
+        //    WfGlobalParams.Instance.PlayerPlacement.ApplyPlacementTo(this);
+        //}
+
         protected override void OnSourceInitialized(EventArgs e) {
             base.OnSourceInitialized(e);
             WfGlobalParams.Instance.PlayerPlacement.ApplyPlacementTo(this);
         }
 
-        private void OnClosing(object sender, CancelEventArgs e) {
+        protected override void OnClosing(CancelEventArgs e) {
+            base.OnClosing(e);
             mServer?.Dispose();
             mServer = null;
-            WfGlobalParams.Instance.Placement.GetPlacementFrom(this);
+            WfGlobalParams.Instance.PlayerPlacement.GetPlacementFrom(this);
         }
 
         #endregion
