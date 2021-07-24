@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace wfPlayer
+namespace wfPlayer.player
 {
     /**
      * Button に IsChecked属性を追加したもの。

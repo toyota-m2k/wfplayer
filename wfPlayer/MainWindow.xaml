@@ -204,7 +204,7 @@
             </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="ID" Width="100" DisplayMemberBinding="{Binding ID}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
+                    <GridViewColumn Header="ID" Width="100" DisplayMemberBinding="{Binding KeyFromName}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
                     <GridViewColumn Header="Name" Width="100" DisplayMemberBinding="{Binding Name}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
                     <GridViewColumn Header="Type" Width="50" DisplayMemberBinding="{Binding Type}" HeaderTemplate="{StaticResource SortHeaderTemplate}"/>
                     <GridViewColumn Header="Size" Width="100" HeaderTemplate="{StaticResource SortHeaderTemplate}">

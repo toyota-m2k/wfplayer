@@ -59,8 +59,9 @@ namespace wfPlayer
             mTrimStart = 0;
             mTrimEnd = 0;
         }
-        public WfFileItem(string path, long size, DateTime date, string mark, Ratings rating, bool exists, DateTime lastPlay,
-            int playCount, long trimId, WfAspect aspect, long trimStart, long trimEnd) {
+        public WfFileItem(ulong id, string path, long size, DateTime date, string mark, Ratings rating, bool exists, DateTime lastPlay,
+            int playCount, long trimId, WfAspect aspect, ulong trimStart, ulong trimEnd) {
+            this.id = id;
             FullPath = path;
             Size = size;
             Date = date;
@@ -80,9 +81,11 @@ namespace wfPlayer
 
         #region RO Properties
 
+        public ulong id { get; } = 0L;
+
         public bool Exists { get; }
 
-        public string ID => IDFromName(Name);
+        public string KeyFromName => getKeyFromName(Name);
 
         public string Name => Path.GetFileNameWithoutExtension(FullPath);
 
@@ -98,17 +101,16 @@ namespace wfPlayer
 
         static Regex regId = new Regex(@"(?<id>\d{6}-\d{3})|(?<id>\w+)_[a-z]{3}_[a-z]");
         static Regex regId2 = new Regex(@"sample(?:_low)*-(?<id>\d+)");
-        private string IDFromName(string name) {
-            string id = null;
+        private string getKeyFromName(string name) {
             var m = regId.Match(name);
             if (m.Success) {
-                id = m.Groups["id"]?.Value;
-                if (!string.IsNullOrEmpty(id)) return id;
+                var key = m.Groups["id"]?.Value;
+                if (!string.IsNullOrEmpty(key)) return key;
             }
             m = regId2.Match(name);
             if (m.Success) {
-                id = m.Groups["id"]?.Value;
-                if (!string.IsNullOrEmpty(id)) return $"({id})";
+                var key = m.Groups["id"]?.Value;
+                if (!string.IsNullOrEmpty(key)) return $"({key})";
             }
             return name;
         }
@@ -153,14 +155,14 @@ namespace wfPlayer
             set { if(setProp("Aspect", ref mAspect, value)) { mDirty |= (long)WfPlayListDB.FieldFlag.ASPECT; } }
         }
 
-        private long mTrimStart = 0;
-        public long TrimStart {
+        private ulong mTrimStart = 0;
+        public ulong TrimStart {
             get => mTrimStart;
             set { if(setProp("TrimStart", ref mTrimStart, value, "HasTrimming", "TrimRange", "TrimStartText")){ mDirty |= (long)WfPlayListDB.FieldFlag.TRIM_START; } }
         }
 
-        private long mTrimEnd = 0;
-        public long TrimEnd {
+        private ulong mTrimEnd = 0;
+        public ulong TrimEnd {
             get => mTrimEnd;
             set { if (setProp("TrimEnd", ref mTrimEnd, value, "HasTrimming", "TrimRange", "TrimEndText")) { mDirty |= (long)WfPlayListDB.FieldFlag.TRIM_END; } }
         }
@@ -253,7 +255,7 @@ namespace wfPlayer
         public bool HasTrimming => TrimStart > 0 || TrimEnd >= 0;
         public string TrimRange {
             get {
-                string tf(long time) {
+                string tf(ulong time) {
                     return $"{time / 1000:#.#}";
                 }
                 if (TrimStart > 0) {

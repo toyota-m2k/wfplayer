@@ -380,7 +380,7 @@ namespace wfPlayer
             var dic = new Dictionary<string, int>();
             var list = mFileList.ToList();
             list.ForEach((item) => {
-                var id = item.ID;
+                var id = item.KeyFromName;
                 if(dic.ContainsKey(id)) {
                     dic[id]++;
                 } else {
@@ -389,7 +389,7 @@ namespace wfPlayer
             });
             mFileListView.SelectedItems.Clear();
             list.ForEach((item) => {
-                if(dic[item.ID]>1) {
+                if(dic[item.KeyFromName]>1) {
                     mFileListView.SelectedItems.Add(item);
                     mFileListView.ScrollIntoView(item);
                 }
@@ -767,7 +767,7 @@ namespace wfPlayer
             return r;
         }
         private int CompareInID(WfFileItem o1, WfFileItem o2) {
-            int r = o1.ID.CompareTo(o2.ID);
+            int r = o1.KeyFromName.CompareTo(o2.KeyFromName);
             if (r == 0) {
                 r = CompareInName(o1, o2);
             }

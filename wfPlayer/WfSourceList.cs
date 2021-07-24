@@ -36,14 +36,15 @@ namespace wfPlayer
 
     public interface IWfSource
     {
+        ulong id { get; }
         Uri Uri { get; }
         string FullPath { get; }
         string Mark { get; set; }
         Ratings Rating { get; set; }
         //ITrim Trimming { get; set; }
         bool HasTrimming { get; }
-        long TrimStart { get; set; }
-        long TrimEnd { get; set; }
+        ulong TrimStart { get; set; }
+        ulong TrimEnd { get; set; }
         string TrimStartText { get; }
         string TrimEndText { get; }
         WfAspect Aspect { get; set; }

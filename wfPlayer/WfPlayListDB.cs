@@ -170,6 +170,7 @@ namespace wfPlayer
                 //    }
                 //}
                 rec = new WfFileItem(
+                                Convert.ToUInt64(reader["id"]),
                                 path,
                                 Convert.ToInt64(reader["size"]),
                                 DateTime.FromFileTimeUtc(Convert.ToInt64(reader["date"])),
@@ -180,8 +181,8 @@ namespace wfPlayer
                                 Convert.ToInt32(reader["playCount"]),
                                 trimId,
                                 (WfAspect)Convert.ToInt32(reader["aspect"]),
-                                Convert.ToInt64(reader["trim_start"]),
-                                Convert.ToInt64(reader["trim_end"])
+                                Convert.ToUInt64(reader["trim_start"]),
+                                Convert.ToUInt64(reader["trim_end"])
                                 );
                 return true;
             }
@@ -250,6 +251,9 @@ namespace wfPlayer
         //public TrimmingPattern TP;
 
         private SQLiteConnection mDB;
+        
+        public ChapterTable ChapterTable { get; private set; }
+        
         private WfPlayListDB() {
         }
 
@@ -265,7 +269,7 @@ namespace wfPlayer
                     prologue INTEGER NOT NULL,
                     epilogue INTEGER NOT NULL,
                     ref_path TEXT
-                )",
+                    )",
                 @"CREATE TABLE IF NOT EXISTS t_playlist (
                     id INTEGER NOT NULL PRIMARY KEY,
                     path TEXT NOT NULL UNIQUE,
@@ -278,61 +282,73 @@ namespace wfPlayer
                     trimming INTEGER NOT NULL,
                     flag INTEGER DEFAULT '0',
                     aspect INTEGER NOT NULL DEFAULT '0'
+                    )",
+                @"CREATE TABLE IF NOT EXISTS t_chapter (
+	                id	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    owner INTEGER NOT NULL,
+                    position  INTEGER NOT NULL,
+                    label TEXT,
+                    skip INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY(owner) REFERENCES t_playlist(id),
+                    UNIQUE(owner,position)
                 )",
                 @"CREATE INDEX IF NOT EXISTS idx_path ON t_playlist(path)",
                 @"CREATE INDEX IF NOT EXISTS idx_status ON t_playlist(rating)",
                 @"CREATE INDEX IF NOT EXISTS idx_mark ON t_playlist(mark)",
                 @"CREATE TABLE IF NOT EXISTS t_target_folders (
-                id INTEGER NOT NULL PRIMARY KEY,
-                path TEXT NOT NULL UNIQUE
-                )",
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    path TEXT NOT NULL UNIQUE
+                    )",
                 @"CREATE INDEX IF NOT EXISTS idx_folder_path ON t_target_folders(path)",
                 @"CREATE TABLE IF NOT EXISTS t_key_value (
-                key TEXT NOT NULL PRIMARY KEY,
-                value TEXT NOT NULL
-                )"
+                    key TEXT NOT NULL PRIMARY KEY,
+                    value TEXT NOT NULL
+                    )"
                 );
 
             UpdateTable();
+            ChapterTable = new ChapterTable(mDB);
         }
 
         const string KEY_APP_NAME = "AppName";
         const string KEY_VERSION = "Version";
         const string VAL_APP_NAME = "WfPlayer";
-        const string VAL_VERSION = "1";
+        const int VAL_VERSION_1 = 1;
+        const int VAL_CURRENT_VERSION = 2;
 
         public int Version = 0;
 
         void UpdateTable() {
-            Version = Convert.ToInt32(GetValueAt(KEY_VERSION));
+            Version = Convert.ToInt32(GetValueAt(KEY_VERSION)??"0");
             var name = GetValueAt(KEY_APP_NAME);
-            if(name==null) {
-                try {
-                    safeExecuteSql(@"ALTER TABLE t_playlist ADD COLUMN trim_start INTEGER DEFAULT '0'");
-                    safeExecuteSql(@"ALTER TABLE t_playlist ADD COLUMN trim_end INTEGER DEFAULT '0'");
-                    
-                    var tp = new TrimmingPattern(mDB);
-                    var list = QueryAll(false).List;
-                    foreach(var c in list) {
-                        if(c.TrimmingId!=0) {
-                            var trim = tp.GetById(c.TrimmingId);
-                            if (trim != null) {
-                                c.TrimStart = trim.Prologue;
-                                c.TrimEnd = trim.Epilogue;
-                                c.TrimmingId = 0;
-                                c.SaveModified();
+            if(Version < VAL_CURRENT_VERSION) {
+                if(name==null) {
+                    try {
+                        safeExecuteSql(@"ALTER TABLE t_playlist ADD COLUMN trim_start INTEGER DEFAULT '0'");
+                        safeExecuteSql(@"ALTER TABLE t_playlist ADD COLUMN trim_end INTEGER DEFAULT '0'");
+
+                        var tp = new TrimmingPattern(mDB);
+                        var list = QueryAll(false).List;
+                        foreach (var c in list) {
+                            if (c.TrimmingId != 0) {
+                                var trim = tp.GetById(c.TrimmingId);
+                                if (trim != null) {
+                                    c.TrimStart = (ulong)trim.Prologue;
+                                    c.TrimEnd = (ulong)trim.Epilogue;
+                                    c.TrimmingId = 0;
+                                    c.SaveModified();
+                                }
                             }
                         }
+                        SetValueAt(KEY_APP_NAME, VAL_APP_NAME);
                     }
-                    SetValueAt(KEY_APP_NAME, VAL_APP_NAME);
-                    SetValueAt(KEY_VERSION, VAL_VERSION);
-                    Version = Convert.ToInt32(VAL_VERSION);
-                }
-                catch (Exception e) {
-                    Debug.WriteLine(e);
+                    catch (Exception e) {
+                        Debug.WriteLine(e);
+                    }
+                    SetValueAt(KEY_VERSION, $"{VAL_CURRENT_VERSION}");
+                    Version = VAL_CURRENT_VERSION;
                 }
             }
-
         }
 
         static List<string> splitPath(string path)
@@ -736,5 +752,6 @@ namespace wfPlayer
                 }
             }
         }
+    
     }
 }

@@ -1,4 +1,5 @@
 ﻿using common;
+using io.github.toyota32k.toolkit.view;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace wfPlayer {
     /**
      * ビューモデル
      */
-    public class WfPlayerViewModel : MicViewModelBase {
+    public class WfPlayerViewModel : ViewModelBase {
         public ReactiveProperty<double> Duration { get; } = new ReactiveProperty<double>(1.0);
         public ReactiveProperty<double> Volume { get; } = new ReactiveProperty<double>(0.5);
         public ReactiveProperty<bool> Mute { get; } = new ReactiveProperty<bool>(false);
