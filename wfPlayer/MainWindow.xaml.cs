@@ -453,8 +453,8 @@ namespace wfPlayer
             if (dlg.Result != null) {
                 using (var txn = WfPlayListDB.Instance.Transaction()) {
                     foreach (WfFileItem v in mFileListView.SelectedItems) {
-                        v.TrimStart = dlg.Result.Prologue;
-                        v.TrimEnd = dlg.Result.Epilogue;
+                        v.TrimStart = (ulong)dlg.Result.Prologue;
+                        v.TrimEnd = (ulong)dlg.Result.Epilogue;
                         v.SaveModified();
                     }
                 }

@@ -134,11 +134,11 @@
                     <ToolTip Content="Sort"/>
                 </ToolTipService.ToolTip>
             </Button>
-            <local:CheckButton Click="OnFilter" IsChecked="{Binding IsFiltered, Mode=OneWay}" Content="{StaticResource PathFilter}" Style="{StaticResource CheckButtonStyle}" Margin="0,0,0,0">
+            <common:CheckButton Click="OnFilter" IsChecked="{Binding IsFiltered, Mode=OneWay}" Content="{StaticResource PathFilter}" Style="{StaticResource CheckButtonStyle}" Margin="0,0,0,0">
                 <ToolTipService.ToolTip>
                     <ToolTip Content="Filter"/>
                 </ToolTipService.ToolTip>
-            </local:CheckButton>
+            </c:CheckButton>
         </StackPanel>
 
         

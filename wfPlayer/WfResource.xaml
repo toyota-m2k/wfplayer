@@ -1,6 +1,8 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="clr-namespace:wfPlayer">
+                    xmlns:local="clr-namespace:wfPlayer"
+                    xmlns:common="clr-namespace:io.github.toyota32k.toolkit.view;assembly=io.github.toyota32k.wpfLittleToolkit"
+                    >
 
     <!-- Converters -->
     <local:BoolVisibilityConverter x:Key="BoolVisibilityConverter"/>
@@ -161,7 +163,7 @@
     </Style>
 
     <!-- Icon Check Button -->
-    <ControlTemplate x:Key="IconCheckButtonTemplate"  TargetType="local:CheckButton">
+    <ControlTemplate x:Key="IconCheckButtonTemplate"  TargetType="common:CheckButton">
         <Border 
             x:Name="border"
             Background="{TemplateBinding Background}"
@@ -175,7 +177,7 @@
         </Border>
     </ControlTemplate>
 
-    <Style x:Key="CheckButtonStyle" TargetType="local:CheckButton">
+    <Style x:Key="CheckButtonStyle" TargetType="common:CheckButton">
         <Setter Property="OverridesDefaultStyle" Value="True" />
         <Setter Property="Width" Value="30"/>
         <Setter Property="Height" Value="30"/>
@@ -294,5 +296,4 @@
     <Style x:Key="DescImage" TargetType="Image">
         <Setter Property="Source" Value="{StaticResource DescImageSource}"/>
     </Style>
-
 </ResourceDictionary>

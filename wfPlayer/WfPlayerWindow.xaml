@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:wfPlayer"
+        xmlns:common="clr-namespace:io.github.toyota32k.toolkit.view;assembly=io.github.toyota32k.wpfLittleToolkit"
         Loaded="OnLoaded"
         Unloaded="OnUnloaded"
         PreviewKeyDown="OnKeyDown"
@@ -133,9 +134,9 @@
             </Grid.Style>
             <StackPanel Orientation="Vertical" Name="mControlPanel" Width="300" Margin="10">
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <local:CheckButton Command="{Binding CommandPlay}" IsChecked="{Binding Started.Value, Mode=OneWay}" IsEnabled="{Binding Ready.Value}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
+                    <common:CheckButton Command="{Binding CommandPlay}" IsChecked="{Binding Started.Value, Mode=OneWay}" IsEnabled="{Binding Ready.Value}" Content="{StaticResource PathPlay}" Style="{StaticResource CheckButtonStyle}"/>
                     <Button Command="{Binding CommandPlayFast}" Content="{StaticResource PathPlayFast}" IsEnabled="{Binding Ready.Value}" Style="{StaticResource PushButtonStyle}"/>
-                    <local:CheckButton Command="{Binding CommandPause}" IsChecked="{Binding Pausing.Value, Mode=OneWay}" IsEnabled="{Binding Started.Value}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
+                    <common:CheckButton Command="{Binding CommandPause}" IsChecked="{Binding Pausing.Value, Mode=OneWay}" IsEnabled="{Binding Started.Value}" Content="{StaticResource PathPause}" Style="{StaticResource CheckButtonStyle}"/>
                     <Button Command="{Binding CommandStop}"  IsEnabled="{Binding Started.Value}" Content="{StaticResource PathStop}" Style="{StaticResource PushButtonStyle}"/>
                     <Button Command="{Binding CommandPrev}" IsEnabled="{Binding HasPrev.Value}" Content="{StaticResource PathPrev}" Style="{StaticResource PushButtonStyle}" Margin="8,0,0,0"/>
                     <Button Command="{Binding CommandNext}" IsEnabled="{Binding HasNext.Value}" Content="{StaticResource PathNext}" Style="{StaticResource PushButtonStyle}"/>
