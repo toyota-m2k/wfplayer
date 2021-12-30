@@ -61,7 +61,7 @@ class WfClient() {
                 .close()
             true
         } catch(e:Throwable) {
-            Log.e("WfClient", e.message);
+            Log.e("WfClient", e.message ?: "error");
             false
         }
     }
