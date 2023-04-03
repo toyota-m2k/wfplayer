@@ -20,19 +20,19 @@ class SettingsFragment: PreferenceFragmentCompat(),
         pref.setOnBindEditTextListener {
             it.setSingleLine()
         }
-        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
         val address = prefs.getString(KEY_SERVER_ADDR, "192.168.0.5")
         pref.title = address
     }
 
     override fun onResume() {
         super.onResume()
-        PreferenceManager.getDefaultSharedPreferences(activity).registerOnSharedPreferenceChangeListener(this)
+        PreferenceManager.getDefaultSharedPreferences(requireContext()).registerOnSharedPreferenceChangeListener(this)
     }
 
     override fun onPause() {
         super.onPause()
-        PreferenceManager.getDefaultSharedPreferences(activity).unregisterOnSharedPreferenceChangeListener(this)
+        PreferenceManager.getDefaultSharedPreferences(requireContext()).unregisterOnSharedPreferenceChangeListener(this)
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {

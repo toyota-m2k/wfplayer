@@ -4,7 +4,6 @@ import SettingsFragment
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.android.synthetic.main.settings_activity.*
 
 class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -15,7 +14,7 @@ class SettingsActivity : AppCompatActivity() {
             .replace(R.id.settings_panel, SettingsFragment())
             .commit()
 
-        setSupportActionBar(settingsToolbar)
+        setSupportActionBar(findViewById(R.id.settingsToolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
 //        actionBar.setDisplayHomeAsUpEnabled(true)

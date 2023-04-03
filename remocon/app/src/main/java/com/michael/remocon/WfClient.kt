@@ -17,11 +17,14 @@ class WfClient() {
     private val httpClient = OkHttpClient()
 
     private var mContext: WeakReference<Context>? = null
-    var context : Context?
-        get() = mContext?.get()
-        set(value) {
-            mContext = if(null!=value) { WeakReference(value) } else { null }
+    var context : Context
+        get() = mContext?.get()!!
+        private set(value) {
+            mContext = WeakReference(value)
         }
+    fun attach(activity: MainActivity) {
+        context = activity
+    }
     /**
      * coroutineを利用し、スレッドをブロックしないで同期的な通信を可能にする拡張メソッド
      * OkHttpのnewCall().execute()を置き換えるだけで使える。
@@ -46,8 +49,8 @@ class WfClient() {
 
     private val serverAddress:String
         get() {
-            val key = context?.getString(R.string.key_server_address) ?: return ""
-            return PreferenceManager.getDefaultSharedPreferences(context).getString(key, null) ?: "192.168.0.5"
+            val key = context.getString(R.string.key_server_address)
+            return PreferenceManager.getDefaultSharedPreferences(context).getString(key, null) ?: "192.168.0.152"
         }
 
 

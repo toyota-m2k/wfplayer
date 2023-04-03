@@ -2,13 +2,11 @@ package com.michael.remocon
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Debug
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Button
 import android.widget.ImageButton
-
-import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,8 +16,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar)
-        mClient.context = this
+        setSupportActionBar(findViewById(R.id.toolbar))
+        mClient.attach(this)
 
 //        fab.setOnClickListener { view ->
 //            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -95,6 +93,15 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.lock_button).setOnClickListener {
             mLockSystemCommands = !mLockSystemCommands
             updateSystemCommands()
+        }
+        findViewById<Button>(R.id.execute_camera).setOnClickListener {
+            mClient.postCommand("close")
+            val packageName = "io.github.toyota32k.monitor"
+            val className = "io.github.toyota32k.monitor.MainActivity"
+            val intent = Intent().apply {
+                setClassName(packageName, className)
+            }
+            startActivity(intent)
         }
         updateSystemCommands()
     }
