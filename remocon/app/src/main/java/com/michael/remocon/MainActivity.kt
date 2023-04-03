@@ -1,12 +1,14 @@
 package com.michael.remocon
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.ImageButton
+import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -94,12 +96,34 @@ class MainActivity : AppCompatActivity() {
             mLockSystemCommands = !mLockSystemCommands
             updateSystemCommands()
         }
+
         findViewById<Button>(R.id.execute_camera).setOnClickListener {
-            mClient.postCommand("close")
-            val packageName = "io.github.toyota32k.monitor"
-            val className = "io.github.toyota32k.monitor.MainActivity"
+            val packageName = "io.github.toyota32k.secureCamera"
+            val className = "io.github.toyota32k.secureCamera.MainActivity"
             val intent = Intent().apply {
                 setClassName(packageName, className)
+            }
+            startActivity(intent)
+        }
+
+        findViewById<Button>(R.id.execute_cast).setOnClickListener {
+            mClient.postCommand("close")
+//            val intent2 = Intent().apply {
+//                setPackage("com.google.android.apps.chromecast.app")
+//                addCategory(Intent.CATEGORY_DEFAULT)
+//            }
+//            val resolveInfos = packageManager.queryIntentActivities(intent2, PackageManager.GET_META_DATA)
+//            resolveInfos.forEach {
+//                Log.d("test", "$it")
+//            }
+
+//            val intent = packageManager.getLaunchIntentForPackage("com.google.android.apps.chromecast.app")
+            val intent = Intent().apply {
+//                setClassName("com.google.android.apps.chromecast.app", "com.google.android.apps.chromecast.app.main.MainActivity")
+                setPackage("com.google.android.apps.chromecast.app")
+                addCategory(Intent.CATEGORY_DEFAULT)
+                setAction(Intent.ACTION_MAIN)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(intent)
         }
